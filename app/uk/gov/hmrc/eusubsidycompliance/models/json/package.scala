@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.eusubsidycompliance.config
+package uk.gov.hmrc.eusubsidycompliance.models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.{JsString, Json}
 
-@Singleton
-class AppConfig @Inject()
-  (
-    config: Configuration
-  , servicesConfig: ServicesConfig
-  ) {
+package object json {
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+  // only writes the field if the value is defined, Play version relies on fields being in case class
+  def nullableOpt[A](name: String, value: Option[A]): List[(String, Json.JsValueWrapper)] =
+    value.fold(List.empty[(String, Json.JsValueWrapper)]) { v =>
+      List((name, JsString(v.toString)))
+    }
 }

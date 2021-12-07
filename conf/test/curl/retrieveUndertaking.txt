@@ -1,0 +1,1 @@
+curl -i -X GET  -H "Authorization: Bearer EvYRlYH8AS_hZGw32ffqJ25Mz04a" -H "Environment: ist0" "http://localhost:9094/eu-subsidy-compliance/undertaking/GB123456789012"
