@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.eusubsidycompliance.config
+package uk.gov.hmrc.eusubsidycompliance.models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 
-@Singleton
-class AppConfig @Inject()
-  (
-    config: Configuration
-  , servicesConfig: ServicesConfig
-  ) {
+case class UndertakingBusinessEntityUpdate(
+	undertakingIdentifier: UndertakingRef,
+	undertakingComplete: Boolean = true,
+	businessEntityUpdates: List[BusinessEntityUpdate]
+)
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
-}

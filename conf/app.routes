@@ -1,3 +1,6 @@
 # microservice specific routes
 
 GET        /hello-world             uk.gov.hmrc.eusubsidycompliance.controllers.MicroserviceHelloWorldController.hello
+
+GET        /undertaking/:eori       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieve(eori)
+POST       /undertaking             uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.create
