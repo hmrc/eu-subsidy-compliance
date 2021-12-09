@@ -23,6 +23,7 @@ import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -63,9 +64,9 @@ class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerCompon
             case enrolments =>
               enrolments.getEnrolment("HMRC-ESC-ORG")
                 .map(x => x.getIdentifier("EORINumber"))
-                .map(y => y.map(z => z.value)) match {
-                case Some(Some(eori)) => action(request)(eori)
-                case _ => ??? // TODO: What happens in this scenario?
+                .flatMap(y => y.map(z => z.value)).map(x => EORI(x)) match {
+                case Some(eori) => action(request)(eori)
+                case _ => throw new IllegalStateException("EORI missing from enrolment")
               }
             case _ => Future.failed(throw InternalError())
           }.recoverWith {

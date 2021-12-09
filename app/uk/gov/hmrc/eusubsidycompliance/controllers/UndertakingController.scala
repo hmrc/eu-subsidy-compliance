@@ -37,9 +37,9 @@ class UndertakingController @Inject()(
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
+  def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => eoriEnrolment =>
     eis.retrieveUndertaking(
-      EORI(eori)
+      EORI(eoriEnrolment)
     ).map { undertaking =>
       Ok(Json.toJson(undertaking))
     }
