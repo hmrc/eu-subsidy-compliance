@@ -24,20 +24,22 @@ import uk.gov.hmrc.eusubsidycompliance.models.Undertaking
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 
 import scala.concurrent.ExecutionContext
 
 @Singleton()
 class UndertakingController @Inject()(
   cc: ControllerComponents,
+  authenticator: Auth,
   eis: EisConnector
-) extends BackendController(cc) { // TODO authentication
+) extends BackendController(cc) {
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def retrieve(eori: String): Action[AnyContent] = Action.async { implicit request =>
+  def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => eoriEnrolment =>
     eis.retrieveUndertaking(
-      EORI(eori)
+      EORI(eoriEnrolment)
     ).map { undertaking =>
       Ok(Json.toJson(undertaking))
     }
