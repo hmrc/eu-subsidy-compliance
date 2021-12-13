@@ -44,7 +44,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
   def newEnrolment(key: String, identifierName: String, identifierValue: String): Enrolment =
     Enrolment(key).withIdentifier(identifierName, identifierValue)
 
-  "Do something" should {
+  "Authetication" should {
     "should return Forbidden when theres no Authorization header" in {
       status(result(request)) shouldBe Status.FORBIDDEN
     }
