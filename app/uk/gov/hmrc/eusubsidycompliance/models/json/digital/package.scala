@@ -20,7 +20,8 @@ import cats.implicits._
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.{Params, RequestCommon}
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisAmendmentType, IndustrySectorLimit, Sector, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisAmendmentType, IndustrySectorLimit, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking, UndertakingBusinessEntityUpdate}
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZonedDateTime}

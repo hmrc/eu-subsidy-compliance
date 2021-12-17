@@ -24,6 +24,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types._
+import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 
 package object eis {
 
