@@ -17,11 +17,10 @@
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.models.Undertaking
-import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
@@ -41,6 +40,7 @@ class UndertakingController @Inject()(
     eis.retrieveUndertaking(
       EORI(eoriEnrolment)
     ).map { undertaking =>
+      implicit val undertakingFormat: OFormat[Undertaking] = Json.format[Undertaking]
       Ok(Json.toJson(undertaking))
     }
   }
