@@ -20,12 +20,12 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
-import uk.gov.hmrc.eusubsidycompliance.models.Undertaking
-import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, UndertakingRef}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class UndertakingController @Inject()(
@@ -50,6 +50,24 @@ class UndertakingController @Inject()(
     withJsonBody[Undertaking] { undertaking: Undertaking =>
       eis.createUndertaking(undertaking).map{ ref =>
         Ok(Json.toJson(ref))
+      }
+    }
+  }
+
+  def addMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    implicit val uF = Json.format[BusinessEntity]
+    withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+      eis.addMember(UndertakingRef(undertakingRef), businessEntity).map{ _ =>
+        Ok("") // TODO
+      }
+    }
+  }
+
+  def deleteMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    implicit val uF = Json.format[BusinessEntity]
+    withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+      eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map{ _ =>
+        Ok("") // TODO
       }
     }
   }
