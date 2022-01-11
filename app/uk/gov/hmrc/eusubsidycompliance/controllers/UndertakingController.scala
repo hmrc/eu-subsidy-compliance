@@ -21,9 +21,11 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -56,9 +58,19 @@ class UndertakingController @Inject()(
 
   def addMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = Json.format[BusinessEntity]
+    //TODO make sure the undertaking is correct
     withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      eis.addMember(UndertakingRef(undertakingRef), businessEntity).map{ _ =>
-        Ok("") // TODO
+      val a = eis.retrieveUndertaking(
+          EORI(businessEntity.businessEntityIdentifier)
+        )
+        .map (_ => AmendmentType.amend)
+        .recover {
+          case _ =>  AmendmentType.add
+        }
+      a.flatMap { amendType =>
+        eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
+          Ok("") // TODO
+        }
       }
     }
   }

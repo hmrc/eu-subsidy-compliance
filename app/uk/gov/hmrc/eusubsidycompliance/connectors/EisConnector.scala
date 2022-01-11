@@ -23,6 +23,7 @@ import play.api.{Logger, Mode}
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, BusinessEntityUpdate, Undertaking, UndertakingBusinessEntityUpdate}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamName, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
@@ -83,7 +84,8 @@ class EisConnector @Inject()(
 
   def addMember(
      undertakingRef: UndertakingRef,
-     businessEntity: BusinessEntity
+     businessEntity: BusinessEntity,
+     amendmentType: AmendmentType
   )(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
@@ -96,7 +98,7 @@ class EisConnector @Inject()(
       UndertakingBusinessEntityUpdate(
         undertakingRef,
         true,
-        List(BusinessEntityUpdate(AmendmentType.add, LocalDate.now(), businessEntity)))
+        List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity)))
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
