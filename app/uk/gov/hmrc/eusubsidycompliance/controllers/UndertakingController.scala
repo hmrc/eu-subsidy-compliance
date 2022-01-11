@@ -69,7 +69,7 @@ class UndertakingController @Inject()(
         }
       a.flatMap { amendType =>
         eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
-          Ok("") // TODO
+          Ok(Json.toJson(UndertakingRef(undertakingRef)))
         }
       }
     }
