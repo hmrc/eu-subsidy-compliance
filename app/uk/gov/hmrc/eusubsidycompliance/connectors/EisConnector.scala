@@ -42,8 +42,8 @@ class EisConnector @Inject()(
 
   val logger: Logger = Logger(this.getClass)
   val eisURL: String = servicesConfig.baseUrl("eis")
-  val retrieveUndertakingPath = "eu-subsidy-compliance-stub/scp/retrieveundertaking/v1"
-  val createUndertakingPath = "eu-subsidy-compliance-stub/scp/createundertaking/v1"
+  val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
+  val createUndertakingPath = "scp/createundertaking/v1"
 
   def retrieveUndertaking(
     eori: EORI
