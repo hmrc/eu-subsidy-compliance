@@ -21,6 +21,9 @@ import play.api.libs.json.Writes
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneId}
+import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
 
 trait DesHelpers {
@@ -29,6 +32,8 @@ trait DesHelpers {
   def servicesConfig: ServicesConfig
   private def headers = Seq(
     HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
+    HeaderNames.ACCEPT -> ContentTypes.JSON,
+    HeaderNames.DATE -> LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))),
     "Environment" -> servicesConfig.getConfString("eis.environment", ""),
     "Authorization" -> s"Bearer ${servicesConfig.getConfString("eis.token", "")}"
   )
