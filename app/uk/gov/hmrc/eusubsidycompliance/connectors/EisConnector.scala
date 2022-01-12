@@ -21,7 +21,7 @@ import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.{Logger, Mode}
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, BusinessEntityUpdate, Undertaking, UndertakingBusinessEntityUpdate}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, BusinessEntityUpdate, NonHmrcSubsidy, SubsidyUpdate, Undertaking, UndertakingBusinessEntityUpdate}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
@@ -48,6 +48,7 @@ class EisConnector @Inject()(
   val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
   val createUndertakingPath = "scp/createundertaking/v1"
   val amendBusinessEntityPath = "scp/amendundertakingmemberdata/v1"
+  val amendSubsidyPath = "/scp/amendundertakingsubsidyusage/v1"
 
   def retrieveUndertaking(
     eori: EORI
@@ -122,4 +123,12 @@ class EisConnector @Inject()(
         List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity)))
     )(implicitly, implicitly, addHeaders, implicitly)
   }
+
+  def updateSubsidy(subsidyUpdate: SubsidyUpdate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    desPost[SubsidyUpdate, Unit](
+      s"$eisURL/$amendSubsidyPath",
+      subsidyUpdate
+    )(implicitly, implicitly, addHeaders, implicitly)
+  }
+
 }
