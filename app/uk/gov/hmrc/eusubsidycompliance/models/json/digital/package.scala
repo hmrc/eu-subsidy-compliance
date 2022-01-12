@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,6 +167,24 @@ package object digital {
           val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
           JsSuccess(UndertakingRef(ref))
         case _ => JsError("unable to derive Error or Success from SCP02 response")
+      }
+    }
+  }
+
+  implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] = new Reads[Unit] {
+    override def reads(json: JsValue): JsResult[Unit] = {
+      val responseCommon: JsLookupResult = json \ "amendUndertakingMemberDataResponse" \ "responseCommon"
+      (responseCommon \ "status").as[String] match {
+        case "NOT_OK" =>
+          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
+          val statusText = (responseCommon \ "statusText").asOpt[String]
+          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
+          // TODO consider moving exception to connector
+          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
+        case "OK" =>
+          JsSuccess(Unit)
+        case _ =>
+          JsError("unable to derive Error or Success from SCP02 response")
       }
     }
   }

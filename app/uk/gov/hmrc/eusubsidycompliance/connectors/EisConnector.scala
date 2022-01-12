@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
 import cats.implicits._
+
 import javax.inject.{Inject, Singleton}
 import play.api.{Logger, Mode}
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.eusubsidycompliance.models.Undertaking
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, BusinessEntityUpdate, Undertaking, UndertakingBusinessEntityUpdate}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisParamName, EisParamValue, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamName, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -42,8 +44,10 @@ class EisConnector @Inject()(
 
   val logger: Logger = Logger(this.getClass)
   val eisURL: String = servicesConfig.baseUrl("eis")
+
   val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
   val createUndertakingPath = "scp/createundertaking/v1"
+  val amendBusinessEntityPath = "scp/amendundertakingmemberdata/v1"
 
   def retrieveUndertaking(
     eori: EORI
@@ -79,4 +83,43 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
+  def addMember(
+     undertakingRef: UndertakingRef,
+     businessEntity: BusinessEntity,
+     amendmentType: AmendmentType
+  )(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
+    desPost[UndertakingBusinessEntityUpdate, Unit](
+      s"$eisURL/$amendBusinessEntityPath",
+      UndertakingBusinessEntityUpdate(
+        undertakingRef,
+        true,
+        List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity)))
+    )(implicitly, implicitly, addHeaders, implicitly)
+  }
+
+  def deleteMember(
+     undertakingRef: UndertakingRef,
+     businessEntity: BusinessEntity
+   )(
+     implicit hc: HeaderCarrier,
+     ec: ExecutionContext
+   ): Future[Unit] = {
+
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
+
+    desPost[UndertakingBusinessEntityUpdate, Unit](
+      s"$eisURL/$amendBusinessEntityPath",
+      UndertakingBusinessEntityUpdate(
+        undertakingRef,
+        true,
+        List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity)))
+    )(implicitly, implicitly, addHeaders, implicitly)
+  }
 }
