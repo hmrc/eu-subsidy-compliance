@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyUpdate, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyUpdate, Undertaking, Update}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
@@ -86,10 +86,10 @@ class UndertakingController @Inject()(
 
 
   def updateSubsidy(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    implicit val uF = Json.format[BusinessEntity]
-    withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      eis.updateSubsidy(SubsidyUpdate()).map{ _ =>
-        Ok("") // TODO
+//    implicit val uF = Json.format[SubsidyUpdate]
+    withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
+      eis.updateSubsidy(update).map{ _ =>
+        Ok(Json.toJson(UndertakingRef(undertakingRef))) // TODO check error handling
       }
     }
   }

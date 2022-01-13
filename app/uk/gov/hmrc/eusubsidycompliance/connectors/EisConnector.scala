@@ -124,7 +124,14 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  def updateSubsidy(subsidyUpdate: SubsidyUpdate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def updateSubsidy(
+    subsidyUpdate: SubsidyUpdate
+  )(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyResponseReads
     desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate
