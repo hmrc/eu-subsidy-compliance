@@ -31,7 +31,7 @@ package object eis {
 
   val clock: Clock = Clock.systemUTC()
   val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
-  val oddEisDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM-dd")
+  val oddEisDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
   def receiptDate: String = {
     val instant = Instant.now(clock)
