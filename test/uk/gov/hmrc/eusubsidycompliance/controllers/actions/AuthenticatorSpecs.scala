@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
   private val authenticator = new AuthImpl(mockAuthConnector, mcc)
   implicit val ec = ExecutionContext.global
 
-  def result = authenticator.authorised { implicit request => _ =>
+  def result = authenticator.authorised { implicit _ => _ =>
     Future.successful(Ok("Hello world"))
   }
 
