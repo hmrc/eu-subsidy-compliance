@@ -37,7 +37,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
   private val authenticator = new AuthImpl(mockAuthConnector, mcc)
   implicit val ec = ExecutionContext.global
 
-  def result = authenticator.authorised { implicit _ => _ =>
+  def result = authenticator.authorised { implicit request => _ =>
     Future.successful(Ok("Hello world"))
   }
 
