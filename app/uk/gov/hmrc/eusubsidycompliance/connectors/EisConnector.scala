@@ -61,7 +61,7 @@ class EisConnector @Inject()(
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.retrieveUndertakingEORIWrites
 
-    val eisTokenKey = "eis.token.sp01"
+    val eisTokenKey = "eis.token.scp04"
     desPost[EORI, Undertaking](
       s"$eisURL/$retrieveUndertakingPath",
       eori, eisTokenKey
@@ -80,7 +80,7 @@ class EisConnector @Inject()(
   ): Future[UndertakingRef] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingCreateResponseReads
-    val eisTokenKey = "eis.token.sp02"
+    val eisTokenKey = "eis.token.scp02"
     desPost[Undertaking, UndertakingRef](
       s"$eisURL/$createUndertakingPath",
       undertaking, eisTokenKey
@@ -99,7 +99,7 @@ class EisConnector @Inject()(
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
 
-    val eisTokenKey = "eis.token.sp03"
+    val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
@@ -120,7 +120,7 @@ class EisConnector @Inject()(
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
 
-    val eisTokenKey = "eis.token.sp04"
+    val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
@@ -139,7 +139,7 @@ class EisConnector @Inject()(
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyResponseReads
 
-    val eisTokenKey = "eis.token.sp05"
+    val eisTokenKey = "eis.token.scp06"
     desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate, eisTokenKey
@@ -152,7 +152,7 @@ class EisConnector @Inject()(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
                        ): Future[UndertakingSubsidies] = {
-    val eisTokenKey = "eis.token.sp06"
+    val eisTokenKey = "eis.token.scp09"
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponse
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponseWrite
 
