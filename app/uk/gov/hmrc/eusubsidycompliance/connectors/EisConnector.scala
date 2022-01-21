@@ -61,9 +61,10 @@ class EisConnector @Inject()(
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.retrieveUndertakingEORIWrites
 
+    val eisTokenKey = "eis.token.scp04"
     desPost[EORI, Undertaking](
       s"$eisURL/$retrieveUndertakingPath",
-      eori
+      eori, eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly).recover {
       case e:EisBadResponseException if e.code == EisParamValue("107") =>
         logger.info(s"No undertaking found for $eori")
@@ -79,10 +80,10 @@ class EisConnector @Inject()(
   ): Future[UndertakingRef] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingCreateResponseReads
-
+    val eisTokenKey = "eis.token.scp02"
     desPost[Undertaking, UndertakingRef](
       s"$eisURL/$createUndertakingPath",
-      undertaking
+      undertaking, eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
@@ -97,12 +98,14 @@ class EisConnector @Inject()(
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
+
+    val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
         true,
-        List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity)))
+        List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity))), eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
@@ -117,12 +120,13 @@ class EisConnector @Inject()(
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
 
+    val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
         true,
-        List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity)))
+        List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity))), eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
@@ -134,9 +138,11 @@ class EisConnector @Inject()(
   ): Future[Unit] = {
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyResponseReads
+
+    val eisTokenKey = "eis.token.scp06"
     desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
-      subsidyUpdate
+      subsidyUpdate, eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
@@ -146,7 +152,7 @@ class EisConnector @Inject()(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
                        ): Future[UndertakingSubsidies] = {
-    //import uk.gov.hmrc.eusubsidycompliance.models.UndertakingSubsidies.format
+    val eisTokenKey = "eis.token.scp09"
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponse
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponseWrite
 
@@ -155,7 +161,7 @@ class EisConnector @Inject()(
       SubsidyRetrieve(
         ref,
         Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
-      )
+      ), eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
