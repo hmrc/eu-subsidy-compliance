@@ -23,6 +23,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmen
 import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisAmendmentType, IndustrySectorLimit, UndertakingName, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking, UndertakingBusinessEntityUpdate}
+
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZonedDateTime}
 
@@ -32,9 +33,6 @@ package object digital {
 
   implicit val undertakingFormat: Format[Undertaking] = new Format[Undertaking] {
 
-    val requestCommon = RequestCommon(
-      "CreateNewUndertaking"
-    )
 
     // provides json for EIS createUndertaking call
     override def writes(o: Undertaking): JsValue = {
@@ -46,7 +44,7 @@ package object digital {
 
       Json.obj(
         "createUndertakingRequest" -> Json.obj(
-          "requestCommon" -> requestCommon,
+          "requestCommon" -> RequestCommon("CreateNewUndertaking"),
           "requestDetail" -> Json.obj(
             "undertakingName" -> o.name,
             "industrySector" -> o.industrySector,
@@ -102,13 +100,10 @@ package object digital {
 
   // provides json for EIS retrieveUndertaking call
   implicit val retrieveUndertakingEORIWrites: Writes[EORI] = new Writes[EORI] {
-    val requestCommon = RequestCommon(
-      "RetrieveUndertaking"
-    )
 
     override def writes(o: EORI): JsValue = Json.obj(
       "retrieveUndertakingRequest" -> Json.obj(
-        "requestCommon" -> requestCommon,
+        "requestCommon" -> RequestCommon("RetrieveUndertaking"),
         "requestDetail" -> Json.obj(
           "idType" -> "EORI",
           "idValue" -> o.toString
@@ -131,13 +126,10 @@ package object digital {
     amendmentType: EisAmendmentType = EisAmendmentType.A
   ): Writes[Undertaking] = {
     val amendUndertakingWrites: Writes[Undertaking] = new Writes[Undertaking] {
-      val requestCommon = RequestCommon(
-        "UpdateUndertaking"
-      )
       override def writes(o: Undertaking): JsValue = {
         Json.obj(
           "updateUndertakingRequest" -> Json.obj(
-            "requestCommon" -> requestCommon,
+            "requestCommon" -> RequestCommon("UpdateUndertaking"),
             "requestDetail" -> Json.obj(
               "amendmentType" -> amendmentType,
               "undertakingId" -> o.reference,
