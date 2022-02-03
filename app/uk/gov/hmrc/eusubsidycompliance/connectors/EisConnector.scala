@@ -24,6 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
