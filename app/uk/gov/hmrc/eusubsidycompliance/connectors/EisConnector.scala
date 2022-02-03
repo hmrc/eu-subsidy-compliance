@@ -16,21 +16,17 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import cats.implicits._
-
-import javax.inject.{Inject, Singleton}
 import play.api.{Logger, Mode}
-import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, BusinessEntityUpdate, NonHmrcSubsidy, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingBusinessEntityUpdate, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
-import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamName, EisParamValue, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -58,8 +54,7 @@ class EisConnector @Inject()(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Undertaking] = {
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.retrieveUndertakingEORIWrites
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingFormat}
 
     val eisTokenKey = "eis.token.scp04"
     desPost[EORI, Undertaking](
@@ -78,8 +73,7 @@ class EisConnector @Inject()(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[UndertakingRef] = {
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingFormat
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingCreateResponseReads
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{undertakingCreateResponseReads, undertakingFormat}
     val eisTokenKey = "eis.token.scp02"
     desPost[Undertaking, UndertakingRef](
       s"$eisURL/$createUndertakingPath",
@@ -96,8 +90,7 @@ class EisConnector @Inject()(
     ec: ExecutionContext
   ): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
 
     val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
@@ -117,8 +110,7 @@ class EisConnector @Inject()(
      ec: ExecutionContext
    ): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataResponseReads
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
 
     val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
@@ -153,7 +145,6 @@ class EisConnector @Inject()(
     ec: ExecutionContext
                        ): Future[UndertakingSubsidies] = {
     val eisTokenKey = "eis.token.scp09"
-    import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponse
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponseWrite
 
     desPost[SubsidyRetrieve, UndertakingSubsidies](
