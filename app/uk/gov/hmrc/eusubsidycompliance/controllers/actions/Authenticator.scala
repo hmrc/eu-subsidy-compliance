@@ -55,16 +55,17 @@ class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerCompon
   val authProvider: AuthProviders = AuthProviders(GovernmentGateway)
   val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
 
+  private val EnrollmentKey = "HMRC-ESC-ORG"
+
   def authCommon[A](action: AuthAction[A])(implicit request: Request[A], executionContext: ExecutionContext):
     Future[Result] = {
       request.headers.get("Authorization") match {
         case Some(_) =>
           implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-          authorised(Enrolment("HMRC-ESC-ORG")).retrieve(retrievals) {
-            case enrolments =>
-              enrolments.getEnrolment("HMRC-ESC-ORG")
-                .map(x => x.getIdentifier("EORINumber"))
-                .flatMap(y => y.map(z => z.value)).map(x => EORI(x)) match {
+          authorised(Enrolment(EnrollmentKey)).retrieve(retrievals) {
+            case enrolments: Enrolments => enrolments.getEnrolment(EnrollmentKey)
+              .map(x => x.getIdentifier("EORINumber"))
+              .flatMap(y => y.map(z => z.value)).map(x => EORI(x)) match {
                 case Some(eori) => action(request)(eori)
                 case _ => throw new IllegalStateException("EORI missing from enrolment")
               }
