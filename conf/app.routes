@@ -1,7 +1,5 @@
 # microservice specific routes
 
-GET        /hello-world                                     uk.gov.hmrc.eusubsidycompliance.controllers.MicroserviceHelloWorldController.hello
-
 GET        /undertaking/:eori                               uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieve(eori)
 POST       /undertaking                                     uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.create
 
@@ -9,4 +7,4 @@ POST       /undertaking/member/:undertakingRef              uk.gov.hmrc.eusubsid
 POST       /undertaking/member/remove/:undertakingRef       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.deleteMember(undertakingRef)
 
 POST       /subsidy/update                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateSubsidy()
-POST       /subsidy/retrieve                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
+POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
