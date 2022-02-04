@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq => argEq}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.allEnrolments
@@ -29,12 +28,8 @@ trait AuthTestSupport extends MockitoSugar {
   lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
   def withAuthorizedUser(enrolments: Enrolments = Enrolments(Set.empty)): Unit = {
-
-    val foo = Future.successful(enrolments)
-
-    when(mockAuthConnector.authorise(any(), ArgumentMatchers.eq(allEnrolments))
-    (any(), any()))
-      .thenReturn(foo)
+    when(mockAuthConnector.authorise(any(), argEq(allEnrolments))(any(), any()))
+      .thenReturn(Future.successful(enrolments))
   }
 
   def withUnauthorizedUser(error: Throwable): Unit =

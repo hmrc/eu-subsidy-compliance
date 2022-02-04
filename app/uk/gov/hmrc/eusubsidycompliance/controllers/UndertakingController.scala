@@ -16,18 +16,16 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
-import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyRetrieve, SubsidyUpdate, Undertaking, Update}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
-import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.http.UpstreamErrorResponse
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyRetrieve, SubsidyUpdate, Undertaking}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
 class UndertakingController @Inject()(

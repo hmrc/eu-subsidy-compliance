@@ -27,62 +27,55 @@ import play.api.test.{DefaultAwaitTimeout, FakeRequest}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.play.bootstrap.tools.Stubs.stubMessagesControllerComponents
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
   with DefaultAwaitTimeout with EitherValues  {
 
-  private val mcc           = stubMessagesControllerComponents()
-  private val request       = FakeRequest()
+  private val mcc = stubMessagesControllerComponents()
+  private val request = FakeRequest()
   private val authenticator = new AuthImpl(mockAuthConnector, mcc)
-  implicit val ec = ExecutionContext.global
+  private val requestWithAuthHeader = request.withHeaders(("Authorization", "XXXX"))
 
-  def result = authenticator.authorised { implicit request => _ =>
-    Future.successful(Ok("Hello world"))
-  }
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  def newEnrolment(key: String, identifierName: String, identifierValue: String): Enrolment =
-    Enrolment(key).withIdentifier(identifierName, identifierValue)
+  private def result = authenticator.authorised { _ => _ => Future.successful(Ok("Hello world")) }
 
-  "Authetication" should {
-    "should return Forbidden when theres no Authorization header" in {
+  private def newEnrolment(identifierName: String, identifierValue: String) =
+    Enrolment("HMRC-ESC-ORG").withIdentifier(identifierName, identifierValue)
+
+  "Authentication" should {
+    "return Forbidden when there is no Authorization header" in {
       status(result(request)) shouldBe Status.FORBIDDEN
     }
 
     "return 200 Ok" in {
-      val newRequest = request.withHeaders(("Authorization", "XXXX"))
-      withAuthorizedUser(Enrolments(Set(newEnrolment("HMRC-ESC-ORG", "EORINumber", "GB123123123123"))))
-      status(result(newRequest)) shouldBe Status.OK
+      withAuthorizedUser(Enrolments(Set(newEnrolment("EORINumber", "GB123123123123"))))
+      status(result(requestWithAuthHeader)) shouldBe Status.OK
     }
 
-    "throw illegal state error exception" in {
-      val newRequest = request.withHeaders(("Authorization", "XXXX"))
+    "throw illegal state error exception " in {
       withAuthorizedUser()
-
       assertThrows[IllegalStateException](
-        await(result(newRequest))
+        await(result(requestWithAuthHeader))
       )
     }
 
     "throw illegal state exception when identifier missing" in {
-      val newRequest = request.withHeaders(("Authorization", "XXXX"))
-      withAuthorizedUser(Enrolments(Set(newEnrolment("HMRC-ESC-ORG", "XXX", "XXX"))))
-
+      withAuthorizedUser(Enrolments(Set(newEnrolment("XXX", "XXX"))))
       assertThrows[IllegalStateException](
-        await(result(newRequest))
+        await(result(requestWithAuthHeader))
       )
     }
 
-    "return 401 UNAUTHORIZED when there is insufficient enrolments" in {
-      val newRequest = request.withHeaders(("Authorization", "XXXX"))
+    "return 401 UNAUTHORIZED when there are insufficient enrolments" in {
       withUnauthorizedUser(InsufficientEnrolments("User not authorised"))
-      status(result(newRequest)) shouldBe Status.UNAUTHORIZED
+      status(result(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
     }
 
     "return 401 UNAUTHORIZED when there is no session record" in {
-      val newRequest = request.withHeaders(("Authorization", "XXXX"))
       withUnauthorizedUser(SessionRecordNotFound("User not authorised"))
-      status(result(newRequest)) shouldBe Status.UNAUTHORIZED
+      status(result(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
     }
   }
 }
