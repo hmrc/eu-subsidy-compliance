@@ -163,6 +163,24 @@ package object digital {
     }
   }
 
+  implicit val undertakingUpdateResponseReads: Reads[UndertakingRef] = new Reads[UndertakingRef] {
+    override def reads(json: JsValue): JsResult[UndertakingRef] = {
+      val responseCommon: JsLookupResult = json \ "updateUndertakingResponse" \ "responseCommon"
+      (responseCommon \ "status").as[String] match {
+        case "NOT_OK" =>
+          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
+          val statusText = (responseCommon \ "statusText").asOpt[String]
+          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
+          // TODO consider moving exception to connector
+          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
+        case "OK" =>
+          val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
+          JsSuccess(UndertakingRef(ref))
+        case _ => JsError("unable to derive Error or Success from SCP02 response")
+      }
+    }
+  }
+
   implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] = new Reads[Unit] {
     override def reads(json: JsValue): JsResult[Unit] = {
       val responseCommon: JsLookupResult = json \ "amendUndertakingMemberDataResponse" \ "responseCommon"

@@ -27,6 +27,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
+
 @Singleton()
 class UndertakingController @Inject()(
   cc: ControllerComponents,
@@ -52,6 +53,14 @@ class UndertakingController @Inject()(
         Ok(Json.toJson(ref))
       }
     }
+  }
+
+  def updateUndertaking: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    implicit val uF = Json.format[Undertaking]
+    withJsonBody[Undertaking] { undertaking: Undertaking =>
+      eis.updateUndertaking(undertaking).map(ref => Ok(Json.toJson(ref)))
+    }
+
   }
 
   def addMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
