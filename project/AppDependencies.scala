@@ -13,10 +13,12 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % "5.13.0"            % Test,
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-28"    % "0.53.0"            % Test,
-    "com.vladsch.flexmark"    %  "flexmark-all"               % "0.36.8"            % "test, it",
-    "org.mockito"             % "mockito-core"                % "3.9.0"             % Test,
-    "org.scalatestplus"      %% "scalatestplus-mockito"       % "1.0.0-M2"          % Test
+    "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % "5.13.0"   % Test,
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-28"    % "0.53.0"   % Test,
+    "com.vladsch.flexmark"    %  "flexmark-all"               % "0.36.8"   % "test, it",
+    "org.mockito"             %  "mockito-core"               % "3.9.0"    % Test,
+    "org.scalatestplus"       %% "scalatestplus-mockito"      % "1.0.0-M2" % Test,
+    // Need to use a slightly older version for compatibility with the play jackson deps using 2.10.5
+    "com.github.tomakehurst"  %  "wiremock-jre8"              % "2.26.3"   % Test,
   )
 }
