@@ -5,8 +5,10 @@ GET        /hello-world                                     uk.gov.hmrc.eusubsid
 GET        /undertaking/:eori                               uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieve(eori)
 POST       /undertaking                                     uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.create
 
+POST       /undertaking/update                              uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateUndertaking
+
 POST       /undertaking/member/:undertakingRef              uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.addMember(undertakingRef)
 POST       /undertaking/member/remove/:undertakingRef       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.deleteMember(undertakingRef)
 
 POST       /subsidy/update                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateSubsidy()
-POST       /subsidy/retrieve                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
+POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()

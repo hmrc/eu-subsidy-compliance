@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+
+import play.api.libs.json.Writes
 import play.api.{Logger, Mode}
-import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
+import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{EisBadResponseException, updateUndertakingWrites}
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
@@ -44,6 +46,7 @@ class EisConnector @Inject()(
 
   val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
   val createUndertakingPath = "scp/createundertaking/v1"
+  val updateUndertakingPath = "scp/updateundertaking/v1"
   val amendBusinessEntityPath = "scp/amendundertakingmemberdata/v1"
 
   val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
@@ -80,6 +83,18 @@ class EisConnector @Inject()(
       s"$eisURL/$createUndertakingPath",
       undertaking, eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
+  }
+
+  def updateUndertaking(undertaking: Undertaking
+                       )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef]= {
+
+   import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingUpdateResponseReads
+   val updateWrites: Writes[Undertaking] = updateUndertakingWrites()
+    val eisTokenKey = "eis.token.scp03"
+    desPost[Undertaking, UndertakingRef](
+      s"$eisURL/$updateUndertakingPath",
+      undertaking, eisTokenKey
+    )(updateWrites, implicitly, addHeaders, implicitly)
   }
 
   def addMember(
