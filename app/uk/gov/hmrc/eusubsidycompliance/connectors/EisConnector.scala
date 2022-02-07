@@ -90,7 +90,7 @@ class EisConnector @Inject()(
 
    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingUpdateResponseReads
    val updateWrites: Writes[Undertaking] = updateUndertakingWrites()
-    val eisTokenKey = "eis.token.scp03"
+    val eisTokenKey = "eis.token.scp12"
     desPost[Undertaking, UndertakingRef](
       s"$eisURL/$updateUndertakingPath",
       undertaking, eisTokenKey
