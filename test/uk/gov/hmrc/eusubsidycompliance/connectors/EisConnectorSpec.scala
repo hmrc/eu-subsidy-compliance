@@ -184,7 +184,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(undertakingReference).futureValue mustBe undertakingSubsidies
+          underTest.retrieveSubsidies(undertakingReference, None).futureValue mustBe undertakingSubsidies
         }
       }
 
@@ -208,7 +208,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(500, RetrieveSubsidyPath, "Internal Server Error")
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(undertakingReference).failed.futureValue mustBe a[UpstreamErrorResponse]
+          underTest.retrieveSubsidies(undertakingReference, None).failed.futureValue mustBe a[UpstreamErrorResponse]
         }
       }
 
@@ -216,7 +216,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, RetrieveSubsidyPath, "This is not a valid response")
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(undertakingReference).failed.futureValue mustBe a[JsonParseException]
+          underTest.retrieveSubsidies(undertakingReference, None).failed.futureValue mustBe a[JsonParseException]
         }
       }
 

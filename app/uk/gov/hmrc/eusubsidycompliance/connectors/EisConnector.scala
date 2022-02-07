@@ -137,17 +137,18 @@ class EisConnector @Inject()(
 
   def retrieveSubsidies(
     ref: UndertakingRef,
-    // TODO - should we apply defaults here?
-    dateRange: Option[(LocalDate, LocalDate)] = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
+    dateRange: Option[(LocalDate, LocalDate)]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingSubsidies] = {
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponseWrite
 
     val eisTokenKey = "eis.token.scp09"
 
+    val defaultDateRange = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
+
     desPost[SubsidyRetrieve, UndertakingSubsidies](
       s"$eisURL/$retrieveSubsidyPath",
-      SubsidyRetrieve(ref, dateRange),
+      SubsidyRetrieve(ref, dateRange.orElse(defaultDateRange)),
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
