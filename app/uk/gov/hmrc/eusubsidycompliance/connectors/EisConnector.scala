@@ -38,7 +38,6 @@ class EisConnector @Inject()(
   val mode: Mode,
   val servicesConfig: ServicesConfig,
   val auditing: AuditConnector,
-  ec: ExecutionContext
 ) extends DesHelpers {
 
   val logger: Logger = Logger(this.getClass)
@@ -52,12 +51,8 @@ class EisConnector @Inject()(
   val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
   val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
 
-  def retrieveUndertaking(
-    eori: EORI
-  )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Undertaking] = {
+  def retrieveUndertaking(eori: EORI)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Undertaking] = {
+
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingFormat}
 
     val eisTokenKey = "eis.token.scp04"
@@ -71,13 +66,10 @@ class EisConnector @Inject()(
     }
   }
 
-  def createUndertaking(
-    undertaking: Undertaking
-  )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[UndertakingRef] = {
+  def createUndertaking(undertaking: Undertaking)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
+
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{undertakingCreateResponseReads, undertakingFormat}
+
     val eisTokenKey = "eis.token.scp02"
     desPost[Undertaking, UndertakingRef](
       s"$eisURL/$createUndertakingPath",
@@ -85,10 +77,10 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  def updateUndertaking(undertaking: Undertaking
-                       )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef]= {
+  def updateUndertaking(undertaking: Undertaking)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 
    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingUpdateResponseReads
+
    val updateWrites: Writes[Undertaking] = updateUndertakingWrites()
     val eisTokenKey = "eis.token.scp12"
     desPost[Undertaking, UndertakingRef](
@@ -98,15 +90,12 @@ class EisConnector @Inject()(
   }
 
   def addMember(
-     undertakingRef: UndertakingRef,
-     businessEntity: BusinessEntity,
-     amendmentType: AmendmentType
-  )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Unit] = {
+    undertakingRef: UndertakingRef,
+    businessEntity: BusinessEntity,
+    amendmentType: AmendmentType
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
 
     val eisTokenKey = "eis.token.scp05"
     desPost[UndertakingBusinessEntityUpdate, Unit](
@@ -119,16 +108,14 @@ class EisConnector @Inject()(
   }
 
   def deleteMember(
-     undertakingRef: UndertakingRef,
-     businessEntity: BusinessEntity
-   )(
-     implicit hc: HeaderCarrier,
-     ec: ExecutionContext
-   ): Future[Unit] = {
+    undertakingRef: UndertakingRef,
+    businessEntity: BusinessEntity
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
 
     val eisTokenKey = "eis.token.scp05"
+
     desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
@@ -138,31 +125,20 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  def updateSubsidy(
-    subsidyUpdate: SubsidyUpdate
-  )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Unit] = {
-
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyResponseReads
+  def updateSubsidy(subsidyUpdate: SubsidyUpdate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
     val eisTokenKey = "eis.token.scp06"
+
     desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate, eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  // TODO - modify this to accept date range.
-  def retrieveSubsidies(
-                       ref: UndertakingRef
-                       )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
-                       ): Future[UndertakingSubsidies] = {
-    val eisTokenKey = "eis.token.scp09"
+  def retrieveSubsidies(ref: UndertakingRef)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingSubsidies] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.eis.eisRetrieveUndertakingSubsidiesResponseWrite
+
+    val eisTokenKey = "eis.token.scp09"
 
     desPost[SubsidyRetrieve, UndertakingSubsidies](
       s"$eisURL/$retrieveSubsidyPath",
