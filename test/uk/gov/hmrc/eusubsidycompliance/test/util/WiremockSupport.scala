@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.eusubsidycompliance.testutil
+package uk.gov.hmrc.eusubsidycompliance.test.util
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach, Suite}
 
-trait WiremockSupport extends BeforeAndAfter with BeforeAndAfterEach { this: Suite =>
+trait WiremockSupport extends BeforeAndAfter with BeforeAndAfterEach {
+  this: Suite =>
 
   protected val server = new WireMockServer(wireMockConfig().dynamicPort())
 

@@ -23,13 +23,12 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, HmrcSubsidy, NonHmrcSubsidy, Undertaking, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
-import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.testutil.WiremockSupport
+import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
+import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
-import java.time.{Instant, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSupport with ScalaFutures
@@ -38,64 +37,6 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
   private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
   private val CreateUndertakingPath = "/scp/createundertaking/v1"
   private val RetrieveSubsidyPath = "/scp/getundertakingtransactions/v1"
-
-  // TODO - move these into a separate Fixtures object
-  private val eori = EORI("GB123456789012")
-  private val now = Instant.now()
-
-  private val underTakingReference = UndertakingRef("SomeReference")
-  private val name = UndertakingName("SomeName")
-  private val sector = Sector.other
-  private val industrySectorLimit = IndustrySectorLimit(BigDecimal(200000.00))
-  private val date = now.atZone(ZoneId.of("Europe/London")).toLocalDate
-  private val amount = SubsidyAmount(BigDecimal(123.45))
-
-  private val anUnderTaking = Undertaking(
-    Some(underTakingReference),
-    name,
-    sector,
-    Some(industrySectorLimit),
-    Some(date),
-    List(BusinessEntity(eori, leadEORI = true, None))
-  )
-
-  private val subsidyRef = SubsidyRef("ABC12345")
-  private val declarationId = DeclarationID("12345")
-  private val traderRef = TraderRef("SomeTraderReference")
-  private val taxType = TaxType("1")
-  private val publicAuthority = "SomePublicAuthority"
-
-  private val anHmrcSubsidy = HmrcSubsidy(
-    declarationID = declarationId,
-    issueDate = Some(date),
-    acceptanceDate = date,
-    declarantEORI = eori,
-    consigneeEORI = eori,
-    taxType = Some(taxType),
-    amount = Some(amount),
-    tradersOwnRefUCR = Some(traderRef)
-  )
-
-  private val aNonHmrcSubsidy = NonHmrcSubsidy(
-    subsidyUsageTransactionID = Some(subsidyRef),
-    allocationDate = date,
-    submissionDate = date,
-    publicAuthority = Some(publicAuthority),
-    traderReference = Some(traderRef),
-    nonHMRCSubsidyAmtEUR = amount,
-    businessEntityIdentifier = Some(eori),
-    amendmentType = None,
-  )
-
-  private val anUnderTakingSubsidies = UndertakingSubsidies(
-    undertakingIdentifier = underTakingReference,
-    nonHMRCSubsidyTotalEUR = amount,
-    nonHMRCSubsidyTotalGBP = amount,
-    hmrcSubsidyTotalEUR = amount,
-    hmrcSubsidyTotalGBP = amount,
-    nonHMRCSubsidyUsage = List(aNonHmrcSubsidy),
-    hmrcSubsidyUsage = List(anHmrcSubsidy)
-  )
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
@@ -112,8 +53,8 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
              |     "processingDate": "$now"
              |   },
              |   "responseDetail": {
-             |      "undertakingReference": "$underTakingReference",
-             |      "undertakingName": "$name",
+             |      "undertakingReference": "$undertakingReference",
+             |      "undertakingName": "$undertakingName",
              |      "industrySector": "$sector",
              |      "industrySectorLimit": $industrySectorLimit,
              |      "lastSubsidyUsageUpdt": "$date",
@@ -127,7 +68,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe anUnderTaking
+          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe undertaking
         }
 
       }
@@ -182,7 +123,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
              |     "status": "OK"
              |   },
              |   "responseDetail": {
-             |     "undertakingReference": "$underTakingReference"
+             |     "undertakingReference": "$undertakingReference"
              |   }
              |  }
              |}
@@ -190,7 +131,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.createUndertaking(anUnderTaking).futureValue mustBe underTakingReference
+          underTest.createUndertaking(undertaking).futureValue mustBe undertakingReference
         }
       }
     }
@@ -205,18 +146,18 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
             |     "status": "OK"
             |   },
             |   "responseDetail": {
-            |     "undertakingIdentifier": "$underTakingReference",
-            |     "nonHMRCSubsidyTotalEUR": "$amount",
-            |     "nonHMRCSubsidyTotalGBP": "$amount",
-            |     "hmrcSubsidyTotalEUR": "$amount",
-            |     "hmrcSubsidyTotalGBP": "$amount",
+            |     "undertakingIdentifier": "$undertakingReference",
+            |     "nonHMRCSubsidyTotalEUR": "$subsidyAmount",
+            |     "nonHMRCSubsidyTotalGBP": "$subsidyAmount",
+            |     "hmrcSubsidyTotalEUR": "$subsidyAmount",
+            |     "hmrcSubsidyTotalGBP": "$subsidyAmount",
             |     "nonHMRCSubsidyUsage": [ {
             |       "subsidyUsageTransactionID": "$subsidyRef",
             |       "allocationDate": "$date",
             |       "submissionDate": "$date",
             |       "publicAuthority": "$publicAuthority",
             |       "traderReference": "$traderRef",
-            |       "nonHMRCSubsidyAmtEUR": $amount,
+            |       "nonHMRCSubsidyAmtEUR": $subsidyAmount,
             |       "businessEntityIdentifier": "$eori"
             |     } ],
             |     "hmrcSubsidyUsage": [ {
@@ -226,7 +167,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
             |       "declarantEORI": "$eori",
             |       "consigneeEORI": "$eori",
             |       "taxType": "$taxType",
-            |       "amount": $amount,
+            |       "amount": $subsidyAmount,
             |       "tradersOwnRefUCR": "$traderRef"
             |     } ]
             |   }
@@ -236,7 +177,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(underTakingReference).futureValue mustBe anUnderTakingSubsidies
+          underTest.retrieveSubsidies(undertakingReference).futureValue mustBe undertakingSubsidies
         }
       }
 
