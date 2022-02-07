@@ -68,7 +68,7 @@ package object digital {
         case "NOT_OK" =>
           val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
           val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
+          val returnParameters: Option[List[Params]] = (responseCommon \ "returnParameters").asOpt[List[Params]]
           // TODO consider moving exception to connector
           throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
         case "OK" =>
