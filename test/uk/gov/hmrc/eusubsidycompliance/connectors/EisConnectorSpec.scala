@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
@@ -107,7 +108,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe a[EisBadResponseException]
+          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe an[EisBadResponseException]
         }
       }
 
@@ -178,6 +179,22 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
 
         testWithRunningApp { underTest =>
           underTest.retrieveSubsidies(undertakingReference).futureValue mustBe undertakingSubsidies
+        }
+      }
+
+      "throw an UpstreamErrorResponse exception if EIS returns an Internal Server Error" in {
+        givenEisReturns(500, RetrieveSubsidyPath, "Internal Server Error")
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveSubsidies(undertakingReference).failed.futureValue mustBe a[UpstreamErrorResponse]
+        }
+      }
+
+      "throw a JsonParseException if EIS returns a response that cannot be parsed" in {
+        givenEisReturns(200, RetrieveSubsidyPath, "This is not a valid response")
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveSubsidies(undertakingReference).failed.futureValue mustBe a[JsonParseException]
         }
       }
 
