@@ -113,7 +113,7 @@ class EisConnector @Inject()(
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
-        true,
+        undertakingComplete = true,
         List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity))), eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
@@ -133,7 +133,7 @@ class EisConnector @Inject()(
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
-        true,
+        undertakingComplete = true,
         List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity))), eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }
@@ -154,6 +154,7 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
+  // TODO - modify this to accept date range.
   def retrieveSubsidies(
                        ref: UndertakingRef
                        )(

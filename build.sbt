@@ -30,3 +30,12 @@ lazy val microservice = Project(appName, file("."))
       ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*testonly.*",
   )
+
+lazy val testSettings: Seq[Def.Setting[_]] = Seq(
+  fork        := true,
+  javaOptions ++= Seq(
+    // Uncomment this to use a separate conf for tests
+    // "-Dconfig.resource=test.application.conf",
+    "-Dlogger.resource=logback-test.xml"
+  )
+)
