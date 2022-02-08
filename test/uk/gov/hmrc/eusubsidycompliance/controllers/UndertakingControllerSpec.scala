@@ -17,56 +17,49 @@
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play.PlaySpec
+import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{ControllerComponents, Request, Result, Results}
-import play.api.test.FakeRequest
+import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
-import uk.gov.hmrc.eusubsidycompliance.models.SubsidyRetrieve
+import uk.gov.hmrc.eusubsidycompliance.models.{SubsidyRetrieve, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
-import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{eori, undertakingReference, undertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{date, eori, undertakingReference, undertakingSubsidies}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
-class UndertakingControllerSpec extends PlaySpec with MockFactory with Results {
+class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutures with IntegrationPatience {
 
+  // FakeAuthenticator that allows every request.
   private class FakeAuth extends Auth {
     override def authCommon[A](
       action: AuthAction[A]
     )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
+    override protected def controllerComponents: ControllerComponents = Helpers.stubControllerComponents()
+    // This isn't used in this implementation so can be left as unimplemented.
     override def authConnector: AuthConnector = ???
-    override protected def controllerComponents: ControllerComponents = ???
   }
+
+  private val mockEisConnector = mock[EisConnector]
 
   "UnderTakingController" when {
 
     "retrieve subsidies is called" should {
 
-      "return a valid response for a successful request" in {
+      "return a valid response for a successful request with no date range" in {
 
-        val mockEisConnector = mock[EisConnector]
+        givenRetrieveSubsidiesReturns(Future.successful(undertakingSubsidies))
 
-        (mockEisConnector.retrieveSubsidies(_: UndertakingRef, _: Option[(LocalDate, LocalDate)])(_: HeaderCarrier, _: ExecutionContext))
-          .expects(undertakingReference, *, *, *)
-          .returning(Future.successful(undertakingSubsidies))
-
-        val app = new GuiceApplicationBuilder()
-          .configure(
-            "metrics.jvm" -> false,
-            "microservice.metrics.graphite.enabled" -> false,
-          )
-          .overrides(
-            bind[EisConnector].to(mockEisConnector),
-            bind[Auth].to(new FakeAuth)
-          )
-          .build()
+        val app = configuredAppInstance
 
         running(app) {
 
@@ -75,13 +68,75 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with Results {
             .withHeaders("Content-type" -> "application/json")
 
           val result = route(app, request).value
-          status(result) mustBe 200
 
+          status(result) mustBe Status.OK
+          contentAsJson(result) mustBe Json.toJson(undertakingSubsidies)
+        }
+      }
+
+      "return a valid response for a successful request with a date range" in {
+
+        givenRetrieveSubsidiesReturns(Future.successful(undertakingSubsidies))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
+            .withJsonBody(Json.toJson( SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
+            .withHeaders("Content-type" -> "application/json")
+
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+          contentAsJson(result) mustBe Json.toJson(undertakingSubsidies)
+        }
+      }
+
+      "throw an exception if the call to EIS fails" in {
+        givenRetrieveSubsidiesReturns(Future.failed(new RuntimeException("Something failed")))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
+            .withJsonBody(Json.toJson( SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
+            .withHeaders("Content-type" -> "application/json")
+
+          route(app, request).value.failed.futureValue mustBe a[RuntimeException]
+        }
+      }
+
+      "return a HTTP 400 if the request body is invalid" in {
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
+            .withBody("This is not valid JSON")
+            .withHeaders("Content-type" -> "application/json")
+
+          status(route(app, request).value) mustBe Status.BAD_REQUEST
         }
       }
 
     }
 
   }
+
+  private def configuredAppInstance = new GuiceApplicationBuilder()
+    .configure(
+      "metrics.jvm" -> false,
+      "microservice.metrics.graphite.enabled" -> false,
+    )
+    .overrides(
+      bind[EisConnector].to(mockEisConnector),
+      bind[Auth].to(new FakeAuth)
+    )
+    .build()
+
+
+  private def givenRetrieveSubsidiesReturns(res: Future[UndertakingSubsidies]): Unit =
+    (mockEisConnector.retrieveSubsidies(_: UndertakingRef, _: Option[(LocalDate, LocalDate)])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, *, *, *)
+      .returning(res)
 
 }

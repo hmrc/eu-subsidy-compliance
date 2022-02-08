@@ -44,7 +44,6 @@ trait DesHelpers {
   def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit wts: Writes[I], rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
     http.POST[I, O](url, body, headers(eisTokenKey))(wts, rds, addHeaders, ec)
 
-  // TODO - can we make this an implicit def - is this *really* needed?
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.copy(authorization = None)
   }

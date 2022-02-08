@@ -24,8 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers._
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
@@ -34,8 +33,8 @@ import uk.gov.hmrc.play.bootstrap.tools.Stubs.stubMessagesControllerComponents
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
-class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
-  with DefaultAwaitTimeout with EitherValues with ScalaFutures {
+class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport with DefaultAwaitTimeout
+  with EitherValues with ScalaFutures {
 
   private val mcc = stubMessagesControllerComponents()
   private val request = FakeRequest()
@@ -44,7 +43,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
 
   // Simple case class to validate request body deserialization.
   private case class Foo(bar: String)
-  private implicit val fooFormat = Json.format[Foo]
+  private implicit val fooFormat: OFormat[Foo] = Json.format[Foo]
 
   private val requestWithAuthHeaderAndJsonBody =
     requestWithAuthHeader.withJsonBody(Json.toJson(Foo("Bar")))
@@ -89,7 +88,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
       running(app) {
         import app.materializer
         val result = call(handleRequestWithJsonBody, req = requestWithAuthHeaderAndJsonBody)
-        status(result) shouldBe 200
+        status(result) shouldBe Status.OK
         contentAsString(result) shouldBe actionResponse
       }
     }

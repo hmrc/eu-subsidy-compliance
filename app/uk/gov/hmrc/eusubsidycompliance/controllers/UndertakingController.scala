@@ -101,8 +101,7 @@ class UndertakingController @Inject()(
     }
   }
 
-  // TODO - should we validate the date range? (Is it being done already?)
-  def retrieveSubsidies(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyRetrieve] { retrieve: SubsidyRetrieve =>
       eis.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map{ e =>
         Ok(Json.toJson(e)) // TODO check error handling
