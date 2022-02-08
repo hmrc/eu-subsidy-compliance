@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
@@ -29,6 +30,7 @@ import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSupport with ScalaFutures
@@ -50,7 +52,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
              |     "status": "OK",
-             |     "processingDate": "$now"
+             |     "processingDate": "$fixedInstant"
              |   },
              |   "responseDetail": {
              |      "undertakingReference": "$undertakingReference",
@@ -79,7 +81,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
              |     "status": "NOT_OK",
-             |     "processingDate": "$now",
+             |     "processingDate": "$fixedInstant",
              |     "returnParameters": [{
              |       "paramName": "ERRORCODE",
              |       "paramValue": "107"
@@ -100,14 +102,14 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
              |     "status": "NOT_OK",
-             |     "processingDate": "$now"
+             |     "processingDate": "$fixedInstant"
              |   }
              | }
              |}""".stripMargin
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe a[EisBadResponseException]
+          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe an[EisBadResponseException]
         }
       }
 
@@ -136,48 +138,85 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
       }
     }
 
-    "retrieveSubsidies" should {
+    "retrieveSubsidies is called" should {
 
-      "return an UndertakingSubsidies instance for a valid request" in {
-        givenEisReturns(200, RetrieveSubsidyPath,
-          s"""{
-            | "getUndertakingTransactionResponse": {
-            |   "responseCommon": {
-            |     "status": "OK"
-            |   },
-            |   "responseDetail": {
-            |     "undertakingIdentifier": "$undertakingReference",
-            |     "nonHMRCSubsidyTotalEUR": "$subsidyAmount",
-            |     "nonHMRCSubsidyTotalGBP": "$subsidyAmount",
-            |     "hmrcSubsidyTotalEUR": "$subsidyAmount",
-            |     "hmrcSubsidyTotalGBP": "$subsidyAmount",
-            |     "nonHMRCSubsidyUsage": [ {
-            |       "subsidyUsageTransactionID": "$subsidyRef",
-            |       "allocationDate": "$date",
-            |       "submissionDate": "$date",
-            |       "publicAuthority": "$publicAuthority",
-            |       "traderReference": "$traderRef",
-            |       "nonHMRCSubsidyAmtEUR": $subsidyAmount,
-            |       "businessEntityIdentifier": "$eori"
-            |     } ],
-            |     "hmrcSubsidyUsage": [ {
-            |       "declarationID": "$declarationId",
-            |       "issueDate": "$date",
-            |       "acceptanceDate": "$date",
-            |       "declarantEORI": "$eori",
-            |       "consigneeEORI": "$eori",
-            |       "taxType": "$taxType",
-            |       "amount": $subsidyAmount,
-            |       "tradersOwnRefUCR": "$traderRef"
-            |     } ]
-            |   }
-            | }
-            |}
-            |""".stripMargin
-        )
+      val retrieveSubsidiesResponse = s"""{
+         | "getUndertakingTransactionResponse": {
+         |   "responseCommon": {
+         |     "status": "OK"
+         |   },
+         |   "responseDetail": {
+         |     "undertakingIdentifier": "$undertakingReference",
+         |     "nonHMRCSubsidyTotalEUR": "$subsidyAmount",
+         |     "nonHMRCSubsidyTotalGBP": "$subsidyAmount",
+         |     "hmrcSubsidyTotalEUR": "$subsidyAmount",
+         |     "hmrcSubsidyTotalGBP": "$subsidyAmount",
+         |     "nonHMRCSubsidyUsage": [ {
+         |       "subsidyUsageTransactionID": "$subsidyRef",
+         |       "allocationDate": "$date",
+         |       "submissionDate": "$date",
+         |       "publicAuthority": "$publicAuthority",
+         |       "traderReference": "$traderRef",
+         |       "nonHMRCSubsidyAmtEUR": $subsidyAmount,
+         |       "businessEntityIdentifier": "$eori"
+         |     } ],
+         |     "hmrcSubsidyUsage": [ {
+         |       "declarationID": "$declarationId",
+         |       "issueDate": "$date",
+         |       "acceptanceDate": "$date",
+         |       "declarantEORI": "$eori",
+         |       "consigneeEORI": "$eori",
+         |       "taxType": "$taxType",
+         |       "amount": $subsidyAmount,
+         |       "tradersOwnRefUCR": "$traderRef"
+         |     } ]
+         |   }
+         | }
+         |}
+         |""".stripMargin
+
+
+      "return an UndertakingSubsidies instance for a valid request without specifying a date range" in {
+
+        // When no date is specified the connector falls back to a range of 2000-01-01 to LocalDate.now()
+        val requestBody = retrieveSubsidiesRequestWithDates(LocalDate.of(2000, 1, 1), LocalDate.now())
+
+        givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(undertakingReference).futureValue mustBe undertakingSubsidies
+          underTest.retrieveSubsidies(undertakingReference, None).futureValue mustBe undertakingSubsidies
+        }
+      }
+
+      "return an UndertakingSubsidies instance for a valid request with a date range" in {
+
+        val toDate = date.plusDays(7)
+
+        val requestBody = retrieveSubsidiesRequestWithDates(date, date.plusDays(7))
+
+        givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveSubsidies(
+            undertakingReference,
+            Some((date, toDate))
+          ).futureValue mustBe undertakingSubsidies
+        }
+      }
+
+      "throw an UpstreamErrorResponse exception if EIS returns an Internal Server Error" in {
+        givenEisReturns(500, RetrieveSubsidyPath, "Internal Server Error")
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveSubsidies(undertakingReference, None).failed.futureValue mustBe a[UpstreamErrorResponse]
+        }
+      }
+
+      "throw a JsonParseException if EIS returns a response that cannot be parsed" in {
+        givenEisReturns(200, RetrieveSubsidyPath, "This is not a valid response")
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveSubsidies(undertakingReference, None).failed.futureValue mustBe a[JsonParseException]
         }
       }
 
@@ -200,11 +239,32 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
           .withBody(body)
       ))
 
+  private def givenEisReturns(status: Int, url: String, requestBody: String, responseBody: String): Unit =
+    server.stubFor(
+      post(urlEqualTo(url))
+        .withRequestBody(equalToJson(requestBody))
+        .willReturn(aResponse()
+          .withStatus(status)
+          .withBody(responseBody)
+        ))
+
   private def testWithRunningApp(f: EisConnector => Unit): Unit = {
     val app = configuredApplication
     running(app) {
      f(app.injector.instanceOf[EisConnector])
     }
   }
+
+  private def retrieveSubsidiesRequestWithDates(from: LocalDate, to: LocalDate) =
+    s"""{
+       |  "undertakingIdentifier": "$undertakingReference",
+       |  "getNonHMRCUsageTransaction": true,
+       |  "getHMRCUsageTransaction": true,
+       |  "dateFromNonHMRCSubsidyUsage": "$from",
+       |  "dateFromHMRCSubsidyUsage": "$from",
+       |  "dateToNonHMRCSubsidyUsage": "$to",
+       |  "dateToHMRCSubsidyUsage": "$to"
+       |}
+       |""".stripMargin
 
 }

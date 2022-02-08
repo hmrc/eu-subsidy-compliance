@@ -24,13 +24,13 @@ import java.time.{Instant, ZoneId}
 object Fixtures {
 
   val eori = EORI("GB123456789012")
-  val now = Instant.now()
+  val fixedInstant = Instant.parse("2022-01-01T12:00:00Z")
 
   val undertakingReference = UndertakingRef("SomeUndertakingReference")
   val undertakingName = UndertakingName("SomeUndertakingName")
   val sector = Sector.other
   val industrySectorLimit = IndustrySectorLimit(BigDecimal(200000.00))
-  val date = now.atZone(ZoneId.of("Europe/London")).toLocalDate
+  val date = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
   val subsidyAmount = SubsidyAmount(BigDecimal(123.45))
 
   val undertaking = Undertaking(

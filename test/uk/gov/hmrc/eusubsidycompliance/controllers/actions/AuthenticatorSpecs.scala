@@ -17,65 +17,105 @@
 package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 
 import org.scalatest.EitherValues
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.Results.Ok
-import play.api.test.Helpers.{await, status}
+import play.api.test.Helpers._
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.play.bootstrap.tools.Stubs.stubMessagesControllerComponents
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
-class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport
-  with DefaultAwaitTimeout with EitherValues  {
+class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport with DefaultAwaitTimeout
+  with EitherValues with ScalaFutures {
 
   private val mcc = stubMessagesControllerComponents()
   private val request = FakeRequest()
   private val authenticator = new AuthImpl(mockAuthConnector, mcc)
   private val requestWithAuthHeader = request.withHeaders(("Authorization", "XXXX"))
 
-  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+  // Simple case class to validate request body deserialization.
+  private case class Foo(bar: String)
+  private implicit val fooFormat: OFormat[Foo] = Json.format[Foo]
 
-  private def result = authenticator.authorised { _ => _ => Future.successful(Ok("Hello world")) }
+  private val requestWithAuthHeaderAndJsonBody =
+    requestWithAuthHeader.withJsonBody(Json.toJson(Foo("Bar")))
+      .withHeaders("Content-type" -> "application/json")
+      .withMethod(POST)
+
+  private implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+
+  private val actionResponse = "Hello world"
+
+  private def handleRequestWithNoBody = authenticator.authorised { _ => _ => Future.successful(Ok(actionResponse)) }
+
+  private def handleRequestWithJsonBody = authenticator.
+    authorisedWithJson(mcc.parsers.json) { _ => _ => Future.successful(Ok(actionResponse)) }
 
   private def newEnrolment(identifierName: String, identifierValue: String) =
     Enrolment("HMRC-ESC-ORG").withIdentifier(identifierName, identifierValue)
 
   "Authentication" should {
+
     "return Forbidden when there is no Authorization header" in {
-      status(result(request)) shouldBe Status.FORBIDDEN
+      status(handleRequestWithNoBody(request)) shouldBe Status.FORBIDDEN
     }
 
-    "return 200 Ok" in {
+    "return 200 Ok for a valid request without a JSON body" in {
       withAuthorizedUser(Enrolments(Set(newEnrolment("EORINumber", "GB123123123123"))))
-      status(result(requestWithAuthHeader)) shouldBe Status.OK
+      status(handleRequestWithNoBody(requestWithAuthHeader)) shouldBe Status.OK
+    }
+
+    "return 200 Ok for a valid request with a JSON body" in {
+      withAuthorizedUser(Enrolments(Set(newEnrolment("EORINumber", "GB123123123123"))))
+
+      val app = new GuiceApplicationBuilder()
+        .configure(
+          "metrics.jvm" -> false,
+          "microservice.metrics.graphite.enabled" -> false,
+        )
+        .overrides(
+          bind[AuthConnector].to(mockAuthConnector))
+        .build()
+
+      running(app) {
+        import app.materializer
+        val result = call(handleRequestWithJsonBody, req = requestWithAuthHeaderAndJsonBody)
+        status(result) shouldBe Status.OK
+        contentAsString(result) shouldBe actionResponse
+      }
     }
 
     "throw illegal state error exception " in {
       withAuthorizedUser()
       assertThrows[IllegalStateException](
-        await(result(requestWithAuthHeader))
+        await(handleRequestWithNoBody(requestWithAuthHeader))
       )
     }
 
     "throw illegal state exception when identifier missing" in {
       withAuthorizedUser(Enrolments(Set(newEnrolment("XXX", "XXX"))))
       assertThrows[IllegalStateException](
-        await(result(requestWithAuthHeader))
+        await(handleRequestWithNoBody(requestWithAuthHeader))
       )
     }
 
     "return 401 UNAUTHORIZED when there are insufficient enrolments" in {
       withUnauthorizedUser(InsufficientEnrolments("User not authorised"))
-      status(result(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
+      status(handleRequestWithNoBody(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
     }
 
     "return 401 UNAUTHORIZED when there is no session record" in {
       withUnauthorizedUser(SessionRecordNotFound("User not authorised"))
-      status(result(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
+      status(handleRequestWithNoBody(requestWithAuthHeader)) shouldBe Status.UNAUTHORIZED
     }
+
   }
 }
