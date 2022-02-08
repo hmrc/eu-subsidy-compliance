@@ -41,7 +41,7 @@ class EisConnector @Inject()(
 ) extends DesHelpers {
 
   val logger: Logger = Logger(this.getClass)
-  val eisURL: String = servicesConfig.baseUrl("eis")
+  lazy val eisURL: String = servicesConfig.baseUrl("eis")
 
   val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
   val createUndertakingPath = "scp/createundertaking/v1"
