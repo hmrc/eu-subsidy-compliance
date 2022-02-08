@@ -25,6 +25,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, Enrolments}
 import scala.concurrent.Future
 
 trait AuthTestSupport extends MockitoSugar {
+
   lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
   def withAuthorizedUser(enrolments: Enrolments = Enrolments(Set.empty)): Unit = {
