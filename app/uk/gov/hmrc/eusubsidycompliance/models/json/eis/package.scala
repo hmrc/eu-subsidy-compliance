@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models.json
 
-import cats.implicits._
 
 import java.time.format.DateTimeFormatter
 import java.time._
@@ -196,14 +195,10 @@ package object eis {
   // convenience reads so we can store a created undertaking
   val undertakingRequestReads: Reads[Undertaking] = new Reads[Undertaking] {
     override def reads(json: JsValue): JsResult[Undertaking] = {
-      val contacts: ContactDetails = ContactDetails(
-        (json \ "createUndertakingRequest" \ "requestDetail" \ "businessEntity" \ "contacts" \ "phone").asOpt[PhoneNumber],
-        (json \ "createUndertakingRequest" \ "requestDetail" \ "businessEntity" \ "contacts" \ "mobile").asOpt[PhoneNumber]
-      )
+
       val businessEntity: BusinessEntity = BusinessEntity(
         (json \ "createUndertakingRequest" \ "requestDetail" \ "businessEntity" \ "idValue").as[EORI],
-        true,
-        contacts.some
+        true
       )
       JsSuccess(
         Undertaking(
@@ -223,8 +218,7 @@ package object eis {
     override def reads(json: JsValue): JsResult[BusinessEntity] = JsSuccess(
       BusinessEntity(
         (json  \ "businessEntityIdentifier").as[EORI],
-        (json \ "leadEORIIndicator").as[Boolean],
-        (json \ "contacts").asOpt[ContactDetails]
+        (json \ "leadEORIIndicator").as[Boolean]
       )
     )
   }
