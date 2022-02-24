@@ -4,9 +4,6 @@ curl -i -X POST  -H "Authorization: Bearer EvYRlYH8AS_hZGw32ffqJ25Mz04a" -H "Env
   "industrySector" : "1",
   "undertakingBusinessEntity" : [{
     "businessEntityIdentifier" : "GB123456789012",
-    "leadEORI" : true,
-    "contacts" : {
-        "phone" : "123123123"
-    }
+    "leadEORI" : true
   }]
 }' "http://localhost:9094/eu-subsidy-compliance/undertaking"
