@@ -76,11 +76,9 @@ package object digital {
           val undertakingName: UndertakingName = (responseDetail \ "undertakingName").as[UndertakingName]
           val industrySector: Sector = (responseDetail \ "industrySector").as[Sector]
           val industrySectorLimit: IndustrySectorLimit = (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit]
-          val lastSubsidyUsageUpdt: LocalDate = (responseDetail \ "lastSubsidyUsageUpdt").as[LocalDate](new Reads[LocalDate] {
-            override def reads(json: JsValue): JsResult[LocalDate] =
-              // TODO consider Either.catchOnly (cats)
-              JsSuccess(LocalDate.parse(json.as[String], eis.oddEisDateFormat))
-          })
+          val lastSubsidyUsageUpdt: Option[LocalDate] = (responseDetail \ "lastSubsidyUsageUpdt").asOpt[String].fold(Option.empty[LocalDate])(lastSubsidyUsageUpdt =>
+              LocalDate.parse(lastSubsidyUsageUpdt, eis.oddEisDateFormat).some
+          )
           val undertakingBusinessEntity: List[BusinessEntity] = (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
           JsSuccess(
             Undertaking(
@@ -88,7 +86,7 @@ package object digital {
               undertakingName,
               industrySector,
               industrySectorLimit.some,
-              lastSubsidyUsageUpdt.some,
+              lastSubsidyUsageUpdt,
               undertakingBusinessEntity
             )
           )
