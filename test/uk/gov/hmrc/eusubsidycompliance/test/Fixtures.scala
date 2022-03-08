@@ -60,7 +60,7 @@ object Fixtures {
   )
 
   val nonHmrcSubsidy = NonHmrcSubsidy(
-    subsidyUsageTransactionID = Some(subsidyRef),
+    subsidyUsageTransactionId = Some(subsidyRef),
     allocationDate = date,
     submissionDate = date,
     publicAuthority = Some(publicAuthority),
