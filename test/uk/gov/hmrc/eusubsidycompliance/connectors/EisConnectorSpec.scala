@@ -152,7 +152,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
          |     "hmrcSubsidyTotalEUR": "$subsidyAmount",
          |     "hmrcSubsidyTotalGBP": "$subsidyAmount",
          |     "nonHMRCSubsidyUsage": [ {
-         |       "subsidyUsageTransactionID": "$subsidyRef",
+         |       "subsidyUsageTransactionId": "$subsidyRef",
          |       "allocationDate": "$date",
          |       "submissionDate": "$date",
          |       "publicAuthority": "$publicAuthority",
