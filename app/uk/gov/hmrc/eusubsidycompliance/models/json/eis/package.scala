@@ -175,16 +175,16 @@ package object eis {
           val nonHmrcTotalGbp = (json \ "getUndertakingTransactionResponse" \  "responseDetail" \"nonHMRCSubsidyTotalGBP").as[BigDecimal]
           val hmrcTotalEur = (json \ "getUndertakingTransactionResponse" \  "responseDetail" \"hmrcSubsidyTotalEUR").as[BigDecimal]
           val hmrcTotalGbp = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyTotalGBP").as[BigDecimal]
-          val nonHmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyUsage").as[List[NonHmrcSubsidy]]
-          val hmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyUsage").as[List[HmrcSubsidy]]
+          val nonHmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyUsage").asOpt[List[NonHmrcSubsidy]]
+          val hmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyUsage").asOpt[List[HmrcSubsidy]]
           JsSuccess(UndertakingSubsidies(
             UndertakingRef(ref),
             SubsidyAmount(nonHmrcTotalEur),
             SubsidyAmount(nonHmrcTotalGbp),
             SubsidyAmount(hmrcTotalEur),
             SubsidyAmount(hmrcTotalGbp),
-            nonHmrcUsage,
-            hmrcUsage
+            nonHmrcUsage.getOrElse(List.empty),
+            hmrcUsage.getOrElse(List.empty)
           ))
         case _ => JsError("unable to derive Error or Success from SCP02 response")
       }
