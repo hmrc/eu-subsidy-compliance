@@ -21,9 +21,11 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyRetrieve, SubsidyUpdate, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -32,7 +34,8 @@ import scala.concurrent.ExecutionContext
 class UndertakingController @Inject()(
   cc: ControllerComponents,
   authenticator: Auth,
-  eis: EisConnector
+  eis: EisConnector,
+  timeProvider: TimeProvider
 ) extends BackendController(cc) {
 
   implicit val ec: ExecutionContext = cc.executionContext
@@ -49,9 +52,10 @@ class UndertakingController @Inject()(
   def create: Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = Json.format[Undertaking]
     withJsonBody[Undertaking] { undertaking: Undertaking =>
-      eis.createUndertaking(undertaking).map{ ref =>
-        Ok(Json.toJson(ref))
-      }
+      for {
+        ref <- eis.createUndertaking(undertaking)
+        _ <- eis.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
+      } yield Ok(Json.toJson(ref))
     }
   }
 
@@ -95,7 +99,7 @@ class UndertakingController @Inject()(
   def updateSubsidy(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = SubsidyUpdate.updateFormat
     withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
-      eis.updateSubsidy(update).map{ _ =>
+      eis.upsertSubsidyUsage(update).map{ _ =>
         Ok(Json.toJson(update.undertakingIdentifier)) // TODO check error handling
       }
     }
