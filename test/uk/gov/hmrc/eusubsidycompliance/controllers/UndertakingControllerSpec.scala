@@ -22,16 +22,17 @@ import org.scalatestplus.play.PlaySpec
 import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json}
 import play.api.mvc.{ControllerComponents, Request, Result}
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
-import uk.gov.hmrc.eusubsidycompliance.models.{SubsidyRetrieve, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.{NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
-import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{date, eori, undertakingReference, undertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{date, eori, undertaking, undertakingReference, undertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -50,8 +51,63 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   }
 
   private val mockEisConnector = mock[EisConnector]
+  private val mockTimeProvider = mock[TimeProvider]
 
   "UnderTakingController" when {
+
+    "create undertaking is called" should {
+      implicit val format: Format[Undertaking] = Json.format[Undertaking]
+
+      "return a valid response for a successful to create undertaking" in {
+
+        givenCreateUndertakingReturns(Future.successful(undertakingReference))
+        givenUpdateSubsidy(Future.successful((): Unit))
+        returningFixedDate(date)
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+            .withJsonBody(Json.toJson(undertaking))
+            .withHeaders("Content-type" -> "application/json")
+
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+          contentAsJson(result) mustBe Json.toJson(undertakingReference)
+        }
+      }
+
+      "throw an exception if the call to EIS to create undertaking fails" in {
+        givenCreateUndertakingReturns(Future.failed(new RuntimeException("Something failed")))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+            .withJsonBody(Json.toJson(undertaking))
+            .withHeaders("Content-type" -> "application/json")
+
+          route(app, request).value.failed.futureValue mustBe a[RuntimeException]
+        }
+      }
+
+      "throw an exception if the call to EIS fails to add default subsidy usage" in {
+        givenCreateUndertakingReturns(Future.successful(undertakingReference))
+        returningFixedDate(date)
+        givenUpdateSubsidy(Future.failed(new RuntimeException("Something failed")))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+            .withJsonBody(Json.toJson(undertaking))
+            .withHeaders("Content-type" -> "application/json")
+
+          route(app, request).value.failed.futureValue mustBe a[RuntimeException]
+        }
+      }
+    }
 
     "retrieve subsidies is called" should {
 
@@ -129,6 +185,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     )
     .overrides(
       bind[EisConnector].to(mockEisConnector),
+      bind[TimeProvider].to(mockTimeProvider),
       bind[Auth].to(new FakeAuth)
     )
     .build()
@@ -139,4 +196,16 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .expects(undertakingReference, *, *, *)
       .returning(res)
 
+  private def givenCreateUndertakingReturns(res: Future[UndertakingRef]): Unit =
+    (mockEisConnector.createUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertaking, *, *)
+      .returning(res)
+
+  private def givenUpdateSubsidy(res: Future[Unit]): Unit =
+    (mockEisConnector.updateSubsidy(_: SubsidyUpdate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(SubsidyUpdate(undertakingReference, NilSubmissionDate(date)), *, *)
+      .returning(res)
+
+  private def returningFixedDate(fixedDate: LocalDate): Unit =
+    (mockTimeProvider.today _).expects().returning(fixedDate)
 }
