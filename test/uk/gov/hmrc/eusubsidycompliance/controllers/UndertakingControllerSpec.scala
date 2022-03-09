@@ -202,7 +202,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .returning(res)
 
   private def givenUpdateSubsidy(res: Future[Unit]): Unit =
-    (mockEisConnector.updateSubsidy(_: SubsidyUpdate)(_: HeaderCarrier, _: ExecutionContext))
+    (mockEisConnector.upsertSubsidyUsage(_: SubsidyUpdate)(_: HeaderCarrier, _: ExecutionContext))
       .expects(SubsidyUpdate(undertakingReference, NilSubmissionDate(date)), *, *)
       .returning(res)
 

@@ -54,7 +54,7 @@ class UndertakingController @Inject()(
     withJsonBody[Undertaking] { undertaking: Undertaking =>
       for {
         ref <- eis.createUndertaking(undertaking)
-        _ <- eis.updateSubsidy(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
+        _ <- eis.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
       } yield Ok(Json.toJson(ref))
     }
   }
@@ -99,7 +99,7 @@ class UndertakingController @Inject()(
   def updateSubsidy(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = SubsidyUpdate.updateFormat
     withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
-      eis.updateSubsidy(update).map{ _ =>
+      eis.upsertSubsidyUsage(update).map{ _ =>
         Ok(Json.toJson(update.undertakingIdentifier)) // TODO check error handling
       }
     }

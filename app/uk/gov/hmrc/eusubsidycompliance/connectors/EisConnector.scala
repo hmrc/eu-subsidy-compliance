@@ -125,7 +125,7 @@ class EisConnector @Inject()(
     )(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  def updateSubsidy(subsidyUpdate: SubsidyUpdate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def upsertSubsidyUsage(subsidyUpdate: SubsidyUpdate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
     val eisTokenKey = "eis.token.scp06"
 
