@@ -96,6 +96,27 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         }
       }
 
+      "return a 406 if a NOT_OK response is received with the invalid EoRI error code" in {
+        givenEisReturns(200, RetrieveUndertakingPath,
+          s"""{
+             | "retrieveUndertakingResponse": {
+             |   "responseCommon": {
+             |     "status": "NOT_OK",
+             |     "processingDate": "$fixedInstant",
+             |     "returnParameters": [{
+             |       "paramName": "ERRORCODE",
+             |       "paramValue": "055"
+             |     }]
+             |   }
+             | }
+             |}""".stripMargin
+        )
+
+        testWithRunningApp { underTest =>
+          underTest.retrieveUndertaking(EORI("GB123456789777")).failed.futureValue mustBe a[UpstreamErrorResponse]
+        }
+      }
+
       "throw an EisBadResponseException if the response has status NOT_OK" in {
         givenEisReturns(200, RetrieveUndertakingPath,
           s"""{

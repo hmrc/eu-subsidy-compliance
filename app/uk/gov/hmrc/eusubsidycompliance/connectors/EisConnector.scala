@@ -63,6 +63,10 @@ class EisConnector @Inject()(
       case e:EisBadResponseException if e.code == EisParamValue("107") =>
         logger.info(s"No undertaking found for $eori")
         throw UpstreamErrorResponse.apply("undertaking not found", 404)
+
+      case e:EisBadResponseException if e.code == EisParamValue("055") =>
+        logger.info(s" Eori : $eori doesn't exist in ETMP")
+        throw UpstreamErrorResponse.apply("EORI doesn't exists in ETMP", 406)
     }
   }
 
