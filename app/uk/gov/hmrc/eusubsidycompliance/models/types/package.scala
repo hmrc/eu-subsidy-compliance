@@ -23,60 +23,63 @@ package object types extends SimpleJson {
 
   type IndustrySectorLimit = BigDecimal @@ IndustrySectorLimit.Tag
   object IndustrySectorLimit extends ValidatedType[BigDecimal] {
-    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] = {
+    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x <= 99999999999.99) && (x.scale <= 2)
       }
-    }
   }
 
-  type PositiveSubsidyAmount =  BigDecimal @@ PositiveSubsidyAmount.Tag
+  type PositiveSubsidyAmount = BigDecimal @@ PositiveSubsidyAmount.Tag
   object PositiveSubsidyAmount extends ValidatedType[BigDecimal] {
-    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] = {
+    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x >= 0) && (x <= 99999999999.99) && (x.scale <= 2)
       }
-    }
   }
 
   type SubsidyAmount = BigDecimal @@ SubsidyAmount.Tag
   object SubsidyAmount extends ValidatedType[BigDecimal] {
-    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] = {
+    override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x >= -99999999999.99) && (x <= 99999999999.99) && (x.scale <= 2)
       }
-    }
   }
 
   type DeclarationID = String @@ DeclarationID.Tag
-  object DeclarationID extends RegexValidatedString(
-    regex = """.{1,18}"""
-  )
+  object DeclarationID
+      extends RegexValidatedString(
+        regex = """.{1,18}"""
+      )
 
   type TaxType = String @@ TaxType.Tag
-  object TaxType extends RegexValidatedString(
-    regex = """.{0,3}"""
-  )
+  object TaxType
+      extends RegexValidatedString(
+        regex = """.{0,3}"""
+      )
 
   type TraderRef = String @@ TraderRef.Tag
-  object TraderRef extends RegexValidatedString(
-    regex = """.{0,35}"""
-  )
+  object TraderRef
+      extends RegexValidatedString(
+        regex = """.{0,35}"""
+      )
 
   type UndertakingName = String @@ UndertakingName.Tag
-  object UndertakingName extends RegexValidatedString(
-    regex = """.{1,105}"""
-  )
+  object UndertakingName
+      extends RegexValidatedString(
+        regex = """.{1,105}"""
+      )
 
   type EORI = String @@ EORI.Tag
-  object EORI extends RegexValidatedString(
-    """^(GB|XI)[0-9]{12,15}$"""
-  )
+  object EORI
+      extends RegexValidatedString(
+        """^(GB|XI)[0-9]{12,15}$"""
+      )
 
   type UndertakingRef = String @@ UndertakingRef.Tag
-  object UndertakingRef extends RegexValidatedString(
-    regex = """.{1,17}"""
-  )
+  object UndertakingRef
+      extends RegexValidatedString(
+        regex = """.{1,17}"""
+      )
 
   object Sector extends Enumeration {
     type Sector = Value
@@ -88,34 +91,39 @@ package object types extends SimpleJson {
   }
 
   type Postcode = String @@ Postcode.Tag
-  object Postcode extends RegexValidatedString(
-    """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$""",
-    _.trim.replaceAll("[ \\t]+", " ").toUpperCase
-  )
+  object Postcode
+      extends RegexValidatedString(
+        """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$""",
+        _.trim.replaceAll("[ \\t]+", " ").toUpperCase
+      )
 
   type AddressLine = String @@ AddressLine.Tag
-  object AddressLine extends RegexValidatedString(
-    regex = """^[a-zA-Z0-9 '&.-]{1,40}$"""
-  )
+  object AddressLine
+      extends RegexValidatedString(
+        regex = """^[a-zA-Z0-9 '&.-]{1,40}$"""
+      )
 
   type PhoneNumber = String @@ PhoneNumber.Tag
-  object PhoneNumber extends RegexValidatedString(
-    regex = """.{1,24}"""
-  )
+  object PhoneNumber
+      extends RegexValidatedString(
+        regex = """.{1,24}"""
+      )
 
   type CountryCode = String @@ CountryCode.Tag
-  object CountryCode extends RegexValidatedString(
-    """^[A-Z][A-Z]$""",
-    _.toUpperCase match {
-      case "UK" => "GB"
-      case other => other
-    }
-  )
+  object CountryCode
+      extends RegexValidatedString(
+        """^[A-Z][A-Z]$""",
+        _.toUpperCase match {
+          case "UK" => "GB"
+          case other => other
+        }
+      )
 
   type SubsidyRef = String @@ SubsidyRef.Tag
-  object SubsidyRef extends RegexValidatedString(
-    "^[A-Za-z0-9]{1,10}$"
-  )
+  object SubsidyRef
+      extends RegexValidatedString(
+        "^[A-Za-z0-9]{1,10}$"
+      )
 
   object EisStatus extends Enumeration {
     type EisStatus = Value
@@ -131,9 +139,10 @@ package object types extends SimpleJson {
   }
 
   type EisSubsidyAmendmentType = String @@ EisSubsidyAmendmentType.Tag
-  object EisSubsidyAmendmentType extends RegexValidatedString( // todo consider enum
-    regex = "1|2|3"
-  )
+  object EisSubsidyAmendmentType
+      extends RegexValidatedString( // todo consider enum
+        regex = "1|2|3"
+      )
 
   object EisParamName extends Enumeration {
     type EisParamName = Value
@@ -154,42 +163,49 @@ package object types extends SimpleJson {
   }
 
   type EisParamValue = String @@ EisParamValue.Tag
-  object EisParamValue extends RegexValidatedString(
-    """.{1,255}"""
-  )
+  object EisParamValue
+      extends RegexValidatedString(
+        """.{1,255}"""
+      )
 
   type EisStatusString = String @@ EisStatusString.Tag
-  object EisStatusString extends RegexValidatedString(
-    """.{0,100}"""
-  )
+  object EisStatusString
+      extends RegexValidatedString(
+        """.{0,100}"""
+      )
 
   type ErrorCode = String @@ ErrorCode.Tag
-  object ErrorCode extends RegexValidatedString(
-    """.{1,35}"""
-  )
+  object ErrorCode
+      extends RegexValidatedString(
+        """.{1,35}"""
+      )
 
   type ErrorMessage = String @@ ErrorMessage.Tag
-  object ErrorMessage extends RegexValidatedString(
-    """.{1,255}"""
-  )
+  object ErrorMessage
+      extends RegexValidatedString(
+        """.{1,255}"""
+      )
 
   type Source = String @@ Source.Tag
-  object Source extends RegexValidatedString(
-    """.{1,40}"""
-  )
+  object Source
+      extends RegexValidatedString(
+        """.{1,40}"""
+      )
 
   type CorrelationID = String @@ CorrelationID.Tag
-  object CorrelationID extends RegexValidatedString(
-    """.{1,36}"""
-  )
+  object CorrelationID
+      extends RegexValidatedString(
+        """.{1,36}"""
+      )
 
   type AcknowledgementRef = String @@ AcknowledgementRef.Tag
-  object AcknowledgementRef extends RegexValidatedString(
-    """.{32}"""
-  )
+  object AcknowledgementRef
+      extends RegexValidatedString(
+        """.{32}"""
+      )
 
   type NonEmptyString = String @@ NonEmptyString.Tag
-  object NonEmptyString extends ValidatedType[String]{
+  object NonEmptyString extends ValidatedType[String] {
     def validateAndTransform(in: String): Option[String] =
       Some(in).filter(_.nonEmpty)
   }

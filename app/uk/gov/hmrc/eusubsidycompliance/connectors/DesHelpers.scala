@@ -33,23 +33,29 @@ trait DesHelpers {
   private def headers(eisTokenKey: String) = Seq(
     HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
     HeaderNames.ACCEPT -> ContentTypes.JSON,
-    HeaderNames.DATE -> LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))),
+    HeaderNames.DATE -> LocalDateTime
+      .now()
+      .format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))),
     "Environment" -> servicesConfig.getConfString("eis.environment", ""),
     "Authorization" -> s"Bearer ${servicesConfig.getConfString(eisTokenKey, "")}"
   )
 
-  def desGet[O](url: String, eisTokenKey: String)(implicit rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
+  def desGet[O](url: String, eisTokenKey: String)(implicit
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[O] =
     http.GET[O](url, Seq.empty, headers(eisTokenKey))(rds, addHeaders, ec)
 
-  def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit wts: Writes[I], rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
+  def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit
+    wts: Writes[I],
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[O] =
     http.POST[I, O](url, body, headers(eisTokenKey))(wts, rds, addHeaders, ec)
 
-  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
+  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)
-  }
-
 
 }
-
-
-

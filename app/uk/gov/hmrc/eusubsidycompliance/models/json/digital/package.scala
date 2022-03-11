@@ -33,13 +33,13 @@ package object digital {
 
   implicit val undertakingFormat: Format[Undertaking] = new Format[Undertaking] {
 
-
     // provides json for EIS createUndertaking call
     override def writes(o: Undertaking): JsValue = {
       val lead: BusinessEntity =
         o.undertakingBusinessEntity match {
           case h :: Nil => h
-          case _ => throw new IllegalStateException(s"unable to create undertaking with missing or multiple business entities")
+          case _ =>
+            throw new IllegalStateException(s"unable to create undertaking with missing or multiple business entities")
         }
 
       Json.obj(
@@ -62,7 +62,8 @@ package object digital {
 
     // provides Undertaking from EIS retrieveUndertaking response
     override def reads(retrieveUndertakingResponse: JsValue): JsResult[Undertaking] = {
-      val responseCommon: JsLookupResult = retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseCommon"
+      val responseCommon: JsLookupResult =
+        retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseCommon"
       (responseCommon \ "status").as[String] match {
         case "NOT_OK" =>
           val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
@@ -71,15 +72,20 @@ package object digital {
           // TODO consider moving exception to connector
           throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
         case "OK" =>
-          val responseDetail: JsLookupResult = retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseDetail"
+          val responseDetail: JsLookupResult =
+            retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseDetail"
           val undertakingRef: Option[String] = (responseDetail \ "undertakingReference").asOpt[String]
           val undertakingName: UndertakingName = (responseDetail \ "undertakingName").as[UndertakingName]
           val industrySector: Sector = (responseDetail \ "industrySector").as[Sector]
-          val industrySectorLimit: IndustrySectorLimit = (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit]
-          val lastSubsidyUsageUpdt: Option[LocalDate] = (responseDetail \ "lastSubsidyUsageUpdt").asOpt[String].fold(Option.empty[LocalDate])(lastSubsidyUsageUpdt =>
+          val industrySectorLimit: IndustrySectorLimit =
+            (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit]
+          val lastSubsidyUsageUpdt: Option[LocalDate] = (responseDetail \ "lastSubsidyUsageUpdt")
+            .asOpt[String]
+            .fold(Option.empty[LocalDate])(lastSubsidyUsageUpdt =>
               LocalDate.parse(lastSubsidyUsageUpdt, eis.oddEisDateFormat).some
-          )
-          val undertakingBusinessEntity: List[BusinessEntity] = (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
+            )
+          val undertakingBusinessEntity: List[BusinessEntity] =
+            (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
           JsSuccess(
             Undertaking(
               undertakingRef.map(UndertakingRef(_)),
@@ -110,20 +116,21 @@ package object digital {
   }
 
   // provides json for EIS Amend Undertaking Member Data (business entities) call
-  implicit val amendUndertakingMemberDataWrites: Writes[UndertakingBusinessEntityUpdate] = new Writes[UndertakingBusinessEntityUpdate] {
-    override def writes(o: UndertakingBusinessEntityUpdate): JsValue = Json.obj(
-      "undertakingIdentifier" -> JsString(o.undertakingIdentifier),
-      "undertakingComplete" -> JsBoolean(true),
-      "memberAmendments" -> o.businessEntityUpdates
-    )
-  }
+  implicit val amendUndertakingMemberDataWrites: Writes[UndertakingBusinessEntityUpdate] =
+    new Writes[UndertakingBusinessEntityUpdate] {
+      override def writes(o: UndertakingBusinessEntityUpdate): JsValue = Json.obj(
+        "undertakingIdentifier" -> JsString(o.undertakingIdentifier),
+        "undertakingComplete" -> JsBoolean(true),
+        "memberAmendments" -> o.businessEntityUpdates
+      )
+    }
 
   // provides json for EIS updateUndertaking call
   def updateUndertakingWrites(
     amendmentType: EisAmendmentType = EisAmendmentType.A
   ): Writes[Undertaking] = {
     val amendUndertakingWrites: Writes[Undertaking] = new Writes[Undertaking] {
-      override def writes(o: Undertaking): JsValue = {
+      override def writes(o: Undertaking): JsValue =
         Json.obj(
           "updateUndertakingRequest" -> Json.obj(
             "requestCommon" -> RequestCommon("UpdateUndertaking"),
@@ -136,7 +143,6 @@ package object digital {
             )
           )
         )
-      }
     }
     amendUndertakingWrites
   }
