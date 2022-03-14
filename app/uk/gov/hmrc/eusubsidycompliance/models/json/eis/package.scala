@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models.json
 
-
 import java.time.format.DateTimeFormatter
 import java.time._
 import play.api.libs.json._
@@ -55,7 +54,7 @@ package object eis {
             None
           ),
         "responseDetail" -> Json.obj(
-          "undertakingReference" ->  o.reference,
+          "undertakingReference" -> o.reference,
           "undertakingName" -> o.name,
           "industrySector" -> o.industrySector,
           "industrySectorLimit" -> o.industrySectorLimit,
@@ -78,7 +77,7 @@ package object eis {
             None
           ),
         "responseDetail" -> Json.obj(
-          "undertakingReference" ->  o
+          "undertakingReference" -> o
         )
       )
     )
@@ -96,7 +95,7 @@ package object eis {
             None
           ),
         "responseDetail" -> Json.obj(
-          "undertakingIdentifier" ->  o.undertakingIdentifier
+          "undertakingIdentifier" -> o.undertakingIdentifier
         )
       )
     )
@@ -104,7 +103,7 @@ package object eis {
 
   // formatter for the response from EIS when creating the Undertaking
   implicit val eisCreateUndertakingResponse: Writes[UndertakingRef] = new Writes[UndertakingRef] {
-    override def writes(undertakingRef: UndertakingRef): JsValue = {
+    override def writes(undertakingRef: UndertakingRef): JsValue =
       Json.obj(
         "createUndertakingResponse" -> Json.obj(
           "responseCommon" ->
@@ -119,78 +118,87 @@ package object eis {
           )
         )
       )
-    }
   }
 
   // provides response from EIS retrieve subsidies call
-  implicit val eisRetrieveUndertakingSubsidiesResponse: Writes[UndertakingSubsidies] = new Writes[UndertakingSubsidies] {
-    // TODO delete this if we can get the case of subsidyUsageTransactionId aligned in SCP06 & 09
-    implicit val nonHmrcSubsidyWrites: Writes[NonHmrcSubsidy] = (
-      (JsPath \ "subsidyUsageTransactionId").writeNullable[SubsidyRef] and
-      (JsPath \ "allocationDate").write[LocalDate] and
-      (JsPath \ "submissionDate").write[LocalDate] and
-      (JsPath \ "publicAuthority").writeNullable[String] and
-      (JsPath \ "traderReference").writeNullable[TraderRef] and
-      (JsPath \ "nonHMRCSubsidyAmtEUR").write[SubsidyAmount] and
-      (JsPath \ "businessEntityIdentifier").writeNullable[EORI] and
-      (JsPath \ "amendmentType").writeNullable[EisSubsidyAmendmentType]
-    )(unlift(NonHmrcSubsidy.unapply))
+  implicit val eisRetrieveUndertakingSubsidiesResponse: Writes[UndertakingSubsidies] =
+    new Writes[UndertakingSubsidies] {
+      // TODO delete this if we can get the case of subsidyUsageTransactionId aligned in SCP06 & 09
+      implicit val nonHmrcSubsidyWrites: Writes[NonHmrcSubsidy] = (
+        (JsPath \ "subsidyUsageTransactionId").writeNullable[SubsidyRef] and
+          (JsPath \ "allocationDate").write[LocalDate] and
+          (JsPath \ "submissionDate").write[LocalDate] and
+          (JsPath \ "publicAuthority").writeNullable[String] and
+          (JsPath \ "traderReference").writeNullable[TraderRef] and
+          (JsPath \ "nonHMRCSubsidyAmtEUR").write[SubsidyAmount] and
+          (JsPath \ "businessEntityIdentifier").writeNullable[EORI] and
+          (JsPath \ "amendmentType").writeNullable[EisSubsidyAmendmentType]
+      )(unlift(NonHmrcSubsidy.unapply))
 
-    override def writes(o: UndertakingSubsidies): JsValue = Json.obj(
-      "getUndertakingTransactionResponse" -> Json.obj(
-        "responseCommon" ->
-          ResponseCommon(
-            EisStatus.OK,
-            EisStatusString("String"),
-            LocalDateTime.now,
-            None
-          ),
-        "responseDetail" -> Json.obj(
-          "undertakingIdentifier" -> o.undertakingIdentifier,
-          "nonHMRCSubsidyTotalEUR" -> o.nonHMRCSubsidyTotalEUR,
-          "nonHMRCSubsidyTotalGBP" -> o.nonHMRCSubsidyTotalGBP,
-          "hmrcSubsidyTotalEUR" -> o.hmrcSubsidyTotalEUR,
-          "hmrcSubsidyTotalGBP" -> o.hmrcSubsidyTotalGBP,
-          "nonHMRCSubsidyUsage" -> o.nonHMRCSubsidyUsage,
-          "hmrcSubsidyUsage" -> o.hmrcSubsidyUsage
+      override def writes(o: UndertakingSubsidies): JsValue = Json.obj(
+        "getUndertakingTransactionResponse" -> Json.obj(
+          "responseCommon" ->
+            ResponseCommon(
+              EisStatus.OK,
+              EisStatusString("String"),
+              LocalDateTime.now,
+              None
+            ),
+          "responseDetail" -> Json.obj(
+            "undertakingIdentifier" -> o.undertakingIdentifier,
+            "nonHMRCSubsidyTotalEUR" -> o.nonHMRCSubsidyTotalEUR,
+            "nonHMRCSubsidyTotalGBP" -> o.nonHMRCSubsidyTotalGBP,
+            "hmrcSubsidyTotalEUR" -> o.hmrcSubsidyTotalEUR,
+            "hmrcSubsidyTotalGBP" -> o.hmrcSubsidyTotalGBP,
+            "nonHMRCSubsidyUsage" -> o.nonHMRCSubsidyUsage,
+            "hmrcSubsidyUsage" -> o.hmrcSubsidyUsage
+          )
         )
       )
-    )
-  }
+    }
 
   // provides reads for eis response for undertaking create call
-  implicit val eisRetrieveUndertakingSubsidiesResponseWrite: Reads[UndertakingSubsidies] = new Reads[UndertakingSubsidies] {
-    override def reads(json: JsValue): JsResult[UndertakingSubsidies] = {
-      val responseCommon: JsLookupResult = json \ "getUndertakingTransactionResponse" \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
-          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
-          val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          val ref = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "undertakingIdentifier").as[String]
-          val nonHmrcTotalEur = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyTotalEUR").as[BigDecimal]
-          val nonHmrcTotalGbp = (json \ "getUndertakingTransactionResponse" \  "responseDetail" \"nonHMRCSubsidyTotalGBP").as[BigDecimal]
-          val hmrcTotalEur = (json \ "getUndertakingTransactionResponse" \  "responseDetail" \"hmrcSubsidyTotalEUR").as[BigDecimal]
-          val hmrcTotalGbp = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyTotalGBP").as[BigDecimal]
-          val nonHmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyUsage").asOpt[List[NonHmrcSubsidy]]
-          val hmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyUsage").asOpt[List[HmrcSubsidy]]
-          JsSuccess(UndertakingSubsidies(
-            UndertakingRef(ref),
-            SubsidyAmount(nonHmrcTotalEur),
-            SubsidyAmount(nonHmrcTotalGbp),
-            SubsidyAmount(hmrcTotalEur),
-            SubsidyAmount(hmrcTotalGbp),
-            nonHmrcUsage.getOrElse(List.empty),
-            hmrcUsage.getOrElse(List.empty)
-          ))
-        case _ => JsError("unable to derive Error or Success from SCP02 response")
+  implicit val eisRetrieveUndertakingSubsidiesResponseWrite: Reads[UndertakingSubsidies] =
+    new Reads[UndertakingSubsidies] {
+      override def reads(json: JsValue): JsResult[UndertakingSubsidies] = {
+        val responseCommon: JsLookupResult = json \ "getUndertakingTransactionResponse" \ "responseCommon"
+        (responseCommon \ "status").as[String] match {
+          case "NOT_OK" =>
+            val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
+            val statusText = (responseCommon \ "statusText").asOpt[String]
+            val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
+            // TODO consider moving exception to connector
+            throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
+          case "OK" =>
+            val ref =
+              (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "undertakingIdentifier").as[String]
+            val nonHmrcTotalEur =
+              (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyTotalEUR").as[BigDecimal]
+            val nonHmrcTotalGbp =
+              (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyTotalGBP").as[BigDecimal]
+            val hmrcTotalEur =
+              (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyTotalEUR").as[BigDecimal]
+            val hmrcTotalGbp =
+              (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyTotalGBP").as[BigDecimal]
+            val nonHmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "nonHMRCSubsidyUsage")
+              .asOpt[List[NonHmrcSubsidy]]
+            val hmrcUsage = (json \ "getUndertakingTransactionResponse" \ "responseDetail" \ "hmrcSubsidyUsage")
+              .asOpt[List[HmrcSubsidy]]
+            JsSuccess(
+              UndertakingSubsidies(
+                UndertakingRef(ref),
+                SubsidyAmount(nonHmrcTotalEur),
+                SubsidyAmount(nonHmrcTotalGbp),
+                SubsidyAmount(hmrcTotalEur),
+                SubsidyAmount(hmrcTotalGbp),
+                nonHmrcUsage.getOrElse(List.empty),
+                hmrcUsage.getOrElse(List.empty)
+              )
+            )
+          case _ => JsError("unable to derive Error or Success from SCP02 response")
+        }
       }
     }
-  }
-
 
   // convenience reads so we can store a created undertaking
   val undertakingRequestReads: Reads[Undertaking] = new Reads[Undertaking] {
@@ -217,7 +225,7 @@ package object eis {
   val businessEntityReads: Reads[BusinessEntity] = new Reads[BusinessEntity] {
     override def reads(json: JsValue): JsResult[BusinessEntity] = JsSuccess(
       BusinessEntity(
-        (json  \ "businessEntityIdentifier").as[EORI],
+        (json \ "businessEntityIdentifier").as[EORI],
         (json \ "leadEORIIndicator").as[Boolean]
       )
     )

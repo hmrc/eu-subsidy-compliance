@@ -25,13 +25,11 @@ import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, NilSubmissionDate
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
-
 @Singleton()
-class UndertakingController @Inject()(
+class UndertakingController @Inject() (
   cc: ControllerComponents,
   authenticator: Auth,
   eis: EisConnector,
@@ -41,12 +39,14 @@ class UndertakingController @Inject()(
   implicit val ec: ExecutionContext = cc.executionContext
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    eis.retrieveUndertaking(
-      EORI(eori)
-    ).map { undertaking =>
-      implicit val undertakingFormat: OFormat[Undertaking] = Json.format[Undertaking]
-      Ok(Json.toJson(undertaking))
-    }
+    eis
+      .retrieveUndertaking(
+        EORI(eori)
+      )
+      .map { undertaking =>
+        implicit val undertakingFormat: OFormat[Undertaking] = Json.format[Undertaking]
+        Ok(Json.toJson(undertaking))
+      }
   }
 
   def create: Action[JsValue] = Action.async(parse.json) { implicit request =>
@@ -71,12 +71,13 @@ class UndertakingController @Inject()(
     implicit val uF = Json.format[BusinessEntity]
     //TODO make sure the undertaking is correct
     withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      val a = eis.retrieveUndertaking(
+      val a = eis
+        .retrieveUndertaking(
           EORI(businessEntity.businessEntityIdentifier)
         )
-        .map (_ => AmendmentType.amend)
-        .recover {
-          case _ =>  AmendmentType.add
+        .map(_ => AmendmentType.amend)
+        .recover { case _ =>
+          AmendmentType.add
         }
       a.flatMap { amendType =>
         eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
@@ -89,17 +90,16 @@ class UndertakingController @Inject()(
   def deleteMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = Json.format[BusinessEntity]
     withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map{ _ =>
+      eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
         Ok(Json.toJson(UndertakingRef(undertakingRef)))
       }
     }
   }
 
-
   def updateSubsidy(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     implicit val uF = SubsidyUpdate.updateFormat
     withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
-      eis.upsertSubsidyUsage(update).map{ _ =>
+      eis.upsertSubsidyUsage(update).map { _ =>
         Ok(Json.toJson(update.undertakingIdentifier)) // TODO check error handling
       }
     }
@@ -107,7 +107,7 @@ class UndertakingController @Inject()(
 
   def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyRetrieve] { retrieve: SubsidyRetrieve =>
-      eis.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map{ e =>
+      eis.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map { e =>
         Ok(Json.toJson(e)) // TODO check error handling
       }
     }

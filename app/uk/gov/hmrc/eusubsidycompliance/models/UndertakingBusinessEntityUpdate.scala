@@ -19,8 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 
 case class UndertakingBusinessEntityUpdate(
-	undertakingIdentifier: UndertakingRef,
-	undertakingComplete: Boolean = true,
-	businessEntityUpdates: List[BusinessEntityUpdate]
+  undertakingIdentifier: UndertakingRef,
+  undertakingComplete: Boolean = true,
+  businessEntityUpdates: List[BusinessEntityUpdate]
 )
-

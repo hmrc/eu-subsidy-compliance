@@ -36,46 +36,53 @@ trait Auth extends AuthorisedFunctions with Results with BaseController {
 
   def authorised(action: AuthAction[AnyContent])(implicit ec: ExecutionContext): Action[AnyContent] =
     Action.async { implicit request =>
+      authCommon(action)
+    }
+
+  def authorisedWithJson(json: BodyParser[JsValue])(
+    action: AuthAction[JsValue]
+  )(implicit executionContext: ExecutionContext): Action[JsValue] = Action.async(json) { implicit request =>
     authCommon(action)
   }
 
-  def authorisedWithJson(json: BodyParser[JsValue])(action: AuthAction[JsValue])(
-    implicit executionContext: ExecutionContext): Action[JsValue] = Action.async(json) { implicit request =>
-    authCommon(action)
-  }
-
-  def authCommon[A](action: AuthAction[A])(
-    implicit request: Request[A], executionContext: ExecutionContext): Future[Result]
+  def authCommon[A](
+    action: AuthAction[A]
+  )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result]
 }
 
 @Singleton
 class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerComponents: ControllerComponents)
-  extends Auth {
+    extends Auth {
 
   val authProvider: AuthProviders = AuthProviders(GovernmentGateway)
   val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
 
   private val EnrollmentKey = "HMRC-ESC-ORG"
 
-  def authCommon[A](action: AuthAction[A])(implicit request: Request[A], executionContext: ExecutionContext):
-    Future[Result] = {
-      request.headers.get("Authorization") match {
-        case Some(_) =>
-          implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-          authorised(Enrolment(EnrollmentKey)).retrieve(retrievals) {
-            case enrolments: Enrolments => enrolments.getEnrolment(EnrollmentKey)
-              .map(x => x.getIdentifier("EORINumber"))
-              .flatMap(y => y.map(z => z.value)).map(x => EORI(x)) match {
+  def authCommon[A](
+    action: AuthAction[A]
+  )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] =
+    request.headers.get("Authorization") match {
+      case Some(_) =>
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+        authorised(Enrolment(EnrollmentKey))
+          .retrieve(retrievals) {
+            case enrolments: Enrolments =>
+              enrolments
+                .getEnrolment(EnrollmentKey)
+                .map(x => x.getIdentifier("EORINumber"))
+                .flatMap(y => y.map(z => z.value))
+                .map(x => EORI(x)) match {
                 case Some(eori) => action(request)(eori)
                 case _ => throw new IllegalStateException("EORI missing from enrolment")
               }
             case _ => Future.failed(throw InternalError())
-          }.recoverWith {
+          }
+          .recoverWith {
             case _: NoActiveSession =>
               Future.successful(Unauthorized("No active session"))
             case _: InsufficientEnrolments => Future.successful(Unauthorized("Insufficient Enrolments"))
           }
-        case _ => Future.successful(Forbidden("Authorization header missing"))
-      }
-  }
+      case _ => Future.successful(Forbidden("Authorization header missing"))
+    }
 }
