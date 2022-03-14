@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
-import uk.gov.hmrc.eusubsidycompliance.models.BusinessEntity
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
@@ -37,10 +37,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSupport with ScalaFutures
   with IntegrationPatience {
 
-  private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
+  private val AmendSubsidyPath = "/scp/amendundertakingsubsidyusage/v1"
+  private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"
   private val CreateUndertakingPath = "/scp/createundertaking/v1"
   private val RetrieveSubsidyPath = "/scp/getundertakingtransactions/v1"
-  private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"
+  private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
@@ -291,6 +292,104 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
             undertakingReference,
             BusinessEntity(eori, leadEORI = false),
             AmendmentType.add
+          ).failed.futureValue mustBe a[EisBadResponseException]
+        }
+      }
+
+    }
+
+    "deleteMember is called" should {
+
+      "return a successful response for a valid request" in {
+
+        val successfulResponse = s"""{
+                                    | "amendUndertakingMemberDataResponse": {
+                                    |   "responseCommon": {
+                                    |     "status": "OK"
+                                    |   }
+                                    |  }
+                                    |}""".stripMargin
+
+        givenEisReturns(200, AmendUndertakingMemberPath, successfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.deleteMember(
+            undertakingReference,
+            BusinessEntity(eori, leadEORI = false)
+          ).futureValue mustBe (())
+        }
+
+      }
+
+      "throw an EisBadResponseException if a NOT_OK response is returned" in {
+
+        val unsuccessfulResponse = s"""{
+                                      | "amendUndertakingMemberDataResponse": {
+                                      |   "responseCommon": {
+                                      |     "status": "NOT_OK",
+                                      |     "processingDate": "$fixedInstant",
+                                      |     "returnParameters": [{
+                                      |       "paramName": "ERRORCODE",
+                                      |       "paramValue": "055"
+                                      |     }]
+                                      |   }
+                                      |  }
+                                      |}""".stripMargin
+
+        givenEisReturns(200, AmendUndertakingMemberPath, unsuccessfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.deleteMember(
+            undertakingReference,
+            BusinessEntity(eori, leadEORI = false)
+          ).failed.futureValue mustBe a[EisBadResponseException]
+        }
+      }
+
+    }
+
+    "upsertSubsidyUsage is called" should {
+
+      "return a successful response for a valid request" in {
+
+        val successfulResponse = s"""{
+                                    | "amendUndertakingSubsidyUsageResponse": {
+                                    |   "responseCommon": {
+                                    |     "status": "OK"
+                                    |   }
+                                    |  }
+                                    |}""".stripMargin
+
+        givenEisReturns(200, AmendSubsidyPath, successfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.upsertSubsidyUsage(
+            SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
+          ).futureValue mustBe (())
+        }
+
+      }
+
+      "throw an EisBadResponseException if a NOT_OK response is returned" in {
+
+        val unsuccessfulResponse = s"""{
+                                      | "amendUndertakingSubsidyUsageResponse": {
+                                      |   "responseCommon": {
+                                      |     "status": "NOT_OK",
+                                      |     "processingDate": "$fixedInstant",
+                                      |     "returnParameters": [{
+                                      |       "paramName": "ERRORCODE",
+                                      |       "paramValue": "055"
+                                      |     }]
+                                      |   }
+                                      |  }
+                                      |}""".stripMargin
+
+        givenEisReturns(200, AmendSubsidyPath, unsuccessfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.upsertSubsidyUsage(
+            SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
           ).failed.futureValue mustBe a[EisBadResponseException]
         }
       }

@@ -104,11 +104,7 @@ class EisConnector @Inject() (
     amendmentType: AmendmentType
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    println(s"AddMember: called with uref: $undertakingRef be: $businessEntity type: $amendmentType")
-
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
-
-    val thing = readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]])
 
     val eisTokenKey = "eis.token.scp05"
 
@@ -120,8 +116,7 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, thing, addHeaders, implicitly)
-    result.foreach(r => println(s"Got response: $r"))
+    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
     result
   }
 
@@ -130,7 +125,7 @@ class EisConnector @Inject() (
     businessEntity: BusinessEntity
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberDataWrites
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberDataResponseReads, amendUndertakingMemberDataWrites}
 
     val eisTokenKey = "eis.token.scp05"
 
@@ -142,12 +137,14 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, implicitly, addHeaders, implicitly)
+    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
   }
 
   def upsertSubsidyUsage(
     subsidyUpdate: SubsidyUpdate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyResponseReads
 
     val eisTokenKey = "eis.token.scp06"
 
@@ -155,7 +152,7 @@ class EisConnector @Inject() (
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate,
       eisTokenKey
-    )(implicitly, implicitly, addHeaders, implicitly)
+    )(implicitly, readFromJson(amendSubsidyResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
   }
 
   def retrieveSubsidies(

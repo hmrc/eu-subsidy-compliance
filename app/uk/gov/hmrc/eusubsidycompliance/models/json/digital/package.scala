@@ -147,77 +147,42 @@ package object digital {
     amendUndertakingWrites
   }
 
-  // provides reads for eis response for undertaking create call
-  implicit val undertakingCreateResponseReads: Reads[UndertakingRef] = new Reads[UndertakingRef] {
-    override def reads(json: JsValue): JsResult[UndertakingRef] = {
-      val responseCommon: JsLookupResult = json \ "createUndertakingResponse" \ "responseCommon"
+  implicit val undertakingCreateResponseReads: Reads[UndertakingRef] =
+    readPostResponse[UndertakingRef]("createUndertakingResponse") { json =>
+      val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
+      JsSuccess(UndertakingRef(ref))
+    }
+
+  implicit val undertakingUpdateResponseReads: Reads[UndertakingRef] =
+    readPostResponse[UndertakingRef]("updateUndertakingResponse") { json =>
+      val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
+      JsSuccess(UndertakingRef(ref))
+    }
+
+  implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] =
+    readPostResponse[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(Unit))
+
+  implicit val amendSubsidyResponseReads: Reads[Unit] =
+    readPostResponse[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
+
+  // TODO - probably better expressed as an enum.
+  private val OK = "OK"
+  private val NOT_OK = "NOT_OK"
+
+  private def readPostResponse[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
+    override def reads(json: JsValue): JsResult[A] = {
+      val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
       (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
+        case OK => extractValue(json)
+        case NOT_OK =>
           val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
           val statusText = (responseCommon \ "statusText").asOpt[String]
           val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
-          JsSuccess(UndertakingRef(ref))
-        case _ => JsError("unable to derive Error or Success from SCP02 response")
+          // TODO - this should probably be handled in the connector.
+          throw new EisBadResponseException(NOT_OK, processingDate, statusText, returnParameters)
+        case _ => JsError("unable to parse status from response")
       }
     }
   }
 
-  implicit val undertakingUpdateResponseReads: Reads[UndertakingRef] = new Reads[UndertakingRef] {
-    override def reads(json: JsValue): JsResult[UndertakingRef] = {
-      val responseCommon: JsLookupResult = json \ "updateUndertakingResponse" \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
-          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
-          val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
-          JsSuccess(UndertakingRef(ref))
-        case _ => JsError("unable to derive Error or Success from SCP02 response")
-      }
-    }
-  }
-
-  implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] = new Reads[Unit] {
-    override def reads(json: JsValue): JsResult[Unit] = {
-      val responseCommon: JsLookupResult = json \ "amendUndertakingMemberDataResponse" \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
-          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
-          val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          JsSuccess(Unit)
-        case _ =>
-          JsError("unable to derive Error or Success from SCP02 response")
-      }
-    }
-  }
-
-  // TODO add this to other services
-  implicit val amendSubsidyResponseReads: Reads[Unit] = new Reads[Unit] {
-    override def reads(json: JsValue): JsResult[Unit] = {
-      val responseCommon: JsLookupResult = json \ "amendUndertakingSubsidyUsageResponse" \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
-          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
-          val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          JsSuccess(Unit)
-        case _ =>
-          JsError("unable to derive Error or Success from SCP06 response")
-      }
-    }
-  }
 }
