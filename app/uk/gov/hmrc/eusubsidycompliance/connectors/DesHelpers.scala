@@ -52,8 +52,10 @@ trait DesHelpers {
     rds: HttpReads[O],
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[O] =
+  ): Future[O] = {
+    println(s"desPost writes: $wts reads: $rds")
     http.POST[I, O](url, body, headers(eisTokenKey))(wts, rds, addHeaders, ec)
+  }
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)

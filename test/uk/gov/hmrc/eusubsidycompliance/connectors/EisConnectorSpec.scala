@@ -24,8 +24,9 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
+import uk.gov.hmrc.eusubsidycompliance.models.BusinessEntity
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
-import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
@@ -39,6 +40,7 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
   private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
   private val CreateUndertakingPath = "/scp/createundertaking/v1"
   private val RetrieveSubsidyPath = "/scp/getundertakingtransactions/v1"
+  private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
@@ -238,6 +240,58 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
 
         testWithRunningApp { underTest =>
           underTest.retrieveSubsidies(undertakingReference, None).failed.futureValue mustBe a[JsonParseException]
+        }
+      }
+
+    }
+
+    "addMember is called" should {
+
+      "return a successful response for a valid request" in {
+
+        val successfulResponse = s"""{
+         | "amendUndertakingMemberDataResponse": {
+         |   "responseCommon": {
+         |     "status": "OK"
+         |   }
+         |  }
+         |}""".stripMargin
+
+        givenEisReturns(200, AmendUndertakingMemberPath, successfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.addMember(
+            undertakingReference,
+            BusinessEntity(eori, leadEORI = false),
+            AmendmentType.add
+          ).futureValue mustBe (())
+        }
+
+      }
+
+      "throw an EisBadResponseException if a NOT_OK response is returned" in {
+
+        val unsuccessfulResponse = s"""{
+        | "amendUndertakingMemberDataResponse": {
+        |   "responseCommon": {
+        |     "status": "NOT_OK",
+        |     "processingDate": "$fixedInstant",
+        |     "returnParameters": [{
+        |       "paramName": "ERRORCODE",
+        |       "paramValue": "055"
+        |     }]
+        |   }
+        |  }
+        |}""".stripMargin
+
+        givenEisReturns(200, AmendUndertakingMemberPath, unsuccessfulResponse)
+
+        testWithRunningApp { underTest =>
+          underTest.addMember(
+            undertakingReference,
+            BusinessEntity(eori, leadEORI = false),
+            AmendmentType.add
+          ).failed.futureValue mustBe a[EisBadResponseException]
         }
       }
 
