@@ -20,7 +20,7 @@ This service uses `mongodb` to persist user answers about Undertaking, Business 
 ## Requirements
 
 This service is written in [Scala](http://www.scala-lang.org/) using the
-[Play framework](http://playframework.com/), so needs at least a [JRE] to run.
+[Play framework](http://playframework.com/), so needs at least a JRE to run.
 
 JRE/JDK 1.8 is recommended.
 
