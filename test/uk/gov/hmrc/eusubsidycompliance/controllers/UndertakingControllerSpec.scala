@@ -29,9 +29,10 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
-import uk.gov.hmrc.eusubsidycompliance.models.{NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
-import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
-import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{date, eori, undertaking, undertakingReference, undertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{businessEntity, date, eori, undertaking, undertakingReference, undertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -54,6 +55,96 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   private val mockTimeProvider = mock[TimeProvider]
 
   "UnderTakingController" when {
+
+    "retrieve is called" should {
+
+      "Happy path" in {
+
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Future.successful(undertaking))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+
+      }
+
+    }
+
+    "updateUndertaking is called" should {
+      implicit val format: Format[Undertaking] = Json.format[Undertaking]
+
+      "Happy path" in {
+        val app = configuredAppInstance
+
+        givenUpdateUndertaking(Future.successful(undertakingReference))
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.updateUndertaking().url)
+            .withJsonBody(Json.toJson(undertaking))
+            .withHeaders("Content-type" -> "application/json")
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+      }
+    }
+
+    "deleteMember is called" should {
+
+      "Happy path" in {
+        val app = configuredAppInstance
+
+        givenDeleteMember(Future.successful((): Unit))
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.deleteMember(undertakingReference).url)
+            .withJsonBody(Json.toJson(businessEntity))
+            .withHeaders("Content-type" -> "application/json")
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+      }
+    }
+
+    "addMember is called" should {
+
+      "Happy path" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Future.successful(undertaking))
+        givenAddMember(Future.successful((): Unit))
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.addMember(undertakingReference).url)
+            .withJsonBody(Json.toJson(businessEntity))
+            .withHeaders("Content-type" -> "application/json")
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+      }
+    }
+
+    "updateSubsidy is called" should {
+
+      "Happy path" in {
+        val app = configuredAppInstance
+
+        givenUpdateSubsidy(Future.successful((): Unit))
+
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.updateSubsidy().url)
+            .withJsonBody(Json.toJson(SubsidyUpdate(undertakingReference, NilSubmissionDate(date))))
+            .withHeaders("Content-type" -> "application/json")
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+      }
+    }
 
     "create undertaking is called" should {
       implicit val format: Format[Undertaking] = Json.format[Undertaking]
@@ -208,4 +299,24 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
   private def returningFixedDate(fixedDate: LocalDate): Unit =
     (mockTimeProvider.today _).expects().returning(fixedDate)
+
+  private def givenRetrieveRetrieveUndertaking(res: Future[Undertaking]): Unit =
+    (mockEisConnector.retrieveUndertaking(_: EORI)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(eori, *, *)
+      .returning(res)
+
+  private def givenUpdateUndertaking(res: Future[UndertakingRef]): Unit =
+    (mockEisConnector.updateUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertaking, *, *)
+      .returning(res)
+
+  private def givenDeleteMember(res: Future[Unit]): Unit =
+    (mockEisConnector.deleteMember(_: UndertakingRef, _: BusinessEntity)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity,* , *)
+      .returning(res)
+
+  private def givenAddMember(res: Future[Unit]): Unit =
+    (mockEisConnector.addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity, AmendmentType.amend,* , *)
+      .returning(res)
 }

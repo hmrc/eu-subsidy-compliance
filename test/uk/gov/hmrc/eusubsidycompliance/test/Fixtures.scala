@@ -42,6 +42,8 @@ object Fixtures {
     List(BusinessEntity(eori, leadEORI = true))
   )
 
+  val businessEntity = BusinessEntity(eori, leadEORI = true)
+
   val subsidyRef = SubsidyRef("ABC12345")
   val declarationId = DeclarationID("12345")
   val traderRef = TraderRef("SomeTraderReference")

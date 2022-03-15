@@ -27,7 +27,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
-      ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*GuiceInjector;" +
+      ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*models.*;.*config.*;.*TimeProvider;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*testonly.*"
   )
 
