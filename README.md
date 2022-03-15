@@ -1,8 +1,6 @@
 
 # eu-subsidy-compliance
 
-This is a placeholder README.md for a new repository
-
 This microservice serves the following purposes:
 - Create a new Undertaking
 - Retrieve an existing undertaking
