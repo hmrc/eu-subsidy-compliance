@@ -12,9 +12,6 @@ This microservice serves the following purposes:
 - Upsert undertaking subsidy
 - retrieve existing undertaking subsidies.
 
-This service depends on the following services
-- [auth]("https://github.com/hmrc/auth")
-- [eu-subsidy-stub]("https://github.com/hmrc/eu-subsidy-compliance-stub")
 
 ## Persistence
 
