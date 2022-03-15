@@ -250,7 +250,7 @@ The following grafana and kibana dashboards are availble for this service
 ## Runbook
 
 The runbook for this service can be found
-[here:: TODO to be added later once confirmed]().
+[here](https://confluence.tools.tax.service.gov.uk/display/SC/Runbook+-+Subsidy+Compliance).
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
