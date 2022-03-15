@@ -51,7 +51,7 @@ class EisConnector @Inject() (
 
   def retrieveUndertaking(eori: EORI)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Undertaking] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingFormat}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingReads}
 
     val eisTokenKey = "eis.token.scp04"
     desPost[EORI, Undertaking](
@@ -73,7 +73,7 @@ class EisConnector @Inject() (
     undertaking: Undertaking
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{undertakingCreateResponseReads, undertakingFormat}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{undertakingCreateResponseReads, undertakingWrites}
 
     val eisTokenKey = "eis.token.scp02"
     desPost[Undertaking, UndertakingRef](

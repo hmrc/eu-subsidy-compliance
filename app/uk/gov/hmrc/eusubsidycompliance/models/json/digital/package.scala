@@ -31,9 +31,7 @@ package object digital {
 
   val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-  implicit val undertakingFormat: Format[Undertaking] = new Format[Undertaking] {
-
-    // provides json for EIS createUndertaking call
+  implicit val undertakingWrites = new Writes[Undertaking] {
     override def writes(o: Undertaking): JsValue = {
       val lead: BusinessEntity =
         o.undertakingBusinessEntity match {
@@ -57,49 +55,37 @@ package object digital {
           )
         )
       )
-
-    }
-
-    // provides Undertaking from EIS retrieveUndertaking response
-    override def reads(retrieveUndertakingResponse: JsValue): JsResult[Undertaking] = {
-      val responseCommon: JsLookupResult =
-        retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case "NOT_OK" =>
-          val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
-          val statusText = (responseCommon \ "statusText").asOpt[String]
-          val returnParameters: Option[List[Params]] = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          // TODO consider moving exception to connector
-          throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
-        case "OK" =>
-          val responseDetail: JsLookupResult =
-            retrieveUndertakingResponse \ "retrieveUndertakingResponse" \ "responseDetail"
-          val undertakingRef: Option[String] = (responseDetail \ "undertakingReference").asOpt[String]
-          val undertakingName: UndertakingName = (responseDetail \ "undertakingName").as[UndertakingName]
-          val industrySector: Sector = (responseDetail \ "industrySector").as[Sector]
-          val industrySectorLimit: IndustrySectorLimit =
-            (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit]
-          val lastSubsidyUsageUpdt: Option[LocalDate] = (responseDetail \ "lastSubsidyUsageUpdt")
-            .asOpt[String]
-            .fold(Option.empty[LocalDate])(lastSubsidyUsageUpdt =>
-              LocalDate.parse(lastSubsidyUsageUpdt, eis.oddEisDateFormat).some
-            )
-          val undertakingBusinessEntity: List[BusinessEntity] =
-            (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
-          JsSuccess(
-            Undertaking(
-              undertakingRef.map(UndertakingRef(_)),
-              undertakingName,
-              industrySector,
-              industrySectorLimit.some,
-              lastSubsidyUsageUpdt,
-              undertakingBusinessEntity
-            )
-          )
-        case _ => JsError("unable to derive Error or Success from SCP04 response")
-      }
     }
   }
+
+  implicit val undertakingReads: Reads[Undertaking] =
+    readResponseFor[Undertaking]("retrieveUndertakingResponse") { json =>
+      val responseDetail: JsLookupResult =
+        json \ "retrieveUndertakingResponse" \ "responseDetail"
+      val undertakingRef: Option[String] = (responseDetail \ "undertakingReference").asOpt[String]
+      val undertakingName: UndertakingName = (responseDetail \ "undertakingName").as[UndertakingName]
+      val industrySector: Sector = (responseDetail \ "industrySector").as[Sector]
+      val industrySectorLimit: IndustrySectorLimit =
+        (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit]
+      // TODO - review fold here - should probably be a map - review code for other examples of this
+      val lastSubsidyUsageUpdt: Option[LocalDate] = (responseDetail \ "lastSubsidyUsageUpdt")
+        .asOpt[String]
+        .fold(Option.empty[LocalDate])(lastSubsidyUsageUpdt =>
+          LocalDate.parse(lastSubsidyUsageUpdt, eis.oddEisDateFormat).some
+        )
+      val undertakingBusinessEntity: List[BusinessEntity] =
+        (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
+      JsSuccess(
+        Undertaking(
+          undertakingRef.map(UndertakingRef(_)),
+          undertakingName,
+          industrySector,
+          industrySectorLimit.some,
+          lastSubsidyUsageUpdt,
+          undertakingBusinessEntity
+        )
+      )
+    }
 
   // provides json for EIS retrieveUndertaking call
   implicit val retrieveUndertakingEORIWrites: Writes[EORI] = new Writes[EORI] {
@@ -148,28 +134,28 @@ package object digital {
   }
 
   implicit val undertakingCreateResponseReads: Reads[UndertakingRef] =
-    readPostResponse[UndertakingRef]("createUndertakingResponse") { json =>
+    readResponseFor[UndertakingRef]("createUndertakingResponse") { json =>
       val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
       JsSuccess(UndertakingRef(ref))
     }
 
   implicit val undertakingUpdateResponseReads: Reads[UndertakingRef] =
-    readPostResponse[UndertakingRef]("updateUndertakingResponse") { json =>
+    readResponseFor[UndertakingRef]("updateUndertakingResponse") { json =>
       val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
       JsSuccess(UndertakingRef(ref))
     }
 
   implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] =
-    readPostResponse[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(Unit))
+    readResponseFor[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(Unit))
 
   implicit val amendSubsidyResponseReads: Reads[Unit] =
-    readPostResponse[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
+    readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
 
   // TODO - probably better expressed as an enum.
   private val OK = "OK"
   private val NOT_OK = "NOT_OK"
 
-  private def readPostResponse[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
+  private def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
     override def reads(json: JsValue): JsResult[A] = {
       val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
       (responseCommon \ "status").as[String] match {
