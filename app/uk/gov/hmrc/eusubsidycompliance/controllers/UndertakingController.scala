@@ -43,7 +43,7 @@ class UndertakingController @Inject() (
       }
   }
 
-  def create: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[Undertaking] { undertaking: Undertaking =>
       for {
         ref <- eis.createUndertaking(undertaking)
@@ -52,44 +52,45 @@ class UndertakingController @Inject() (
     }
   }
 
-  def updateUndertaking: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def updateUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[Undertaking] { undertaking: Undertaking =>
       eis.updateUndertaking(undertaking).map(ref => Ok(Json.toJson(ref)))
     }
 
   }
 
-  def addMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    //TODO make sure the undertaking is correct
-    withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      val a = eis
-        .retrieveUndertaking(
-          EORI(businessEntity.businessEntityIdentifier)
-        )
-        .map(_ => AmendmentType.amend)
-        .recover { case _ =>
-          AmendmentType.add
+  def addMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
+    implicit request => _ =>
+      // TODO make sure the undertaking is correct
+      withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+
+        // TODO - clarify this - what we're saying is success is amend, failure is add
+        val a = eis.retrieveUndertaking(EORI(businessEntity.businessEntityIdentifier))
+          .map(_ => AmendmentType.amend)
+          .recover { case _ =>
+            AmendmentType.add
+          }
+        a.flatMap { amendType =>
+          eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
+            Ok(Json.toJson(UndertakingRef(undertakingRef)))
+          }
         }
-      a.flatMap { amendType =>
-        eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
+      }
+  }
+
+  def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
+    implicit request => _ =>
+      withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+        eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
           Ok(Json.toJson(UndertakingRef(undertakingRef)))
         }
       }
-    }
   }
 
-  def deleteMember(undertakingRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-      eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
-        Ok(Json.toJson(UndertakingRef(undertakingRef)))
-      }
-    }
-  }
-
-  def updateSubsidy(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def updateSubsidy(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
       eis.upsertSubsidyUsage(update).map { _ =>
-        Ok(Json.toJson(update.undertakingIdentifier)) // TODO check error handling
+        Ok(Json.toJson(update.undertakingIdentifier))
       }
     }
   }
@@ -97,7 +98,7 @@ class UndertakingController @Inject() (
   def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyRetrieve] { retrieve: SubsidyRetrieve =>
       eis.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map { e =>
-        Ok(Json.toJson(e)) // TODO check error handling
+        Ok(Json.toJson(e))
       }
     }
   }
