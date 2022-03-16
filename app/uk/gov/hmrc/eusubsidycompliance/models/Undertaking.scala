@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import java.time.LocalDate
+import play.api.libs.json.{Json, OFormat}
 
+import java.time.LocalDate
 import uk.gov.hmrc.eusubsidycompliance.models.types._
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 
@@ -29,3 +30,7 @@ case class Undertaking(
   lastSubsidyUsageUpdt: Option[LocalDate],
   undertakingBusinessEntity: List[BusinessEntity]
 )
+
+object Undertaking {
+  implicit val undertakingFormat: OFormat[Undertaking] = Json.format[Undertaking]
+}
