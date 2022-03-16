@@ -19,13 +19,11 @@ package uk.gov.hmrc.eusubsidycompliance.models
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 
-// TODO consider renaming... UndertakingMember might make more sense
 case class BusinessEntity(
   businessEntityIdentifier: EORI,
   leadEORI: Boolean
 )
 
-case object BusinessEntity {
-  implicit val format: OFormat[BusinessEntity] =
-    Json.format[BusinessEntity]
+object BusinessEntity {
+  implicit val businessEntityFormat: OFormat[BusinessEntity] = Json.format[BusinessEntity]
 }
