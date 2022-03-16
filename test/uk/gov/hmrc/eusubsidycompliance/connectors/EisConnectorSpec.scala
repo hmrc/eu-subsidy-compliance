@@ -41,6 +41,8 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
   private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"
   private val CreateUndertakingPath = "/scp/createundertaking/v1"
   private val RetrieveSubsidyPath = "/scp/getundertakingtransactions/v1"
+  private val UpdateUndertakingPath = "/scp/updateundertaking/v1"
+  private val AmendBusinessEntityPath = "/scp/amendundertakingmemberdata/v1"
   private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
@@ -394,6 +396,75 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         }
       }
 
+    }
+
+    "updateUndertaking is called" should {
+
+      "get expected response on happy path" in {
+
+        givenEisReturns(200, UpdateUndertakingPath, s"""{
+                                                       | "updateUndertakingResponse": {
+                                                       |   "responseCommon": {
+                                                       |     "status": "OK",
+                                                       |     "processingDate": "$fixedInstant"
+                                                       |   },
+                                                       |   "responseDetail": {
+                                                       |      "undertakingReference": "$undertakingReference"
+                                                       |   }
+                                                       | }
+                                                       |}
+                                                       |""".stripMargin)
+
+        testWithRunningApp { underTest =>
+          underTest.updateUndertaking(undertaking).futureValue mustBe undertakingReference
+        }
+      }
+    }
+
+    "remove member is called" should {
+
+      "get expected response on happy path" in {
+
+        givenEisReturns(200, AmendBusinessEntityPath, s"""{
+                                                         | "amendUndertakingMemberDataResponse": {
+                                                         |   "responseCommon": {
+                                                         |     "status": "OK",
+                                                         |     "processingDate": "$fixedInstant"
+                                                         |   },
+                                                         |   "responseDetail": {
+                                                         |      "undertakingReference": "$undertakingReference"
+                                                         |   }
+                                                         | }
+                                                         |}
+                                                         |""".stripMargin)
+
+        testWithRunningApp { underTest =>
+          underTest.deleteMember(undertakingReference, businessEntity).futureValue mustBe (())
+        }
+      }
+    }
+
+    "upsert upsertSubsidyUsage" should {
+
+      "get expected response on happy path" in {
+
+        givenEisReturns(200, AmendSubsidyPath, s"""{
+                                                         | "amendUndertakingSubsidyUsageResponse": {
+                                                         |   "responseCommon": {
+                                                         |     "status": "OK",
+                                                         |     "processingDate": "$fixedInstant"
+                                                         |   },
+                                                         |   "responseDetail": {
+                                                         |      "undertakingReference": "$undertakingReference"
+                                                         |   }
+                                                         | }
+                                                         |}
+                                                         |""".stripMargin)
+
+        testWithRunningApp { underTest =>
+          underTest.upsertSubsidyUsage(SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))).futureValue mustBe (())
+        }
+      }
     }
 
   }
