@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models._
@@ -27,6 +27,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 @Singleton()
 class UndertakingController @Inject() (
@@ -56,27 +57,24 @@ class UndertakingController @Inject() (
     withJsonBody[Undertaking] { undertaking: Undertaking =>
       eis.updateUndertaking(undertaking).map(ref => Ok(Json.toJson(ref)))
     }
-
   }
 
   def addMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
-      // TODO make sure the undertaking is correct
       withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-
-        // TODO - clarify this - what we're saying is success is amend, failure is add
-        val a = eis.retrieveUndertaking(EORI(businessEntity.businessEntityIdentifier))
-          .map(_ => AmendmentType.amend)
-          .recover { case _ =>
-            AmendmentType.add
-          }
-        a.flatMap { amendType =>
-          eis.addMember(UndertakingRef(undertakingRef), businessEntity, amendType).map { _ =>
-            Ok(Json.toJson(UndertakingRef(undertakingRef)))
-          }
-        }
+        for {
+          amendmentType <- getAmendmentTypeForBusinessEntity(businessEntity)
+          ref = UndertakingRef(undertakingRef)
+          _ <- eis.addMember(ref, businessEntity, amendmentType)
+        } yield Ok(Json.toJson(ref))
       }
   }
+
+  private def getAmendmentTypeForBusinessEntity(be: BusinessEntity)(implicit r: Request[JsValue]) =
+    eis.retrieveUndertaking(EORI(be.businessEntityIdentifier)) transform {
+      case Success(_) => Success(AmendmentType.amend) // entity exists so this is an amendment
+      case Failure(_) => Success(AmendmentType.add)   // entity does not exist so this is an add
+    }
 
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
