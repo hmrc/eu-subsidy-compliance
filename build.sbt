@@ -28,7 +28,10 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
       ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*models.*;.*config.*;.*TimeProvider;.*GuiceInjector;" +
-      ".*ControllerConfiguration;.*testonly.*"
+      ".*ControllerConfiguration;.*testonly.*",
+    ScoverageKeys.coverageMinimumStmtTotal := 90,
+    ScoverageKeys.coverageFailOnMinimum := true,
+    ScoverageKeys.coverageHighlighting := true,
   )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
