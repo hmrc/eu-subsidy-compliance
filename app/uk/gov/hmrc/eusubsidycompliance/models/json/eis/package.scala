@@ -123,7 +123,6 @@ package object eis {
   // provides response from EIS retrieve subsidies call
   implicit val eisRetrieveUndertakingSubsidiesResponse: Writes[UndertakingSubsidies] =
     new Writes[UndertakingSubsidies] {
-      // TODO delete this if we can get the case of subsidyUsageTransactionId aligned in SCP06 & 09
       implicit val nonHmrcSubsidyWrites: Writes[NonHmrcSubsidy] = (
         (JsPath \ "subsidyUsageTransactionId").writeNullable[SubsidyRef] and
           (JsPath \ "allocationDate").write[LocalDate] and
@@ -167,7 +166,6 @@ package object eis {
             val processingDate = (responseCommon \ "processingDate").as[ZonedDateTime]
             val statusText = (responseCommon \ "statusText").asOpt[String]
             val returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-            // TODO consider moving exception to connector
             throw new EisBadResponseException("NOT_OK", processingDate, statusText, returnParameters)
           case "OK" =>
             val ref =
