@@ -49,19 +49,19 @@ class EisConnector @Inject() (
   private val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
   private val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
 
-  def retrieveUndertaking(eori: EORI)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Undertaking] = {
+  def retrieveUndertaking(eori: EORI)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Undertaking]] = {
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingReads}
 
     val eisTokenKey = "eis.token.scp04"
-    desPost[EORI, Undertaking](
+    desPost[EORI, Option[Undertaking]](
       s"$eisURL/$retrieveUndertakingPath",
       eori,
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly).recover {
       case e: EisBadResponseException if e.code == EisParamValue("107") =>
         logger.info(s"No undertaking found for $eori")
-        throw UpstreamErrorResponse.apply("undertaking not found", 404)
+        None
 
       case e: EisBadResponseException if e.code == EisParamValue("055") =>
         logger.info(s" Eori : $eori does not exist in ETMP")
@@ -116,7 +116,12 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
+    )(
+      implicitly,
+      readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]),
+      addHeaders,
+      implicitly
+    )
     result
   }
 
@@ -137,7 +142,12 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
+    )(
+      implicitly,
+      readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]),
+      addHeaders,
+      implicitly
+    )
   }
 
   def upsertSubsidyUsage(

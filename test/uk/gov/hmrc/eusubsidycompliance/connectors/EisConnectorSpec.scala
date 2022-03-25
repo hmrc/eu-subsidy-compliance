@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import cats.implicits.catsSyntaxOptionId
 import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -34,8 +35,12 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSupport with ScalaFutures
-  with IntegrationPatience {
+class EisConnectorSpec
+    extends AnyWordSpecLike
+    with Matchers
+    with WiremockSupport
+    with ScalaFutures
+    with IntegrationPatience {
 
   private val AmendSubsidyPath = "/scp/amendundertakingsubsidyusage/v1"
   private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"
@@ -52,7 +57,9 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
     "retrieveUnderTaking is called" should {
 
       "return an UnderTaking for a successful request" in {
-        givenEisReturns(200, RetrieveUndertakingPath,
+        givenEisReturns(
+          200,
+          RetrieveUndertakingPath,
           s"""{
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
@@ -75,13 +82,15 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe undertaking
+          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe undertaking.some
         }
 
       }
 
       "return a 404 if a NOT_OK response is received with the not found error code" in {
-        givenEisReturns(200, RetrieveUndertakingPath,
+        givenEisReturns(
+          200,
+          RetrieveUndertakingPath,
           s"""{
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
@@ -97,12 +106,14 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe a[UpstreamErrorResponse]
+          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe None
         }
       }
 
       "return a 406 if a NOT_OK response is received with the invalid EoRI error code" in {
-        givenEisReturns(200, RetrieveUndertakingPath,
+        givenEisReturns(
+          200,
+          RetrieveUndertakingPath,
           s"""{
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
@@ -123,7 +134,9 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
       }
 
       "throw an EisBadResponseException if the response has status NOT_OK" in {
-        givenEisReturns(200, RetrieveUndertakingPath,
+        givenEisReturns(
+          200,
+          RetrieveUndertakingPath,
           s"""{
              | "retrieveUndertakingResponse": {
              |   "responseCommon": {
@@ -144,7 +157,9 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
     "createUndertaking is called" should {
 
       "return an undertaking reference for a successful create" in {
-        givenEisReturns(200, CreateUndertakingPath,
+        givenEisReturns(
+          200,
+          CreateUndertakingPath,
           s"""{
              | "createUndertakingResponse": {
              |   "responseCommon": {
@@ -201,7 +216,6 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
          |}
          |""".stripMargin
 
-
       "return an UndertakingSubsidies instance for a valid request without specifying a date range" in {
 
         // When no date is specified the connector falls back to a range of 2000-01-01 to LocalDate.now()
@@ -223,10 +237,12 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
         testWithRunningApp { underTest =>
-          underTest.retrieveSubsidies(
-            undertakingReference,
-            Some((date, toDate))
-          ).futureValue mustBe undertakingSubsidies
+          underTest
+            .retrieveSubsidies(
+              undertakingReference,
+              Some((date, toDate))
+            )
+            .futureValue mustBe undertakingSubsidies
         }
       }
 
@@ -263,11 +279,13 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendUndertakingMemberPath, successfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.addMember(
-            undertakingReference,
-            BusinessEntity(eori, leadEORI = false),
-            AmendmentType.add
-          ).futureValue mustBe (())
+          underTest
+            .addMember(
+              undertakingReference,
+              BusinessEntity(eori, leadEORI = false),
+              AmendmentType.add
+            )
+            .futureValue mustBe (())
         }
 
       }
@@ -290,11 +308,14 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendUndertakingMemberPath, unsuccessfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.addMember(
-            undertakingReference,
-            BusinessEntity(eori, leadEORI = false),
-            AmendmentType.add
-          ).failed.futureValue mustBe a[EisBadResponseException]
+          underTest
+            .addMember(
+              undertakingReference,
+              BusinessEntity(eori, leadEORI = false),
+              AmendmentType.add
+            )
+            .failed
+            .futureValue mustBe a[EisBadResponseException]
         }
       }
 
@@ -315,10 +336,12 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendUndertakingMemberPath, successfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.deleteMember(
-            undertakingReference,
-            BusinessEntity(eori, leadEORI = false)
-          ).futureValue mustBe (())
+          underTest
+            .deleteMember(
+              undertakingReference,
+              BusinessEntity(eori, leadEORI = false)
+            )
+            .futureValue mustBe (())
         }
 
       }
@@ -341,10 +364,13 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendUndertakingMemberPath, unsuccessfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.deleteMember(
-            undertakingReference,
-            BusinessEntity(eori, leadEORI = false)
-          ).failed.futureValue mustBe a[EisBadResponseException]
+          underTest
+            .deleteMember(
+              undertakingReference,
+              BusinessEntity(eori, leadEORI = false)
+            )
+            .failed
+            .futureValue mustBe a[EisBadResponseException]
         }
       }
 
@@ -365,9 +391,11 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendSubsidyPath, successfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.upsertSubsidyUsage(
-            SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
-          ).futureValue mustBe (())
+          underTest
+            .upsertSubsidyUsage(
+              SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
+            )
+            .futureValue mustBe (())
         }
 
       }
@@ -390,9 +418,12 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
         givenEisReturns(200, AmendSubsidyPath, unsuccessfulResponse)
 
         testWithRunningApp { underTest =>
-          underTest.upsertSubsidyUsage(
-            SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
-          ).failed.futureValue mustBe a[EisBadResponseException]
+          underTest
+            .upsertSubsidyUsage(
+              SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
+            )
+            .failed
+            .futureValue mustBe a[EisBadResponseException]
         }
       }
 
@@ -402,7 +433,10 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
 
       "get expected response on happy path" in {
 
-        givenEisReturns(200, UpdateUndertakingPath, s"""{
+        givenEisReturns(
+          200,
+          UpdateUndertakingPath,
+          s"""{
                                                        | "updateUndertakingResponse": {
                                                        |   "responseCommon": {
                                                        |     "status": "OK",
@@ -413,7 +447,8 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
                                                        |   }
                                                        | }
                                                        |}
-                                                       |""".stripMargin)
+                                                       |""".stripMargin
+        )
 
         testWithRunningApp { underTest =>
           underTest.updateUndertaking(undertaking).futureValue mustBe undertakingReference
@@ -425,7 +460,10 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
 
       "get expected response on happy path" in {
 
-        givenEisReturns(200, AmendBusinessEntityPath, s"""{
+        givenEisReturns(
+          200,
+          AmendBusinessEntityPath,
+          s"""{
                                                          | "amendUndertakingMemberDataResponse": {
                                                          |   "responseCommon": {
                                                          |     "status": "OK",
@@ -436,7 +474,8 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
                                                          |   }
                                                          | }
                                                          |}
-                                                         |""".stripMargin)
+                                                         |""".stripMargin
+        )
 
         testWithRunningApp { underTest =>
           underTest.deleteMember(undertakingReference, businessEntity).futureValue mustBe (())
@@ -448,7 +487,10 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
 
       "get expected response on happy path" in {
 
-        givenEisReturns(200, AmendSubsidyPath, s"""{
+        givenEisReturns(
+          200,
+          AmendSubsidyPath,
+          s"""{
                                                          | "amendUndertakingSubsidyUsageResponse": {
                                                          |   "responseCommon": {
                                                          |     "status": "OK",
@@ -459,10 +501,13 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
                                                          |   }
                                                          | }
                                                          |}
-                                                         |""".stripMargin)
+                                                         |""".stripMargin
+        )
 
         testWithRunningApp { underTest =>
-          underTest.upsertSubsidyUsage(SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))).futureValue mustBe (())
+          underTest
+            .upsertSubsidyUsage(SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy))))
+            .futureValue mustBe (())
         }
       }
     }
@@ -470,33 +515,39 @@ class EisConnectorSpec extends AnyWordSpecLike with Matchers with WiremockSuppor
   }
 
   private def configuredApplication: Application =
-    new GuiceApplicationBuilder().configure(
-      "microservice.services.eis.protocol" -> "http",
-      "microservice.services.eis.host" -> "localhost",
-      "microservice.services.eis.port" -> server.port(),
-  ).build()
+    new GuiceApplicationBuilder()
+      .configure(
+        "microservice.services.eis.protocol" -> "http",
+        "microservice.services.eis.host" -> "localhost",
+        "microservice.services.eis.port" -> server.port()
+      )
+      .build()
 
   private def givenEisReturns(status: Int, url: String, body: String): Unit =
     server.stubFor(
       post(urlEqualTo(url))
-        .willReturn(aResponse()
-          .withStatus(status)
-          .withBody(body)
-      ))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withBody(body)
+        )
+    )
 
   private def givenEisReturns(status: Int, url: String, requestBody: String, responseBody: String): Unit =
     server.stubFor(
       post(urlEqualTo(url))
         .withRequestBody(equalToJson(requestBody))
-        .willReturn(aResponse()
-          .withStatus(status)
-          .withBody(responseBody)
-        ))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withBody(responseBody)
+        )
+    )
 
   private def testWithRunningApp(f: EisConnector => Unit): Unit = {
     val app = configuredApplication
     running(app) {
-     f(app.injector.instanceOf[EisConnector])
+      f(app.injector.instanceOf[EisConnector])
     }
   }
 
