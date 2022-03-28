@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.libs.json.Writes
 import play.api.{Logger, Mode}
 import uk.gov.hmrc.eusubsidycompliance.models._
@@ -23,7 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{EisBadResponseExcept
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -49,24 +50,29 @@ class EisConnector @Inject() (
   private val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
   private val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
 
-  def retrieveUndertaking(eori: EORI)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Undertaking] = {
+  def retrieveUndertaking(
+    eori: EORI
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ConnectorError, Undertaking]] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites, undertakingReads}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{retrieveUndertakingEORIWrites}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.undertakingReads
 
     val eisTokenKey = "eis.token.scp04"
     desPost[EORI, Undertaking](
       s"$eisURL/$retrieveUndertakingPath",
       eori,
       eisTokenKey
-    )(implicitly, implicitly, addHeaders, implicitly).recover {
-      case e: EisBadResponseException if e.code == EisParamValue("107") =>
-        logger.info(s"No undertaking found for $eori")
-        throw UpstreamErrorResponse.apply("undertaking not found", 404)
+    )(implicitly, implicitly, addHeaders, implicitly)
+      .map(Right(_))
+      .recover {
+        case e: EisBadResponseException if e.code == EisParamValue("107") =>
+          logger.info(s"No undertaking found for $eori")
+          Left(ConnectorError(NOT_FOUND, s"No undertaking found for $eori"))
 
-      case e: EisBadResponseException if e.code == EisParamValue("055") =>
-        logger.info(s" Eori : $eori does not exist in ETMP")
-        throw UpstreamErrorResponse.apply("EORI does not exist in ETMP", 406)
-    }
+        case e: EisBadResponseException if e.code == EisParamValue("055") =>
+          logger.info(s" Eori : $eori does not exist in ETMP")
+          Left(ConnectorError(NOT_ACCEPTABLE, s"Eori : $eori does not exist in ETMP"))
+      }
   }
 
   def createUndertaking(
@@ -116,7 +122,12 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(amendmentType, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
+    )(
+      implicitly,
+      readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]),
+      addHeaders,
+      implicitly
+    )
     result
   }
 
@@ -137,7 +148,12 @@ class EisConnector @Inject() (
         List(BusinessEntityUpdate(AmendmentType.delete, LocalDate.now(), businessEntity))
       ),
       eisTokenKey
-    )(implicitly, readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
+    )(
+      implicitly,
+      readFromJson(amendUndertakingMemberDataResponseReads, implicitly[Manifest[Unit]]),
+      addHeaders,
+      implicitly
+    )
   }
 
   def upsertSubsidyUsage(

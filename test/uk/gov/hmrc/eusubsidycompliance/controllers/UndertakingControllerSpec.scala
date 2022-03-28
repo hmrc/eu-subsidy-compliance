@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
+import cats.implicits.catsSyntaxOptionId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play.PlaySpec
@@ -30,7 +31,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{businessEntity, date, eori, undertaking, undertakingReference, undertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -62,7 +63,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         val app = configuredAppInstance
 
-        givenRetrieveRetrieveUndertaking(Future.successful(undertaking))
+        givenRetrieveRetrieveUndertaking(Right(undertaking))
         running(app) {
           val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
           val result = route(app, request).value
@@ -72,6 +73,32 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       }
 
+      "Connector error with 404" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe Status.BAD_REQUEST
+
+        }
+
+      }
+      "Connector error with 406" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_ACCEPTABLE, "eori not in EMTP")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe Status.NOT_ACCEPTABLE
+
+        }
+
+      }
     }
 
     "updateUndertaking is called" should {
@@ -114,7 +141,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       "Happy path" in {
         val app = configuredAppInstance
 
-        givenRetrieveRetrieveUndertaking(Future.successful(undertaking))
+        givenRetrieveRetrieveUndertaking(Right(undertaking))
         givenAddMember(Future.successful((): Unit))
 
         running(app) {
@@ -211,7 +238,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         running(app) {
 
           val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
-            .withJsonBody(Json.toJson( SubsidyRetrieve(undertakingReference, None)))
+            .withJsonBody(Json.toJson(SubsidyRetrieve(undertakingReference, None)))
             .withHeaders("Content-type" -> "application/json")
 
           val result = route(app, request).value
@@ -229,7 +256,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         running(app) {
           val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
-            .withJsonBody(Json.toJson( SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
+            .withJsonBody(Json.toJson(SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
             .withHeaders("Content-type" -> "application/json")
 
           val result = route(app, request).value
@@ -246,7 +273,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         running(app) {
           val request = FakeRequest(POST, routes.UndertakingController.retrieveSubsidies().url)
-            .withJsonBody(Json.toJson( SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
+            .withJsonBody(Json.toJson(SubsidyRetrieve(undertakingReference, Some((date, date.plusDays(7))))))
             .withHeaders("Content-type" -> "application/json")
 
           route(app, request).value.failed.futureValue mustBe a[RuntimeException]
@@ -272,7 +299,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   private def configuredAppInstance = new GuiceApplicationBuilder()
     .configure(
       "metrics.jvm" -> false,
-      "microservice.metrics.graphite.enabled" -> false,
+      "microservice.metrics.graphite.enabled" -> false
     )
     .overrides(
       bind[EisConnector].to(mockEisConnector),
@@ -281,42 +308,48 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     )
     .build()
 
-
   private def givenRetrieveSubsidiesReturns(res: Future[UndertakingSubsidies]): Unit =
-    (mockEisConnector.retrieveSubsidies(_: UndertakingRef, _: Option[(LocalDate, LocalDate)])(_: HeaderCarrier, _: ExecutionContext))
+    (mockEisConnector
+      .retrieveSubsidies(_: UndertakingRef, _: Option[(LocalDate, LocalDate)])(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertakingReference, *, *, *)
       .returning(res)
 
   private def givenCreateUndertakingReturns(res: Future[UndertakingRef]): Unit =
-    (mockEisConnector.createUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
+    (mockEisConnector
+      .createUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertaking, *, *)
       .returning(res)
 
   private def givenUpdateSubsidy(res: Future[Unit]): Unit =
-    (mockEisConnector.upsertSubsidyUsage(_: SubsidyUpdate)(_: HeaderCarrier, _: ExecutionContext))
+    (mockEisConnector
+      .upsertSubsidyUsage(_: SubsidyUpdate)(_: HeaderCarrier, _: ExecutionContext))
       .expects(SubsidyUpdate(undertakingReference, NilSubmissionDate(date)), *, *)
       .returning(res)
 
   private def returningFixedDate(fixedDate: LocalDate): Unit =
     (mockTimeProvider.today _).expects().returning(fixedDate)
 
-  private def givenRetrieveRetrieveUndertaking(res: Future[Undertaking]): Unit =
-    (mockEisConnector.retrieveUndertaking(_: EORI)(_: HeaderCarrier, _: ExecutionContext))
+  private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, Undertaking]): Unit =
+    (mockEisConnector
+      .retrieveUndertaking(_: EORI)(_: HeaderCarrier, _: ExecutionContext))
       .expects(eori, *, *)
-      .returning(res)
+      .returning(Future.successful(res))
 
   private def givenUpdateUndertaking(res: Future[UndertakingRef]): Unit =
-    (mockEisConnector.updateUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
+    (mockEisConnector
+      .updateUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertaking, *, *)
       .returning(res)
 
   private def givenDeleteMember(res: Future[Unit]): Unit =
-    (mockEisConnector.deleteMember(_: UndertakingRef, _: BusinessEntity)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(undertakingReference, businessEntity,* , *)
+    (mockEisConnector
+      .deleteMember(_: UndertakingRef, _: BusinessEntity)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity, *, *)
       .returning(res)
 
   private def givenAddMember(res: Future[Unit]): Unit =
-    (mockEisConnector.addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(undertakingReference, businessEntity, AmendmentType.amend,* , *)
+    (mockEisConnector
+      .addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity, AmendmentType.amend, *, *)
       .returning(res)
 }
