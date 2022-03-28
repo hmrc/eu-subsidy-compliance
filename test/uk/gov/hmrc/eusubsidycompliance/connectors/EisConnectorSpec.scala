@@ -25,7 +25,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, SubsidyUpdate, UndertakingSubsidyAmendment}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
@@ -82,7 +82,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe undertaking.some
+          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Right(undertaking)
         }
 
       }
@@ -106,7 +106,9 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe None
+          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Left(
+            ConnectorError(404, "No undertaking found for GB123456789012")
+          )
         }
       }
 
@@ -129,7 +131,9 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789777")).failed.futureValue mustBe a[UpstreamErrorResponse]
+          underTest.retrieveUndertaking(EORI("GB123456789777")).futureValue mustBe Left(
+            ConnectorError(406, "Eori : GB123456789777 does not exist in ETMP")
+          )
         }
       }
 

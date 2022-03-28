@@ -35,12 +35,19 @@ class UndertakingController @Inject() (
   authenticator: Auth,
   eis: EisConnector,
   timeProvider: TimeProvider
-)(implicit ec: ExecutionContext) extends BackendController(cc) {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    eis.retrieveUndertaking(EORI(eori))
-      .map { undertaking =>
-        Ok(Json.toJson(undertaking))
+    eis
+      .retrieveUndertaking(EORI(eori))
+      .map {
+        _ match {
+          case Right(undertaking) => Ok(Json.toJson(undertaking))
+          case Left(ConnectorError(NOT_FOUND, _)) => BadRequest
+          case Left(ConnectorError(NOT_ACCEPTABLE, _)) => NotAcceptable
+          case _ => InternalServerError
+        }
       }
   }
 
@@ -73,7 +80,7 @@ class UndertakingController @Inject() (
   private def getAmendmentTypeForBusinessEntity(be: BusinessEntity)(implicit r: Request[JsValue]) =
     eis.retrieveUndertaking(EORI(be.businessEntityIdentifier)) transform {
       case Success(_) => Success(AmendmentType.amend) // entity exists so this is an amendment
-      case Failure(_) => Success(AmendmentType.add)   // entity does not exist so this is an add
+      case Failure(_) => Success(AmendmentType.add) // entity does not exist so this is an add
     }
 
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {

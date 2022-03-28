@@ -31,7 +31,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{businessEntity, date, eori, undertaking, undertakingReference, undertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -63,7 +63,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         val app = configuredAppInstance
 
-        givenRetrieveRetrieveUndertaking(Future.successful(undertaking.some))
+        givenRetrieveRetrieveUndertaking(Right(undertaking))
         running(app) {
           val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
           val result = route(app, request).value
@@ -73,6 +73,32 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       }
 
+      "Connector error with 404" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe Status.BAD_REQUEST
+
+        }
+
+      }
+      "Connector error with 406" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_ACCEPTABLE, "eori not in EMTP")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe Status.NOT_ACCEPTABLE
+
+        }
+
+      }
     }
 
     "updateUndertaking is called" should {
@@ -115,7 +141,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       "Happy path" in {
         val app = configuredAppInstance
 
-        givenRetrieveRetrieveUndertaking(Future.successful(undertaking.some))
+        givenRetrieveRetrieveUndertaking(Right(undertaking))
         givenAddMember(Future.successful((): Unit))
 
         running(app) {
@@ -303,11 +329,11 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   private def returningFixedDate(fixedDate: LocalDate): Unit =
     (mockTimeProvider.today _).expects().returning(fixedDate)
 
-  private def givenRetrieveRetrieveUndertaking(res: Future[Option[Undertaking]]): Unit =
+  private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, Undertaking]): Unit =
     (mockEisConnector
       .retrieveUndertaking(_: EORI)(_: HeaderCarrier, _: ExecutionContext))
       .expects(eori, *, *)
-      .returning(res)
+      .returning(Future.successful(res))
 
   private def givenUpdateUndertaking(res: Future[UndertakingRef]): Unit =
     (mockEisConnector
