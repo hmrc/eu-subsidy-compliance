@@ -94,7 +94,19 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           status(result) mustBe NOT_ACCEPTABLE
         }
+      }
 
+      "return a HTTP 500 if the connector returns any other error" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(INTERNAL_SERVER_ERROR, "ruh roh!")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
+        }
+        
       }
     }
 

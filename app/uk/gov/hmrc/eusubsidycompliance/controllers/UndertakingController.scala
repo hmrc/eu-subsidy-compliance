@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
+import cats.data.EitherT
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
@@ -39,17 +40,13 @@ class UndertakingController @Inject() (
     extends BackendController(cc) {
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    // TODO - use EitherT
-    eis
-      .retrieveUndertaking(EORI(eori))
-      .map {
-        _ match {
-          case Right(undertaking) => Ok(Json.toJson(undertaking))
-          case Left(ConnectorError(NOT_FOUND, _)) => NotFound
-          case Left(ConnectorError(NOT_ACCEPTABLE, _)) => NotAcceptable
-          case _ => InternalServerError
-        }
+    EitherT(eis.retrieveUndertaking(EORI(eori)))
+      .map(u => Ok(Json.toJson(u)))
+      .recover {
+        case ConnectorError(NOT_FOUND, _) => NotFound
+        case ConnectorError(NOT_ACCEPTABLE, _) => NotAcceptable
       }
+      .getOrElse(InternalServerError)
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
