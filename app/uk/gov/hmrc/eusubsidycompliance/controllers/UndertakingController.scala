@@ -39,12 +39,13 @@ class UndertakingController @Inject() (
     extends BackendController(cc) {
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
+    // TODO - use EitherT
     eis
       .retrieveUndertaking(EORI(eori))
       .map {
         _ match {
           case Right(undertaking) => Ok(Json.toJson(undertaking))
-          case Left(ConnectorError(NOT_FOUND, _)) => BadRequest
+          case Left(ConnectorError(NOT_FOUND, _)) => NotFound
           case Left(ConnectorError(NOT_ACCEPTABLE, _)) => NotAcceptable
           case _ => InternalServerError
         }
