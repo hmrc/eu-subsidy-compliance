@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import cats.implicits.catsSyntaxOptionId
 import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -25,9 +24,9 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}

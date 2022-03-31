@@ -106,7 +106,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           status(result) mustBe INTERNAL_SERVER_ERROR
         }
-        
+
       }
     }
 
