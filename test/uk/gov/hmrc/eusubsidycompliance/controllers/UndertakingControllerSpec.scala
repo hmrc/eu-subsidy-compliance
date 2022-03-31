@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
-import cats.implicits.catsSyntaxOptionId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play.PlaySpec
@@ -25,15 +24,15 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{Format, Json}
 import play.api.mvc.{ControllerComponents, Request, Result}
-import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, NilSubmissionDate, SubsidyRetrieve, SubsidyUpdate, Undertaking, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.{businessEntity, date, eori, undertaking, undertakingReference, undertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -55,11 +54,11 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   private val mockEisConnector = mock[EisConnector]
   private val mockTimeProvider = mock[TimeProvider]
 
-  "UnderTakingController" when {
+  "UndertakingController" when {
 
     "retrieve is called" should {
 
-      "Happy path" in {
+      "return a successful response for a valid request where the undertaking exists" in {
 
         val app = configuredAppInstance
 
@@ -73,7 +72,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       }
 
-      "Connector error with 404" in {
+      "return a HTTP 404 if the connector returns an 404 error" in {
         val app = configuredAppInstance
 
         givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
@@ -81,12 +80,11 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
           val result = route(app, request).value
 
-          status(result) mustBe Status.BAD_REQUEST
-
+          status(result) mustBe NOT_FOUND
         }
-
       }
-      "Connector error with 406" in {
+
+      "return a HTTP 406 if the connector returns an 404 error" in {
         val app = configuredAppInstance
 
         givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_ACCEPTABLE, "eori not in EMTP")))
@@ -94,8 +92,19 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
           val result = route(app, request).value
 
-          status(result) mustBe Status.NOT_ACCEPTABLE
+          status(result) mustBe NOT_ACCEPTABLE
+        }
+      }
 
+      "return a HTTP 500 if the connector returns any other error" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(INTERNAL_SERVER_ERROR, "ruh roh!")))
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val result = route(app, request).value
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
         }
 
       }
