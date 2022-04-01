@@ -19,7 +19,6 @@ package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
@@ -54,35 +53,36 @@ trait Auth extends AuthorisedFunctions with Results with BaseController {
 class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerComponents: ControllerComponents)
     extends Auth {
 
-  val authProvider: AuthProviders = AuthProviders(GovernmentGateway)
-  val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
-
   private val EnrollmentKey = "HMRC-ESC-ORG"
+  private val EnrolmentIdentifier = "EORINumber"
+
+  private val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
 
   def authCommon[A](
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] =
-    request.headers.get("Authorization") match {
-      case Some(_) =>
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-        authorised(Enrolment(EnrollmentKey))
-          .retrieve(retrievals) {
-            case enrolments: Enrolments =>
-              enrolments
-                .getEnrolment(EnrollmentKey)
-                .map(x => x.getIdentifier("EORINumber"))
-                .flatMap(y => y.map(z => z.value))
-                .map(x => EORI(x)) match {
-                case Some(eori) => action(request)(eori)
-                case _ => throw new IllegalStateException("EORI missing from enrolment")
-              }
-            case _ => Future.failed(throw InternalError())
-          }
-          .recoverWith {
-            case _: NoActiveSession =>
-              Future.successful(Unauthorized("No active session"))
-            case _: InsufficientEnrolments => Future.successful(Unauthorized("Insufficient Enrolments"))
-          }
-      case _ => Future.successful(Forbidden("Authorization header missing"))
-    }
+    request.headers
+      .get("Authorization")
+      .fold(Future.successful(Forbidden("Authorization header missing")))(_ => checkEnrolment(action))
+
+  private def checkEnrolment[A](action: AuthAction[A])(implicit request: Request[A], ec: ExecutionContext) = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+    authorised(Enrolment(EnrollmentKey))
+      .retrieve(retrievals) {
+        case enrolments: Enrolments =>
+          enrolments
+            .getEnrolment(EnrollmentKey)
+            .flatMap(_.getIdentifier(EnrolmentIdentifier))
+            .map(_.value)
+            .fold(throw new IllegalStateException("EORI missing from enrolment")) { eori =>
+              action(request)(EORI(eori))
+            }
+        case _ => Future.failed(throw InternalError())
+      }
+      .recover {
+        case _: NoActiveSession => Unauthorized("No active session")
+        case _: InsufficientEnrolments => Unauthorized("Insufficient Enrolments")
+      }
+  }
+
 }
