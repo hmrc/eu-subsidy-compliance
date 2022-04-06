@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsSuccess, Json, Reads}
+import uk.gov.hmrc.eusubsidycompliance.models.json.digital.readResponseFor
 import uk.gov.hmrc.eusubsidycompliance.models.types.{SubsidyAmount, UndertakingRef}
 
 case class UndertakingSubsidies(
@@ -30,5 +31,35 @@ case class UndertakingSubsidies(
 )
 
 object UndertakingSubsidies {
+
+  implicit val eisRetrieveUndertakingSubsidiesResponseRead: Reads[UndertakingSubsidies] =
+    readResponseFor[UndertakingSubsidies]("getUndertakingTransactionResponse") { json =>
+      val responseDetail = json \ "getUndertakingTransactionResponse" \ "responseDetail"
+      val ref =
+        (responseDetail \ "undertakingIdentifier").as[String]
+      val nonHmrcTotalEur =
+        (responseDetail \ "nonHMRCSubsidyTotalEUR").as[BigDecimal]
+      val nonHmrcTotalGbp =
+        (responseDetail \ "nonHMRCSubsidyTotalGBP").as[BigDecimal]
+      val hmrcTotalEur =
+        (responseDetail \ "hmrcSubsidyTotalEUR").as[BigDecimal]
+      val hmrcTotalGbp =
+        (responseDetail \ "hmrcSubsidyTotalGBP").as[BigDecimal]
+      val nonHmrcUsage = (responseDetail \ "nonHMRCSubsidyUsage")
+        .asOpt[List[NonHmrcSubsidy]]
+      val hmrcUsage = (responseDetail \ "hmrcSubsidyUsage")
+        .asOpt[List[HmrcSubsidy]]
+      JsSuccess(
+        UndertakingSubsidies(
+          UndertakingRef(ref),
+          SubsidyAmount(nonHmrcTotalEur),
+          SubsidyAmount(nonHmrcTotalGbp),
+          SubsidyAmount(hmrcTotalEur),
+          SubsidyAmount(hmrcTotalGbp),
+          nonHmrcUsage.getOrElse(List.empty),
+          hmrcUsage.getOrElse(List.empty)
+        )
+      )
+    }
   implicit val format: Format[UndertakingSubsidies] = Json.format[UndertakingSubsidies]
 }

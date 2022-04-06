@@ -16,10 +16,15 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
+import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 
-case class UndertakingBusinessEntityUpdate(
+final case class UndertakingBusinessEntityUpdate(
   undertakingIdentifier: UndertakingRef,
   undertakingComplete: Boolean = true,
-  businessEntityUpdates: List[BusinessEntityUpdate]
+  memberAmendments: List[BusinessEntityUpdate]
 )
+
+object UndertakingBusinessEntityUpdate {
+  implicit val writes: Writes[UndertakingBusinessEntityUpdate] = Json.writes
+}

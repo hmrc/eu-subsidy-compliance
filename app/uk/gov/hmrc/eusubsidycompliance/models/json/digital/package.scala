@@ -18,50 +18,37 @@ package uk.gov.hmrc.eusubsidycompliance.models.json
 
 import cats.implicits._
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.json.eis.{Params, RequestCommon}
-import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
+import uk.gov.hmrc.eusubsidycompliance.models.json.eis.Params
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisAmendmentType, IndustrySectorLimit, UndertakingName, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking, UndertakingBusinessEntityUpdate}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking}
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.{Clock, Instant, LocalDate, LocalDateTime, ZoneOffset, ZonedDateTime}
 
 package object digital {
 
-  private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+  val clock: Clock = Clock.systemUTC()
+  val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
+  val OK = "OK"
+  val NOT_OK = "NOT_OK"
+  val oddEisDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-  private val OK = "OK"
-  private val NOT_OK = "NOT_OK"
-
-  implicit val undertakingWrites: Writes[Undertaking] = (o: Undertaking) => {
-    val lead: BusinessEntity =
-      o.undertakingBusinessEntity match {
-        case h :: Nil => h
-        case _ =>
-          throw new IllegalStateException(s"unable to create undertaking with missing or multiple business entities")
-      }
-
-    Json.obj(
-      "createUndertakingRequest" -> Json.obj(
-        "requestCommon" -> RequestCommon("CreateNewUndertaking"),
-        "requestDetail" -> Json.obj(
-          "undertakingName" -> o.name,
-          "industrySector" -> o.industrySector,
-          "businessEntity" ->
-            Json.obj(
-              "idType" -> "EORI",
-              "idValue" -> JsString(lead.businessEntityIdentifier)
-            ),
-          "undertakingStartDate" -> dateFormatter.format(LocalDate.now)
-        )
-      )
-    )
+  def receiptDate: String = {
+    val instant = Instant.now(clock)
+    val withoutNanos = instant.minusNanos(instant.getNano)
+    formatter.format(withoutNanos)
   }
 
-  implicit val undertakingReads: Reads[Undertaking] =
+  implicit class RichLocalDateTime(in: LocalDateTime) {
+    def eisFormat: String =
+      formatter.format(in.toInstant(ZoneOffset.UTC).minusNanos(in.getNano))
+  }
+
+  implicit val retrieveUndertakingResponseReads: Reads[Undertaking] =
     readResponseFor[Undertaking]("retrieveUndertakingResponse") { json =>
       val responseDetail = json \ "retrieveUndertakingResponse" \ "responseDetail"
+
       JsSuccess(
         Undertaking(
           reference = (responseDetail \ "undertakingReference").asOpt[String].map(UndertakingRef(_)),
@@ -70,65 +57,31 @@ package object digital {
           industrySectorLimit = (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit].some,
           lastSubsidyUsageUpdt = (responseDetail \ "lastSubsidyUsageUpdt")
             .asOpt[String]
-            .map(ds => LocalDate.parse(ds, eis.oddEisDateFormat)),
+            .map(ds => LocalDate.parse(ds, oddEisDateFormat)),
           undertakingBusinessEntity = (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
         )
       )
     }
 
-  implicit val retrieveUndertakingEORIWrites: Writes[EORI] = (o: EORI) =>
-    Json.obj(
-      "retrieveUndertakingRequest" -> Json.obj(
-        "requestCommon" -> RequestCommon("RetrieveUndertaking"),
-        "requestDetail" -> Json.obj(
-          "idType" -> "EORI",
-          "idValue" -> s"$o" // Explicitly stringify the EORI here to prevent recursive call to this Writes instance.
-        )
-      )
-    )
-
-  implicit val amendUndertakingMemberDataWrites: Writes[UndertakingBusinessEntityUpdate] =
-    (o: UndertakingBusinessEntityUpdate) =>
-      Json.obj(
-        "undertakingIdentifier" -> JsString(o.undertakingIdentifier),
-        "undertakingComplete" -> JsBoolean(true),
-        "memberAmendments" -> o.businessEntityUpdates
-      )
-
-  def updateUndertakingWrites(amendmentType: EisAmendmentType = EisAmendmentType.A): Writes[Undertaking] =
-    (o: Undertaking) =>
-      Json.obj(
-        "updateUndertakingRequest" -> Json.obj(
-          "requestCommon" -> RequestCommon("UpdateUndertaking"),
-          "requestDetail" -> Json.obj(
-            "amendmentType" -> amendmentType,
-            "undertakingId" -> o.reference,
-            "undertakingName" -> o.name,
-            "industrySector" -> o.industrySector,
-            "disablementStartDate" -> dateFormatter.format(LocalDate.now)
-          )
-        )
-      )
-
-  implicit val undertakingCreateResponseReads: Reads[UndertakingRef] =
+  implicit val createUndertakingResponseReads: Reads[UndertakingRef] =
     readResponseFor[UndertakingRef]("createUndertakingResponse") { json =>
       val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
       JsSuccess(UndertakingRef(ref))
     }
 
-  implicit val undertakingUpdateResponseReads: Reads[UndertakingRef] =
+  implicit val updateUndertakingResponseReads: Reads[UndertakingRef] =
     readResponseFor[UndertakingRef]("updateUndertakingResponse") { json =>
       val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
       JsSuccess(UndertakingRef(ref))
     }
 
-  implicit val amendUndertakingMemberDataResponseReads: Reads[Unit] =
+  implicit val amendUndertakingMemberResponseReads: Reads[Unit] =
     readResponseFor[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(Unit))
 
-  implicit val amendSubsidyResponseReads: Reads[Unit] =
+  implicit val amendSubsidyUpdateResponseReads: Reads[Unit] =
     readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
 
-  private def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
+  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
     override def reads(json: JsValue): JsResult[A] = {
       val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
       (responseCommon \ "status").as[String] match {
