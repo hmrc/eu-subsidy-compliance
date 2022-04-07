@@ -57,7 +57,8 @@ object Fixtures {
     declarantEORI = eori,
     consigneeEORI = eori,
     taxType = Some(taxType),
-    amount = Some(subsidyAmount),
+    hmrcSubsidyAmtGBP = Some(subsidyAmount),
+    hmrcSubsidyAmtEUR = Some(subsidyAmount),
     tradersOwnRefUCR = Some(traderRef)
   )
 
