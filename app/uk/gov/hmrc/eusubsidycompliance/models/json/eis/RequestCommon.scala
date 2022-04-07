@@ -17,30 +17,31 @@
 package uk.gov.hmrc.eusubsidycompliance.models.json.eis
 
 import java.util.UUID
-
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Json, Writes}
+import uk.gov.hmrc.eusubsidycompliance.models.json.digital.receiptDate
 import uk.gov.hmrc.eusubsidycompliance.models.types.AcknowledgementRef
 
-case class RequestCommon(
-  messageType: String,
-  acknowledgementReference: AcknowledgementRef = AcknowledgementRef(UUID.randomUUID().toString.replace("-", ""))
+final case class RequestCommon(
+  originatingSystem: String = "MDTP",
+  receiptDate: String = receiptDate,
+  acknowledgementReference: AcknowledgementRef = AcknowledgementRef(UUID.randomUUID().toString.replace("-", "")),
+  messageTypes: MessageTypes,
+  requestParameters: List[RequestParameters] = List(RequestParameters())
 )
 
 case object RequestCommon {
-  implicit val writes: Writes[RequestCommon] = new Writes[RequestCommon] {
-    override def writes(o: RequestCommon): JsValue = Json.obj(
-      "originatingSystem" -> "MDTP",
-      "receiptDate" -> receiptDate,
-      "acknowledgementReference" -> o.acknowledgementReference,
-      "messageTypes" -> Json.obj(
-        "messageType" -> o.messageType
-      ),
-      "requestParameters" -> Json.arr(
-        Json.obj(
-          "paramName" -> "REGIME",
-          "paramValue" -> "ES"
-        )
-      )
-    )
-  }
+
+  implicit val writes: Writes[RequestCommon] = Json.writes
+  def apply(message: String): RequestCommon = RequestCommon(messageTypes = MessageTypes(message))
+
+}
+
+case class MessageTypes(messageType: String)
+object MessageTypes {
+  implicit val writes: Writes[MessageTypes] = Json.writes
+}
+
+case class RequestParameters(paramName: String = "REGIME", paramValue: String = "ES")
+object RequestParameters {
+  implicit val writes: Writes[RequestParameters] = Json.writes
 }

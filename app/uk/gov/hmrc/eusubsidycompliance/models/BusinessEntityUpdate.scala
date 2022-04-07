@@ -20,7 +20,6 @@ import java.time.LocalDate
 
 import play.api.libs.functional.syntax.{unlift, _}
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.json.eis.businessEntityReads
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 
@@ -41,6 +40,15 @@ object BusinessEntityUpdate {
       "amendmentType" -> o.amendmentType,
       "amendmentEffectiveDate" -> o.amendmentEffectiveDate,
       "businessEntity" -> o.businessEntity
+    )
+  }
+
+  val businessEntityReads: Reads[BusinessEntity] = new Reads[BusinessEntity] {
+    override def reads(json: JsValue): JsResult[BusinessEntity] = JsSuccess(
+      BusinessEntity(
+        (json \ "businessEntityIdentifier").as[EORI],
+        (json \ "leadEORIIndicator").as[Boolean]
+      )
     )
   }
 

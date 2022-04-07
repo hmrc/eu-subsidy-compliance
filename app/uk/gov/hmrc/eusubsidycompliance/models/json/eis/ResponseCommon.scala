@@ -17,9 +17,9 @@
 package uk.gov.hmrc.eusubsidycompliance.models.json.eis
 
 import java.time.LocalDateTime
-
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.eusubsidycompliance.models.json.digital.RichLocalDateTime
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisStatus.EisStatus
 import uk.gov.hmrc.eusubsidycompliance.models.types.{EisParamValue, EisStatusString}
