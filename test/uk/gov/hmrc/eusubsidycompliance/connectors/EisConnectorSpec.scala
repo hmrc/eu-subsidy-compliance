@@ -211,7 +211,8 @@ class EisConnectorSpec
          |       "declarantEORI": "$eori",
          |       "consigneeEORI": "$eori",
          |       "taxType": "$taxType",
-         |       "amount": $subsidyAmount,
+         |       "hmrcSubsidyAmtGBP": $subsidyAmount,
+         |       "hmrcSubsidyAmtEUR": $subsidyAmount,
          |       "tradersOwnRefUCR": "$traderRef"
          |     } ]
          |   }
