@@ -28,11 +28,11 @@ import java.time.{Clock, Instant, LocalDate, LocalDateTime, ZoneOffset, ZonedDat
 
 package object digital {
 
-  val clock: Clock = Clock.systemUTC()
-  val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
-  val OK = "OK"
-  val NOT_OK = "NOT_OK"
-  val oddEisDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  private val clock: Clock = Clock.systemUTC()
+  private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
+  private val OK = "OK"
+  private val NOT_OK = "NOT_OK"
+  private val oddEisDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
   def receiptDate: String = {
     val instant = Instant.now(clock)
