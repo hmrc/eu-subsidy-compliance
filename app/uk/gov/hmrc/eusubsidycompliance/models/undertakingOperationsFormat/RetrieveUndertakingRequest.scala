@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 
 import play.api.libs.json.{Json, Writes}
-import uk.gov.hmrc.eusubsidycompliance.models.json.eis.{MessageTypes, RequestCommon}
+import uk.gov.hmrc.eusubsidycompliance.models.json.eis.RequestCommon
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 
 final case class RetrieveUndertakingAPIRequest(retrieveUndertakingRequest: RetrieveUndertakingRequest)
