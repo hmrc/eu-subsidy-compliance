@@ -9,4 +9,7 @@ POST       /undertaking/member/:undertakingRef              uk.gov.hmrc.eusubsid
 POST       /undertaking/member/remove/:undertakingRef       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.deleteMember(undertakingRef)
 
 POST       /subsidy/update                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateSubsidy()
+
+POST       /undertaking/disable                                 uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.disableUndertaking()
+
 POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()

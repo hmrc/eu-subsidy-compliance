@@ -19,8 +19,9 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.{Logger, Mode}
 import uk.gov.hmrc.eusubsidycompliance.models._
-import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{EisBadResponseException}
+import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
+import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -89,7 +90,8 @@ class EisConnector @Inject() (
   }
 
   def updateUndertaking(
-    undertaking: Undertaking
+    undertaking: Undertaking,
+    amendmentType: EisAmendmentType
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.updateUndertakingResponseReads
@@ -97,7 +99,7 @@ class EisConnector @Inject() (
     val eisTokenKey = "eis.token.scp12"
     desPost[UpdateUndertakingApiRequest, UndertakingRef](
       s"$eisURL/$updateUndertakingPath",
-      UpdateUndertakingApiRequest(undertaking),
+      UpdateUndertakingApiRequest(undertaking, amendmentType),
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
   }

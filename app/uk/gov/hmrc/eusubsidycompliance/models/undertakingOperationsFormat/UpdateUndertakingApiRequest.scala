@@ -31,15 +31,17 @@ final case class UpdateUndertakingApiRequest(updateUndertakingRequest: UpdateUnd
 object UpdateUndertakingApiRequest {
   implicit val writes: Writes[UpdateUndertakingApiRequest] = Json.writes
 
-  def apply(undertaking: Undertaking): UpdateUndertakingApiRequest = UpdateUndertakingApiRequest(
-    UpdateUndertakingRequest(
-      requestDetail = UpdateUndertakingRequestDetail(
-        undertakingId = undertaking.reference,
-        undertakingName = undertaking.name,
-        industrySector = undertaking.industrySector
+  def apply(undertaking: Undertaking, amendmentType: EisAmendmentType): UpdateUndertakingApiRequest =
+    UpdateUndertakingApiRequest(
+      UpdateUndertakingRequest(
+        requestDetail = UpdateUndertakingRequestDetail(
+          amendmentType,
+          undertakingId = undertaking.reference,
+          undertakingName = undertaking.name,
+          industrySector = undertaking.industrySector
+        )
       )
     )
-  )
 }
 
 final case class UpdateUndertakingRequest(
@@ -51,7 +53,7 @@ object UpdateUndertakingRequest {
 }
 
 final case class UpdateUndertakingRequestDetail(
-  amendmentType: EisAmendmentType = EisAmendmentType.A,
+  amendmentType: EisAmendmentType,
   undertakingId: Option[UndertakingRef],
   undertakingName: UndertakingName,
   industrySector: Sector,
