@@ -30,8 +30,9 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
@@ -116,7 +117,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       "Happy path" in {
         val app = configuredAppInstance
 
-        givenUpdateUndertaking(Future.successful(undertakingReference))
+        givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.A)
         running(app) {
           val request = FakeRequest(POST, routes.UndertakingController.updateUndertaking().url)
             .withJsonBody(Json.toJson(undertaking))
@@ -303,6 +304,23 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
     }
 
+    "disable undertaking is called" should {
+      implicit val format: Format[Undertaking] = Json.format[Undertaking]
+      "Happy path" in {
+        val app = configuredAppInstance
+
+        givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.D)
+        running(app) {
+          val request = FakeRequest(POST, routes.UndertakingController.disableUndertaking().url)
+            .withJsonBody(Json.toJson(undertaking))
+            .withHeaders("Content-type" -> "application/json")
+          val result = route(app, request).value
+
+          status(result) mustBe Status.OK
+        }
+      }
+    }
+
   }
 
   private def configuredAppInstance = new GuiceApplicationBuilder()
@@ -344,10 +362,10 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .expects(eori, *, *)
       .returning(Future.successful(res))
 
-  private def givenUpdateUndertaking(res: Future[UndertakingRef]): Unit =
+  private def givenUpdateUndertaking(res: Future[UndertakingRef], eisAmendmentType: EisAmendmentType): Unit =
     (mockEisConnector
-      .updateUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(undertaking, *, *)
+      .updateUndertaking(_: Undertaking, _: EisAmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertaking, eisAmendmentType, *, *)
       .returning(res)
 
   private def givenDeleteMember(res: Future[Unit]): Unit =

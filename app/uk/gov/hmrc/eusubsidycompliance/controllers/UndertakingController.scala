@@ -22,7 +22,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models._
-import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -60,7 +60,13 @@ class UndertakingController @Inject() (
 
   def updateUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[Undertaking] { undertaking: Undertaking =>
-      eis.updateUndertaking(undertaking).map(ref => Ok(Json.toJson(ref)))
+      eis.updateUndertaking(undertaking, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
+    }
+  }
+
+  def disableUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
+    withJsonBody[Undertaking] { undertaking: Undertaking =>
+      eis.updateUndertaking(undertaking, EisAmendmentType.D).map(ref => Ok(Json.toJson(ref)))
     }
   }
 
