@@ -28,7 +28,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
 
 @Singleton()
 class UndertakingController @Inject() (
@@ -82,9 +81,9 @@ class UndertakingController @Inject() (
   }
 
   private def getAmendmentTypeForBusinessEntity(be: BusinessEntity)(implicit r: Request[JsValue]) =
-    eis.retrieveUndertaking(EORI(be.businessEntityIdentifier)) transform {
-      case Success(_) => Success(AmendmentType.amend) // entity exists so this is an amendment
-      case Failure(_) => Success(AmendmentType.add) // entity does not exist so this is an add
+    eis.retrieveUndertaking(EORI(be.businessEntityIdentifier)) map {
+      case Left(_) => AmendmentType.add
+      case Right(_) => AmendmentType.amend
     }
 
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {

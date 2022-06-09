@@ -107,7 +107,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Left(
-            ConnectorError(404, "No undertaking found for GB123456789012")
+            ConnectorError(404, "Undertaking reference in the API not subscribed in ETMP.")
           )
         }
       }
