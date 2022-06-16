@@ -21,7 +21,7 @@ import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.Params
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, UndertakingName, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, UndertakingRetrieve}
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, Instant, LocalDate, LocalDateTime, ZoneOffset, ZonedDateTime}
@@ -45,12 +45,12 @@ package object digital {
       formatter.format(in.toInstant(ZoneOffset.UTC).minusNanos(in.getNano))
   }
 
-  implicit val retrieveUndertakingResponseReads: Reads[Undertaking] =
-    readResponseFor[Undertaking]("retrieveUndertakingResponse") { json =>
+  implicit val retrieveUndertakingResponseReads: Reads[UndertakingRetrieve] =
+    readResponseFor[UndertakingRetrieve]("retrieveUndertakingResponse") { json =>
       val responseDetail = json \ "retrieveUndertakingResponse" \ "responseDetail"
 
       JsSuccess(
-        Undertaking(
+        UndertakingRetrieve(
           reference = (responseDetail \ "undertakingReference").asOpt[String].map(UndertakingRef(_)),
           name = (responseDetail \ "undertakingName").as[UndertakingName],
           industrySector = (responseDetail \ "industrySector").as[Sector],

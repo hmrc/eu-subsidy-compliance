@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 
 import play.api.libs.json.{Json, Writes}
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, Undertaking}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, UndertakingCreate}
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.RequestCommon
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingName
@@ -28,11 +28,10 @@ import java.time.format.DateTimeFormatter
 final case class CreateUndertakingApiRequest(createUndertakingRequest: CreateUndertakingRequest)
 object CreateUndertakingApiRequest {
 
-  def apply(undertaking: Undertaking): CreateUndertakingApiRequest = {
+  def apply(undertaking: UndertakingCreate): CreateUndertakingApiRequest = {
     val lead: BusinessEntity =
       undertaking.undertakingBusinessEntity
-        .filter(_.leadEORI)
-        .headOption
+        .find(_.leadEORI)
         .fold(sys.error("Lead missing in undertaking"))(identity)
     CreateUndertakingApiRequest(
       CreateUndertakingRequest(

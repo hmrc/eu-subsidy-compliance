@@ -53,12 +53,12 @@ class EisConnector @Inject() (
 
   def retrieveUndertaking(
     eori: EORI
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ConnectorError, Undertaking]] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ConnectorError, UndertakingRetrieve]] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.retrieveUndertakingResponseReads
 
     val eisTokenKey = "eis.token.scp04"
     val retrieveUndertakingRequest = RetrieveUndertakingAPIRequest(eori)
-    desPost[RetrieveUndertakingAPIRequest, Undertaking](
+    desPost[RetrieveUndertakingAPIRequest, UndertakingRetrieve](
       s"$eisURL/$retrieveUndertakingPath",
       retrieveUndertakingRequest,
       eisTokenKey
@@ -76,7 +76,7 @@ class EisConnector @Inject() (
   }
 
   def createUndertaking(
-    undertaking: Undertaking
+    undertaking: UndertakingCreate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{createUndertakingResponseReads}
@@ -90,7 +90,7 @@ class EisConnector @Inject() (
   }
 
   def updateUndertaking(
-    undertaking: Undertaking,
+    undertaking: UndertakingRetrieve,
     amendmentType: EisAmendmentType
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 

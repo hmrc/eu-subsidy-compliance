@@ -25,7 +25,6 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
-import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
@@ -178,7 +177,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.createUndertaking(undertaking).futureValue mustBe undertakingReference
+          underTest.createUndertaking(undertakingCreate).futureValue mustBe undertakingReference
         }
       }
     }

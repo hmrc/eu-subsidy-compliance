@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, HmrcSubsidy, NonHmrcSubsidy, Undertaking, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, HmrcSubsidy, NonHmrcSubsidy, UndertakingCreate, UndertakingRetrieve, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 
 import java.time.{Instant, ZoneId}
@@ -33,7 +33,15 @@ object Fixtures {
   val date = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
   val subsidyAmount = SubsidyAmount(BigDecimal(123.45))
 
-  val undertaking = Undertaking(
+  val undertakingCreate = UndertakingCreate(
+    undertakingName,
+    sector,
+    Some(industrySectorLimit),
+    Some(date),
+    List(BusinessEntity(eori, leadEORI = true))
+  )
+
+  val undertaking = UndertakingRetrieve(
     Some(undertakingReference),
     undertakingName,
     sector,

@@ -22,7 +22,19 @@ import java.time.LocalDate
 import uk.gov.hmrc.eusubsidycompliance.models.types._
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 
-case class Undertaking(
+case class UndertakingCreate(
+  name: UndertakingName,
+  industrySector: Sector,
+  industrySectorLimit: Option[IndustrySectorLimit],
+  lastSubsidyUsageUpdt: Option[LocalDate],
+  undertakingBusinessEntity: List[BusinessEntity]
+)
+
+object UndertakingCreate {
+  implicit val undertakingFormat: OFormat[UndertakingCreate] = Json.format[UndertakingCreate]
+}
+
+case class UndertakingRetrieve(
   reference: Option[UndertakingRef],
   name: UndertakingName,
   industrySector: Sector,
@@ -31,6 +43,6 @@ case class Undertaking(
   undertakingBusinessEntity: List[BusinessEntity]
 )
 
-object Undertaking {
-  implicit val undertakingFormat: OFormat[Undertaking] = Json.format[Undertaking]
+object UndertakingRetrieve {
+  implicit val undertakingFormat: OFormat[UndertakingRetrieve] = Json.format[UndertakingRetrieve]
 }
