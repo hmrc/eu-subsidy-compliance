@@ -17,11 +17,11 @@
 package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 
 import play.api.libs.json.{Json, Writes}
-import uk.gov.hmrc.eusubsidycompliance.models.Undertaking
+import uk.gov.hmrc.eusubsidycompliance.models.UndertakingRetrieve
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.RequestCommon
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EisAmendmentType, UndertakingName, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
+import uk.gov.hmrc.eusubsidycompliance.models.types.{UndertakingName, UndertakingRef}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -31,7 +31,7 @@ final case class UpdateUndertakingApiRequest(updateUndertakingRequest: UpdateUnd
 object UpdateUndertakingApiRequest {
   implicit val writes: Writes[UpdateUndertakingApiRequest] = Json.writes
 
-  def apply(undertaking: Undertaking, amendmentType: EisAmendmentType): UpdateUndertakingApiRequest =
+  def apply(undertaking: UndertakingRetrieve, amendmentType: EisAmendmentType): UpdateUndertakingApiRequest =
     UpdateUndertakingApiRequest(
       UpdateUndertakingRequest(
         requestDetail = UpdateUndertakingRequestDetail(

@@ -49,7 +49,7 @@ class UndertakingController @Inject() (
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[Undertaking] { undertaking: Undertaking =>
+    withJsonBody[UndertakingCreate] { undertaking: UndertakingCreate =>
       for {
         ref <- eis.createUndertaking(undertaking)
         _ <- eis.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
@@ -58,13 +58,13 @@ class UndertakingController @Inject() (
   }
 
   def updateUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[Undertaking] { undertaking: Undertaking =>
+    withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
       eis.updateUndertaking(undertaking, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
     }
   }
 
   def disableUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[Undertaking] { undertaking: Undertaking =>
+    withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
       eis.updateUndertaking(undertaking, EisAmendmentType.D).map(ref => Ok(Json.toJson(ref)))
     }
   }

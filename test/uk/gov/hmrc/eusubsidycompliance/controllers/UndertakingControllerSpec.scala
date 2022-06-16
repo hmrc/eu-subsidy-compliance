@@ -112,7 +112,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     }
 
     "updateUndertaking is called" should {
-      implicit val format: Format[Undertaking] = Json.format[Undertaking]
+      implicit val format: Format[UndertakingRetrieve] = Json.format[UndertakingRetrieve]
 
       "Happy path" in {
         val app = configuredAppInstance
@@ -184,7 +184,6 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     }
 
     "create undertaking is called" should {
-      implicit val format: Format[Undertaking] = Json.format[Undertaking]
 
       "return a valid response for a successful to create undertaking" in {
 
@@ -305,8 +304,8 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     }
 
     "disable undertaking is called" should {
-      implicit val format: Format[Undertaking] = Json.format[Undertaking]
-      "Happy path" in {
+
+      "return OK for a successful request" in {
         val app = configuredAppInstance
 
         givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.D)
@@ -343,8 +342,8 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
   private def givenCreateUndertakingReturns(res: Future[UndertakingRef]): Unit =
     (mockEisConnector
-      .createUndertaking(_: Undertaking)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(undertaking, *, *)
+      .createUndertaking(_: UndertakingCreate)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingCreate, *, *)
       .returning(res)
 
   private def givenUpdateSubsidy(res: Future[Unit]): Unit =
@@ -356,7 +355,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
   private def returningFixedDate(fixedDate: LocalDate): Unit =
     (mockTimeProvider.today _).expects().returning(fixedDate)
 
-  private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, Undertaking]): Unit =
+  private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, UndertakingRetrieve]): Unit =
     (mockEisConnector
       .retrieveUndertaking(_: EORI)(_: HeaderCarrier, _: ExecutionContext))
       .expects(eori, *, *)
@@ -364,7 +363,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
   private def givenUpdateUndertaking(res: Future[UndertakingRef], eisAmendmentType: EisAmendmentType): Unit =
     (mockEisConnector
-      .updateUndertaking(_: Undertaking, _: EisAmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .updateUndertaking(_: UndertakingRetrieve, _: EisAmendmentType)(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertaking, eisAmendmentType, *, *)
       .returning(res)
 

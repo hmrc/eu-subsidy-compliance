@@ -177,7 +177,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.createUndertaking(undertaking).futureValue mustBe undertakingReference
+          underTest.createUndertaking(undertakingCreate).futureValue mustBe undertakingReference
         }
       }
     }
