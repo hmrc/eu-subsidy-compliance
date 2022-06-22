@@ -24,6 +24,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
+import uk.gov.hmrc.eusubsidycompliance.models.ExchangeRate
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
@@ -158,7 +159,7 @@ class EuropaConnectorSpec extends AnyWordSpecLike
 
         testWithRunningApp { underTest =>
           val result = underTest.retrieveExchangeRate(date)
-          result.futureValue mustBe EuropaResponse("GBP", "EUR", BigDecimal(0.84135))
+          result.futureValue mustBe ExchangeRate("GBP", "EUR", BigDecimal(0.84135))
         }
       }
 
