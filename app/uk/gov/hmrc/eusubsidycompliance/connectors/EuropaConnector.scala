@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import org.slf4j.LoggerFactory
-import play.api.libs.json.{JsResult, JsSuccess, JsValue, Reads}
+import play.api.libs.json.{JsSuccess, JsValue, Reads}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -25,42 +25,38 @@ import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+ * A simple connector to fetch GBP to EUR spot rates from the europa ECB API.
+ *
+ * @param client
+ * @param servicesConfig
+ */
 @Singleton
 class EuropaConnector @Inject() (
   val client: HttpClient,
   val servicesConfig: ServicesConfig
 ) {
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  private lazy val europaBasePath = servicesConfig.baseUrl("europa")
 
-  // TODO - add this to config
-//  private lazy val europaBasePath = servicesConfig.baseUrl("europa")
+  // Daily spot rate for GBP to EUR - see https://sdw-wsrest.ecb.europa.eu/help/ for API docs.
+  private val ResourcePath = "service/data/EXR/D.GBP.EUR.SP00.A"
 
-  // TODO - this should return an Either
-  def retrieveExchangeRate(
-    // TODO - introduce currency code type - or remove these params for now?
-    from: String,
-    to: String,
-    date: LocalDate
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[EuropaResponse] = {
-    val url = "https://sdw-wsrest.ecb.europa.eu/service/data/EXR/D.GBP.EUR.SP00.A"
-    val result = client.GET[EuropaResponse](
-      url = url,
+  def retrieveExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[EuropaResponse] =
+    client.GET[EuropaResponse](
+      url = s"$europaBasePath/$ResourcePath",
       headers = Seq("Accept" -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),
       queryParams = Seq(
-        // TODO - use date parameter
-        "startPeriod" -> "2022-01-03",
-        "endPeriod" -> "2022-01-03",
+        "startPeriod" -> date.toString,
+        "endPeriod" -> date.toString,
         "detail" -> "dataonly",
-        "lastNObservations" -> "1"
+        "lastNObservations" -> "1" // We just need the latest rate observation
       )
     )
-    result.map(r => "Got result: $r")
-    result
-  }
 
 }
 
+// TODO - move these
 object EuropaResponse {
 
   implicit val europaResponseReads: Reads[EuropaResponse] = (json: JsValue) => {
@@ -85,7 +81,7 @@ object EuropaResponse {
     // We only ever expect a single rate to be returned in the format shown above.
     val rate = ((json \ "dataSets") (0) \ "series" \ "0:0:0:0:0" \ "observations" \ "0") (0).as[BigDecimal]
 
-    JsSuccess(EuropaResponse("EUR", "GBP", rate))
+    JsSuccess(EuropaResponse("GBP", "EUR", rate))
   }
 
 }
