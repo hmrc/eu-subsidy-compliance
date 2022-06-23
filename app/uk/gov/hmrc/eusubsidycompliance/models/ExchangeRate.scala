@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import play.api.libs.json.{JsSuccess, JsValue, Reads}
+import play.api.libs.json.{JsSuccess, JsValue, Json, Reads, Writes}
 
 case class ExchangeRate(from: String, to: String, rate: BigDecimal)
 
@@ -48,6 +48,8 @@ object ExchangeRate {
     // TODO - do we even need to include the from and to values since they are constant?
     JsSuccess(ExchangeRate("GBP", "EUR", rate))
   }
+
+  implicit val exchangeRateWrites: Writes[ExchangeRate] = Json.writes[ExchangeRate]
 
 }
 

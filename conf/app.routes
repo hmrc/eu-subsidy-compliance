@@ -10,6 +10,8 @@ POST       /undertaking/member/remove/:undertakingRef       uk.gov.hmrc.eusubsid
 
 POST       /subsidy/update                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateSubsidy()
 
-POST       /undertaking/disable                                 uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.disableUndertaking()
+POST       /undertaking/disable                             uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.disableUndertaking()
 
 POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
+
+GET        /exchangerate/:date                              uk.gov.hmrc.eusubsidycompliance.controllers.ExchangeRateController.getExchangeRate(date)
