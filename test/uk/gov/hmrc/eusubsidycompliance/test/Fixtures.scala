@@ -91,6 +91,6 @@ object Fixtures {
     hmrcSubsidyUsage = List(hmrcSubsidy)
   )
 
-  val exchangeRate = ExchangeRate("EUR", "GBP", BigDecimal(0.80))
+  val exchangeRate = ExchangeRate(BigDecimal(0.80))
 
 }

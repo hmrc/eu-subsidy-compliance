@@ -22,6 +22,9 @@ case class ExchangeRate(from: String, to: String, rate: BigDecimal)
 
 object ExchangeRate {
 
+  // Convenience constructor for the default case
+  def apply(rate: BigDecimal): ExchangeRate = ExchangeRate("EUR", "GBP", rate)
+
   implicit val europaResponseReads: Reads[ExchangeRate] = (json: JsValue) => {
     // Extract the rate from the JSON response which has the following format.
     //
@@ -44,9 +47,7 @@ object ExchangeRate {
     // We only ever expect a single rate to be returned in the format shown above.
     val rate = ((json \ "dataSets") (0) \ "series" \ "0:0:0:0:0" \ "observations" \ "0") (0).as[BigDecimal]
 
-    // For now we can hardcode the from and to currencies since we only ever request the GBP to EUR rate.
-    // TODO - do we even need to include the from and to values since they are constant?
-    JsSuccess(ExchangeRate("EUR", "GBP", rate))
+    JsSuccess(ExchangeRate(rate))
   }
 
   implicit val exchangeRateWrites: Writes[ExchangeRate] = Json.writes[ExchangeRate]
