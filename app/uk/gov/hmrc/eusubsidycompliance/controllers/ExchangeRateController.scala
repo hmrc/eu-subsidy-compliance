@@ -24,7 +24,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class ExchangeRateController @Inject() (
@@ -33,13 +34,12 @@ class ExchangeRateController @Inject() (
   service: ExchangeRateService
 )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  // TODO - review error handling
   def getExchangeRate(dateString: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    // TODO - handle errors - also are there play bindings for LocalDate already?
-    //      - return bad request for malformed date
-    val parsedDate = LocalDate.parse(dateString)
-    service.getExchangeRate(parsedDate)
-      .map(r => Ok(Json.toJson(r)))
+    Try(LocalDate.parse(dateString))
+      .fold(
+        _ => Future.successful(BadRequest("Invalid date string")),
+        date => service.getExchangeRate(date).map(r => Ok(Json.toJson(r)))
+      )
   }
 
 }

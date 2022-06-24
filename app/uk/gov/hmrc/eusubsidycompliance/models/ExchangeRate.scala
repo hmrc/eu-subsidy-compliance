@@ -46,7 +46,7 @@ object ExchangeRate {
 
     // For now we can hardcode the from and to currencies since we only ever request the GBP to EUR rate.
     // TODO - do we even need to include the from and to values since they are constant?
-    JsSuccess(ExchangeRate("GBP", "EUR", rate))
+    JsSuccess(ExchangeRate("EUR", "GBP", rate))
   }
 
   implicit val exchangeRateWrites: Writes[ExchangeRate] = Json.writes[ExchangeRate]

@@ -22,34 +22,24 @@ import org.scalatestplus.play.PlaySpec
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsJson, defaultAwaitTimeout, route, running, status, writeableOf_AnyContentAsEmpty}
-import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
 import uk.gov.hmrc.eusubsidycompliance.models.ExchangeRate
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
-import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
+import uk.gov.hmrc.eusubsidycompliance.test.FakeAuth
+import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.exchangeRate
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class ExchangeRateControllerSpec extends PlaySpec with MockFactory with ScalaFutures with IntegrationPatience {
 
-  // TODO - move this out into a shared location - copied verbatim from UndertakingControllerSpec
-  // FakeAuthenticator that allows every request.
-  private class FakeAuth extends Auth {
-    override def authCommon[A](
-      action: AuthAction[A]
-    )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
-    override protected def controllerComponents: ControllerComponents = Helpers.stubControllerComponents()
-    // This isn't used in this implementation so can be left as unimplemented.
-    override def authConnector: AuthConnector = ???
-  }
-
   private val mockExchangeRateService = mock[ExchangeRateService]
+
+  private val dateString = "2022-02-03"
 
   "ExchangeRateController" when {
 
@@ -59,16 +49,31 @@ class ExchangeRateControllerSpec extends PlaySpec with MockFactory with ScalaFut
 
         val app = configuredAppInstance
 
-        givenExchangeRateServiceReturns(LocalDate.of(2022, 2, 3))(Future(ExchangeRate("EUR", "GBP", BigDecimal(0.80))))
+        givenExchangeRateServiceReturns(LocalDate.of(2022, 2, 3))(Future(exchangeRate))
 
         running(app) {
           val request =
-            FakeRequest(GET, routes.ExchangeRateController.getExchangeRate("2022-02-03").url)
+            FakeRequest(GET, routes.ExchangeRateController.getExchangeRate(dateString).url)
 
           val result = route(app, request).value
 
           status(result) mustBe 200
-          contentAsJson(result) mustBe Json.toJson(ExchangeRate("EUR", "GBP", BigDecimal(0.80)))
+          contentAsJson(result) mustBe Json.toJson(exchangeRate)
+        }
+
+      }
+
+      "return a bad request for a request with an invalid date string" in {
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request =
+            FakeRequest(GET, routes.ExchangeRateController.getExchangeRate(dateString).url)
+
+          val result = route(app, request).value
+
+          status(result) mustBe 400
         }
 
       }

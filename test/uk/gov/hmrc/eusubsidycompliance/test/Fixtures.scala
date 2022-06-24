@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, HmrcSubsidy, NonHmrcSubsidy, UndertakingCreate, UndertakingRetrieve, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ExchangeRate, HmrcSubsidy, NonHmrcSubsidy, UndertakingCreate, UndertakingRetrieve, UndertakingSubsidies}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 
 import java.time.{Instant, ZoneId}
@@ -90,5 +90,7 @@ object Fixtures {
     nonHMRCSubsidyUsage = List(nonHmrcSubsidy),
     hmrcSubsidyUsage = List(hmrcSubsidy)
   )
+
+  val exchangeRate = ExchangeRate("EUR", "GBP", BigDecimal(0.80))
 
 }
