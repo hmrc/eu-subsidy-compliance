@@ -47,12 +47,12 @@ class ExchangeRateServiceSpec extends AnyWordSpecLike
     "getExchangeRate is called" should {
 
       "return a successful response for a valid date" in {
-        givenEuropaConnectorReturns(LocalDate.of(2022, 3, 30))(Future(exchangeRate))
+        givenEuropaConnectorReturns(LocalDate.of(2022, 3, 1))(Future(exchangeRate))
         underTest.getExchangeRate(LocalDate.of(2022, 4, 22)).futureValue shouldBe exchangeRate
       }
 
       "correctly compute the exchange rate date across a year boundary" in {
-        givenEuropaConnectorReturns(LocalDate.of(2021, 12, 30))(Future(exchangeRate))
+        givenEuropaConnectorReturns(LocalDate.of(2021, 12, 1))(Future(exchangeRate))
         underTest.getExchangeRate(LocalDate.of(2022, 1, 22)).futureValue shouldBe exchangeRate
       }
 

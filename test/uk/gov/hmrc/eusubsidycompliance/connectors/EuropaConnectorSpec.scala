@@ -40,16 +40,17 @@ class EuropaConnectorSpec extends AnyWordSpecLike
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
   private val date = LocalDate.of(2022, 1, 3)
+  private val yearMonth = "2022-01"
 
   private val requestUrl =
-    s"/service/data/EXR/D.GBP.EUR.SP00.A?startPeriod=$date&endPeriod=$date&detail=dataonly&lastNObservations=1"
+    s"/service/data/EXR/D.GBP.EUR.SP00.A?startPeriod=$yearMonth&endPeriod=$yearMonth&detail=dataonly&lastNObservations=2"
 
   private val validResponse =
     """{
       |    "header": {
-      |        "id": "972803cb-94d7-4342-a6ec-a69edf56041d",
+      |        "id": "dfd59cc9-9f2b-4bb1-905d-42b22f1780c6",
       |        "test": false,
-      |        "prepared": "2022-06-22T12:32:42.940+02:00",
+      |        "prepared": "2022-06-27T17:18:59.359+02:00",
       |        "sender": {
       |            "id": "ECB"
       |        }
@@ -57,12 +58,15 @@ class EuropaConnectorSpec extends AnyWordSpecLike
       |    "dataSets": [
       |        {
       |            "action": "Replace",
-      |            "validFrom": "2022-06-22T12:32:42.940+02:00",
+      |            "validFrom": "2022-06-27T17:18:59.359+02:00",
       |            "series": {
       |                "0:0:0:0:0": {
       |                    "observations": {
       |                        "0": [
       |                            0.8
+      |                        ],
+      |                        "1": [
+      |                            0.90088
       |                        ]
       |                    }
       |                }
@@ -138,10 +142,16 @@ class EuropaConnectorSpec extends AnyWordSpecLike
       |                    "role": "time",
       |                    "values": [
       |                        {
-      |                            "id": "2022-01-03",
-      |                            "name": "2022-01-03",
-      |                            "start": "2022-01-03T00:00:00.000+01:00",
-      |                            "end": "2022-01-03T23:59:59.999+01:00"
+      |                            "id": "2020-05-28",
+      |                            "name": "2020-05-28",
+      |                            "start": "2020-05-28T00:00:00.000+02:00",
+      |                            "end": "2020-05-28T23:59:59.999+02:00"
+      |                        },
+      |                        {
+      |                            "id": "2020-05-29",
+      |                            "name": "2020-05-29",
+      |                            "start": "2020-05-29T00:00:00.000+02:00",
+      |                            "end": "2020-05-29T23:59:59.999+02:00"
       |                        }
       |                    ]
       |                }
@@ -153,6 +163,33 @@ class EuropaConnectorSpec extends AnyWordSpecLike
   "EuropaConnector" when {
 
     "an exchange rate request is made" should {
+
+//      "parse responses for all dates" in {
+
+
+//        val startDate = LocalDate.of(2020, 4, 6)
+
+//        val dates = (0 to 30).map { i =>
+//          val month = startDate.plusMonths(i)
+//          month.withDayOfMonth(month.getMonth.length(month.isLeapYear) - 1)
+//        }
+
+//        testWithRunningApp { underTest =>
+
+//          dates.foreach { date =>
+//            if (date.isAfter(LocalDate.now())) println(s"Skipping $date - in future")
+//            else {
+//              println(s"Fetching rate for $date")
+//              val result = underTest.retrieveExchangeRate(date)
+//              val rate = result.futureValue.rate
+//              println(s"$date GBP:EUR $rate")
+//              (rate > 0) mustBe true
+//            }
+//          }
+
+//        }
+
+//      }
 
       "return a successful response for a valid response from the europa API" in {
         givenEuropaReturns(200, requestUrl, validResponse)
@@ -191,8 +228,11 @@ class EuropaConnectorSpec extends AnyWordSpecLike
         "microservice.services.europa.protocol" -> "http",
         "microservice.services.europa.host" -> "localhost",
         "microservice.services.europa.port" -> server.port()
-      )
-      .build()
+      ).build()
+
+  //        "microservice.services.europa.protocol" -> "https",
+  //        "microservice.services.europa.host" -> "sdw-wsrest.ecb.europa.eu",
+  //        "microservice.services.europa.port" -> 443,
 
   private def testWithRunningApp(f: EuropaConnector => Unit): Unit = {
     val app = configuredApplication

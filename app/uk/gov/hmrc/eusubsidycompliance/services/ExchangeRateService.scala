@@ -30,15 +30,14 @@ class ExchangeRateService @Inject() (
 )(implicit ec: ExecutionContext) {
 
   def getExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier): Future[ExchangeRate] =
-    europaConnector.retrieveExchangeRate(dateForExchangeRate(date))
+    europaConnector.retrieveExchangeRate(
+      dateForExchangeRate(date),
+    )
 
-  // The exchange rate for a given month is the value of the rate on the penultimate day of the preceding month.
-  // For example the rate to apply for the whole of April 2022 will be the published rate for 30th March 2022.
-  private def dateForExchangeRate(date: LocalDate): LocalDate = {
-    val previousMonth = date.minusMonths(1)
-    val penultimateDay = previousMonth.lengthOfMonth() - 1
-
-    previousMonth.withDayOfMonth(penultimateDay)
-  }
+  // The exchange rate for a given month is taken from the end of the preceding month.
+  private def dateForExchangeRate(date: LocalDate): LocalDate =
+    date
+      .withDayOfMonth(1)
+      .minusMonths(1)
 
 }

@@ -22,6 +22,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,18 +37,21 @@ class EuropaConnector @Inject() (
 
   private lazy val europaBasePath = servicesConfig.baseUrl("europa")
 
+  private val yearMonthFormatter = DateTimeFormatter.ofPattern("YYYY-MM")
+
   // Daily spot rate for GBP to EUR - see https://sdw-wsrest.ecb.europa.eu/help/ for API docs.
   private val ResourcePath = "service/data/EXR/D.GBP.EUR.SP00.A"
 
+  // TODO - review naming and docs
   def retrieveExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
     client.GET[ExchangeRate](
       url = s"$europaBasePath/$ResourcePath",
       headers = Seq("Accept" -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),
       queryParams = Seq(
-        "startPeriod" -> date.toString,
-        "endPeriod" -> date.toString,
+        "startPeriod" -> yearMonthFormatter.format(date),
+        "endPeriod" -> yearMonthFormatter.format(date),
         "detail" -> "dataonly",
-        "lastNObservations" -> "1" // We just need the latest rate observation
+        "lastNObservations" -> s"2" // Fetch the last 2 observations and return the first which corresponds to the penultimate value for the month
       )
     )
 

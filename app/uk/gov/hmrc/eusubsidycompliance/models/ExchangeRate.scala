@@ -37,6 +37,9 @@ object ExchangeRate {
     //                    "observations": {
     //                        "0": [
     //                            0.84135
+    //                        ],
+    //                        "1": [
+    //                            0.90132
     //                        ]
     //                    }
     //                }
@@ -44,7 +47,8 @@ object ExchangeRate {
     //        }
     //    ],
     //
-    // We only ever expect a single rate to be returned in the format shown above.
+    // Note - we request the last 2 rate observations for the month and return the penultimate value for that month
+    //        in order to align with the Europa exchange rate converter (see https://ec.europa.eu/info/funding-tenders/procedures-guidelines-tenders/information-contractors-and-beneficiaries/exchange-rate-inforeuro_en)
     val rate = ((json \ "dataSets") (0) \ "series" \ "0:0:0:0:0" \ "observations" \ "0") (0).as[BigDecimal]
 
     JsSuccess(ExchangeRate(rate))
