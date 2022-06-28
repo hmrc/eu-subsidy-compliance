@@ -34,7 +34,7 @@ class ExchangeRateService @Inject() (
       dateForExchangeRate(date),
     )
 
-  // The exchange rate for a given month is taken from the end of the preceding month.
+  // The exchange rate for a given month is the penultimate value of the preceding month.
   private def dateForExchangeRate(date: LocalDate): LocalDate =
     date
       .withDayOfMonth(1)

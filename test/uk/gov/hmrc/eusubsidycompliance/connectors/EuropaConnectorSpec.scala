@@ -198,7 +198,6 @@ class EuropaConnectorSpec extends AnyWordSpecLike
   private def configuredApplication: Application =
     new GuiceApplicationBuilder()
       .configure(
-        "microservice.services.europa.protocol" -> "http",
         "microservice.services.europa.host" -> "localhost",
         "microservice.services.europa.port" -> server.port()
       ).build()
