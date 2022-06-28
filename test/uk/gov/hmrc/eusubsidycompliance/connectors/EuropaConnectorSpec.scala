@@ -164,33 +164,6 @@ class EuropaConnectorSpec extends AnyWordSpecLike
 
     "an exchange rate request is made" should {
 
-//      "parse responses for all dates" in {
-
-
-//        val startDate = LocalDate.of(2020, 4, 6)
-
-//        val dates = (0 to 30).map { i =>
-//          val month = startDate.plusMonths(i)
-//          month.withDayOfMonth(month.getMonth.length(month.isLeapYear) - 1)
-//        }
-
-//        testWithRunningApp { underTest =>
-
-//          dates.foreach { date =>
-//            if (date.isAfter(LocalDate.now())) println(s"Skipping $date - in future")
-//            else {
-//              println(s"Fetching rate for $date")
-//              val result = underTest.retrieveExchangeRate(date)
-//              val rate = result.futureValue.rate
-//              println(s"$date GBP:EUR $rate")
-//              (rate > 0) mustBe true
-//            }
-//          }
-
-//        }
-
-//      }
-
       "return a successful response for a valid response from the europa API" in {
         givenEuropaReturns(200, requestUrl, validResponse)
 
@@ -230,9 +203,6 @@ class EuropaConnectorSpec extends AnyWordSpecLike
         "microservice.services.europa.port" -> server.port()
       ).build()
 
-  //        "microservice.services.europa.protocol" -> "https",
-  //        "microservice.services.europa.host" -> "sdw-wsrest.ecb.europa.eu",
-  //        "microservice.services.europa.port" -> 443,
 
   private def testWithRunningApp(f: EuropaConnector => Unit): Unit = {
     val app = configuredApplication

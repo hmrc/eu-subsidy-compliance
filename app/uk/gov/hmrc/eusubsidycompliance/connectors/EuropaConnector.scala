@@ -37,7 +37,7 @@ class EuropaConnector @Inject() (
 
   private lazy val europaBasePath = servicesConfig.baseUrl("europa")
 
-  private val yearMonthFormatter = DateTimeFormatter.ofPattern("YYYY-MM")
+  private val yearMonthFormatter = DateTimeFormatter.ofPattern("u-MM")
 
   // Daily spot rate for GBP to EUR - see https://sdw-wsrest.ecb.europa.eu/help/ for API docs.
   private val ResourcePath = "service/data/EXR/D.GBP.EUR.SP00.A"
