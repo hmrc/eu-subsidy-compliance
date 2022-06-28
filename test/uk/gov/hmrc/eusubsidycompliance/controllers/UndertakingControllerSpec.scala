@@ -23,16 +23,15 @@ import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{Format, Json}
-import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
-import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
+import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.test.FakeAuth
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
@@ -41,16 +40,6 @@ import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutures with IntegrationPatience {
-
-  // FakeAuthenticator that allows every request.
-  private class FakeAuth extends Auth {
-    override def authCommon[A](
-      action: AuthAction[A]
-    )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
-    override protected def controllerComponents: ControllerComponents = Helpers.stubControllerComponents()
-    // This isn't used in this implementation so can be left as unimplemented.
-    override def authConnector: AuthConnector = ???
-  }
 
   private val mockEisConnector = mock[EisConnector]
   private val mockTimeProvider = mock[TimeProvider]
