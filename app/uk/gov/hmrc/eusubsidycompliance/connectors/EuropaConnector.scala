@@ -53,7 +53,7 @@ class EuropaConnector @Inject() (
         "startPeriod" -> yearMonthFormatter.format(date),
         "endPeriod" -> yearMonthFormatter.format(date),
         "detail" -> "dataonly",
-        "lastNObservations" -> s"2"
+        "lastNObservations" -> "2"
       )
     )
 
