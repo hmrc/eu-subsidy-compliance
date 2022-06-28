@@ -42,8 +42,10 @@ class EuropaConnector @Inject() (
   // Daily spot rate for GBP to EUR - see https://sdw-wsrest.ecb.europa.eu/help/ for API docs.
   private val ResourcePath = "service/data/EXR/D.GBP.EUR.SP00.A"
 
-  // TODO - review naming and docs
-  def retrieveExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
+  // We request the last two rates for the month of the specified date. The penultimate rate will be the rate that
+  // applies which corresponds to the first of the two rates returned.
+  // The europa response parsing takes care of selecting this rate. See ExchangeRate companion object.
+  def retrieveApplicableExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
     client.GET[ExchangeRate](
       url = s"$europaBasePath/$ResourcePath",
       headers = Seq("Accept" -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),
@@ -51,7 +53,7 @@ class EuropaConnector @Inject() (
         "startPeriod" -> yearMonthFormatter.format(date),
         "endPeriod" -> yearMonthFormatter.format(date),
         "detail" -> "dataonly",
-        "lastNObservations" -> s"2" // Fetch the last 2 observations and return the first which corresponds to the penultimate value for the month
+        "lastNObservations" -> s"2"
       )
     )
 

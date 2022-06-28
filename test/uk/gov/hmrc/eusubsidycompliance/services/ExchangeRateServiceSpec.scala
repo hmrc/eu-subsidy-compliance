@@ -62,7 +62,7 @@ class ExchangeRateServiceSpec extends AnyWordSpecLike
 
   private def givenEuropaConnectorReturns(date: LocalDate)(res: Future[ExchangeRate]): Unit =
     (mockConnector
-      .retrieveExchangeRate(_: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
+      .retrieveApplicableExchangeRate(_: LocalDate)(_: HeaderCarrier, _: ExecutionContext))
       .expects(date, *, *)
       .returning(res)
 

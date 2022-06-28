@@ -168,7 +168,7 @@ class EuropaConnectorSpec extends AnyWordSpecLike
         givenEuropaReturns(200, requestUrl, validResponse)
 
         testWithRunningApp { underTest =>
-          val result = underTest.retrieveExchangeRate(date)
+          val result = underTest.retrieveApplicableExchangeRate(date)
           result.futureValue mustBe exchangeRate
         }
       }
@@ -177,7 +177,7 @@ class EuropaConnectorSpec extends AnyWordSpecLike
         givenEuropaReturns(200, requestUrl, "This is not a valid JSON response")
 
         testWithRunningApp { underTest =>
-          val result = underTest.retrieveExchangeRate(date)
+          val result = underTest.retrieveApplicableExchangeRate(date)
           result.failed.futureValue mustBe a[JsonParseException]
         }
       }
@@ -186,7 +186,7 @@ class EuropaConnectorSpec extends AnyWordSpecLike
         givenEuropaReturns(500, requestUrl, "Error")
 
         testWithRunningApp { underTest =>
-          val result = underTest.retrieveExchangeRate(date)
+          val result = underTest.retrieveApplicableExchangeRate(date)
           result.failed.futureValue mustBe a[UpstreamErrorResponse]
         }
       }

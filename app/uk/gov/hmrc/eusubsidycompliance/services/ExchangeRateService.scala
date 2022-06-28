@@ -30,7 +30,7 @@ class ExchangeRateService @Inject() (
 )(implicit ec: ExecutionContext) {
 
   def getExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier): Future[ExchangeRate] =
-    europaConnector.retrieveExchangeRate(
+    europaConnector.retrieveApplicableExchangeRate(
       dateForExchangeRate(date),
     )
 
