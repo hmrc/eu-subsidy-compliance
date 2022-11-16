@@ -35,6 +35,6 @@ class ProxiedHttpClient @Inject()(
   config: AppConfig)
   extends DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem) with WSProxy {
 
-  override def wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration("proxy", configuration)
+  override def wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration.buildWsProxyServer(configuration)
 
 }
