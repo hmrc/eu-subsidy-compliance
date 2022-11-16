@@ -5,8 +5,8 @@ import sbt._
 
 object AppDependencies {
 
-  val bootStrapVersion = "5.23.0"
-  val hmrcMongoVersion = "0.68.0"
+  val bootStrapVersion = "7.11.0"
+  val hmrcMongoVersion = "0.74.0"
 
   val compile = Seq(
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % bootStrapVersion,
@@ -19,7 +19,6 @@ object AppDependencies {
     "uk.gov.hmrc"           %% "bootstrap-test-play-28"  % bootStrapVersion % Test,
     "uk.gov.hmrc.mongo"     %% "hmrc-mongo-test-play-28" % hmrcMongoVersion % Test,
     "com.vladsch.flexmark"   % "flexmark-all"            % "0.36.8"         % "test, it",
-    // TODO - remove mockito once all tests transitioned to scalamock
     "org.mockito"            % "mockito-core"            % "4.4.0"          % Test,
     "org.scalatestplus"     %% "scalatestplus-mockito"   % "1.0.0-M2"       % Test,
     // Need to use a slightly older version for compatibility with the play jackson deps using 2.10.5
