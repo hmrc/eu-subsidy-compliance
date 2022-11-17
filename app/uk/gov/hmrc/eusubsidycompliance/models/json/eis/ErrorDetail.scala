@@ -34,19 +34,16 @@ case class ErrorDetail(
 
 object ErrorDetail {
   val oddEisFormat = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss'Z'")
-  implicit val errorDetailWrites: Writes[ErrorDetail] = new Writes[ErrorDetail] {
-
-    override def writes(o: ErrorDetail): JsValue = Json.obj(
-      "errorDetail" -> Json.obj(
-        "timestamp" -> o.timestamp.format(oddEisFormat),
-        "correlationId" -> o.correlationId,
-        "errorCode" -> o.errorCode,
-        "errorMessage" -> o.errorMessage,
-        "source" -> o.source,
-        "sourceFaultDetail" -> Json.obj(
-          "detail" -> o.sourceFaultDetail
-        )
+  implicit val errorDetailWrites: Writes[ErrorDetail] = (o: ErrorDetail) => Json.obj(
+    "errorDetail" -> Json.obj(
+      "timestamp" -> o.timestamp.format(oddEisFormat),
+      "correlationId" -> o.correlationId,
+      "errorCode" -> o.errorCode,
+      "errorMessage" -> o.errorMessage,
+      "source" -> o.source,
+      "sourceFaultDetail" -> Json.obj(
+        "detail" -> o.sourceFaultDetail
       )
     )
-  }
+  )
 }
