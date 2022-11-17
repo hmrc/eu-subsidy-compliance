@@ -79,7 +79,7 @@ class EisConnector @Inject() (
     undertaking: UndertakingCreate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{createUndertakingResponseReads}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.createUndertakingResponseReads
 
     val eisTokenKey = "eis.token.scp02"
     desPost[CreateUndertakingApiRequest, UndertakingRef](
@@ -110,7 +110,7 @@ class EisConnector @Inject() (
     amendmentType: AmendmentType
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberResponseReads}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberResponseReads
 
     val eisTokenKey = "eis.token.scp05"
 
@@ -135,7 +135,7 @@ class EisConnector @Inject() (
     businessEntity: BusinessEntity
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
-    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.{amendUndertakingMemberResponseReads}
+    import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberResponseReads
 
     val eisTokenKey = "eis.token.scp05"
 
