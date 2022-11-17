@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import play.api.Logger
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
-import play.api.{Logger, Mode}
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
@@ -26,7 +26,6 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisPar
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
@@ -36,9 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class EisConnector @Inject() (
   val http: HttpClient,
-  val mode: Mode,
   val servicesConfig: ServicesConfig,
-  val auditing: AuditConnector
 ) extends DesHelpers {
 
   private val logger: Logger = Logger(this.getClass)

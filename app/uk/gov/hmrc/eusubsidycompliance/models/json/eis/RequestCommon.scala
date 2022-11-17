@@ -29,19 +29,19 @@ final case class RequestCommon(
   requestParameters: List[RequestParameters] = List(RequestParameters())
 )
 
-case object RequestCommon {
-
+object RequestCommon {
   implicit val writes: Writes[RequestCommon] = Json.writes
   def apply(message: String): RequestCommon = RequestCommon(messageTypes = MessageTypes(message))
-
 }
 
 case class MessageTypes(messageType: String)
+
 object MessageTypes {
   implicit val writes: Writes[MessageTypes] = Json.writes
 }
 
 case class RequestParameters(paramName: String = "REGIME", paramValue: String = "ES")
+
 object RequestParameters {
   implicit val writes: Writes[RequestParameters] = Json.writes
 }
