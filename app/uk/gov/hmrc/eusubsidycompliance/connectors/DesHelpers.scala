@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import play.api.http.{ContentTypes, HeaderNames}
+import play.api.http.ContentTypes.JSON
+import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -30,22 +31,6 @@ trait DesHelpers {
 
   def http: HttpClient
   def servicesConfig: ServicesConfig
-  private def headers(eisTokenKey: String) = Seq(
-    HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
-    HeaderNames.ACCEPT -> ContentTypes.JSON,
-    HeaderNames.DATE -> LocalDateTime
-      .now()
-      .format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))),
-    "Environment" -> servicesConfig.getConfString("eis.environment", ""),
-    "Authorization" -> s"Bearer ${servicesConfig.getConfString(eisTokenKey, "")}"
-  )
-
-  def desGet[O](url: String, eisTokenKey: String)(implicit
-    rds: HttpReads[O],
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[O] =
-    http.GET[O](url, Seq.empty, headers(eisTokenKey))(rds, addHeaders, ec)
 
   def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit
     wts: Writes[I],
@@ -57,5 +42,16 @@ trait DesHelpers {
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)
+
+  private val dateTimeFormatter =
+    DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))
+
+  private def headers(eisTokenKey: String) = Seq(
+    CONTENT_TYPE -> JSON,
+    ACCEPT -> JSON,
+    DATE -> LocalDateTime.now().format(dateTimeFormatter),
+    "Environment" -> servicesConfig.getConfString("eis.environment", ""),
+    "Authorization" -> s"Bearer ${servicesConfig.getConfString(eisTokenKey, "")}"
+  )
 
 }
