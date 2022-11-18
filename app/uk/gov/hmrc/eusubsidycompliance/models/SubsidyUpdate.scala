@@ -16,13 +16,10 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import java.time.LocalDate
-
-import cats.implicits._
-import play.api.libs.json.{JsResult, _}
+import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 
-import scala.reflect.ClassTag
+import java.time.LocalDate
 
 sealed trait Update
 case class NilSubmissionDate(d: LocalDate) extends Update
@@ -31,19 +28,7 @@ case class UndertakingSubsidyAmendment(updates: List[NonHmrcSubsidy]) extends Up
 case class SubsidyUpdate(
   undertakingIdentifier: UndertakingRef,
   update: Update
-) {
-
-  def nilSubmissionDate: Option[NilSubmissionDate] =
-    as[NilSubmissionDate]
-
-  def undertakingSubsidyAmendment: Option[UndertakingSubsidyAmendment] =
-    as[UndertakingSubsidyAmendment]
-
-  private def as[T : ClassTag]: Option[T] = update match {
-    case x: T => x.some
-    case _ => none[T]
-  }
-}
+)
 
 object SubsidyUpdate {
   implicit val updateFormat: Format[SubsidyUpdate] = new Format[SubsidyUpdate] {

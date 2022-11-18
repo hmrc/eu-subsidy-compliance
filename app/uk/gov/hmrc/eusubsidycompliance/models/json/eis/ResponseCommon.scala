@@ -43,9 +43,7 @@ case class ResponseCommon(
 
 object ResponseCommon {
 
-  implicit val ldtwrites: Writes[LocalDateTime] = new Writes[LocalDateTime] {
-    override def writes(o: LocalDateTime): JsValue = JsString(o.eisFormat)
-  }
+  implicit val ldtwrites: Writes[LocalDateTime] = (o: LocalDateTime) => JsString(o.eisFormat)
   implicit val writes: Writes[ResponseCommon] = (
     (JsPath \ "status").write[EisStatus] and
       (JsPath \ "statusText").write[EisStatusString] and

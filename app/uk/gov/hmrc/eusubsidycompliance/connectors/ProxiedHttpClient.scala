@@ -19,21 +19,19 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 import akka.actor.ActorSystem
 import play.api.Configuration
 import play.api.libs.ws.{WSClient, WSProxyServer}
-import uk.gov.hmrc.eusubsidycompliance.config.AppConfig
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.http.ws.{WSProxy, WSProxyConfiguration}
 
-import javax.inject.{Singleton,Inject}
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class ProxiedHttpClient @Inject()(
   configuration: Configuration,
   httpAuditing: HttpAuditing,
   wsClient: WSClient,
-  actorSystem: ActorSystem,
-  config: AppConfig)
-  extends DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem) with WSProxy {
+  actorSystem: ActorSystem
+) extends DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem) with WSProxy {
 
   override def wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration.buildWsProxyServer(configuration)
 
