@@ -108,7 +108,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.A)
         running(app) {
-          val request = FakeRequest(POST, routes.UndertakingController.updateUndertaking().url)
+          val request = FakeRequest(POST, routes.UndertakingController.updateUndertaking.url)
             .withJsonBody(Json.toJson(undertaking))
             .withHeaders("Content-type" -> "application/json")
           val result = route(app, request).value
@@ -183,7 +183,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         val app = configuredAppInstance
 
         running(app) {
-          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+          val request = FakeRequest(POST, routes.UndertakingController.create.url)
             .withJsonBody(Json.toJson(undertaking))
             .withHeaders("Content-type" -> "application/json")
 
@@ -200,7 +200,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         val app = configuredAppInstance
 
         running(app) {
-          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+          val request = FakeRequest(POST, routes.UndertakingController.create.url)
             .withJsonBody(Json.toJson(undertaking))
             .withHeaders("Content-type" -> "application/json")
 
@@ -216,7 +216,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         val app = configuredAppInstance
 
         running(app) {
-          val request = FakeRequest(POST, routes.UndertakingController.create().url)
+          val request = FakeRequest(POST, routes.UndertakingController.create.url)
             .withJsonBody(Json.toJson(undertaking))
             .withHeaders("Content-type" -> "application/json")
 
