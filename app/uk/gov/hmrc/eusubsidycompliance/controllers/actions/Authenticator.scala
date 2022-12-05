@@ -62,7 +62,7 @@ class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerCompon
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] =
     request.headers
-      .get("Authorization")
+      .get(AUTHORIZATION)
       .fold(Future.successful(Forbidden("Authorization header missing")))(_ => checkEnrolment(action))
 
   private def checkEnrolment[A](action: AuthAction[A])(implicit request: Request[A], ec: ExecutionContext) = {
