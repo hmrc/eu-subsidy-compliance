@@ -24,7 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, Undert
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, UndertakingRetrieve}
 
 import java.time.format.DateTimeFormatter
-import java.time.{Clock, Instant, LocalDate, LocalDateTime, ZoneOffset, ZonedDateTime}
+import java.time.{Clock, Instant, LocalDate, ZonedDateTime}
 
 package object digital {
 
@@ -38,11 +38,6 @@ package object digital {
     val instant = Instant.now(clock)
     val withoutNanos = instant.minusNanos(instant.getNano)
     formatter.format(withoutNanos)
-  }
-
-  implicit class RichLocalDateTime(in: LocalDateTime) {
-    def eisFormat: String =
-      formatter.format(in.toInstant(ZoneOffset.UTC).minusNanos(in.getNano))
   }
 
   implicit val retrieveUndertakingResponseReads: Reads[UndertakingRetrieve] =
