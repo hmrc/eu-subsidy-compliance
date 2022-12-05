@@ -30,10 +30,26 @@ case class BusinessEntityUpdate(
 )
 
 object BusinessEntityUpdate {
-  implicit val businessEntityWrites: Writes[BusinessEntity] = (
+
+  private implicit val businessEntityReads: Reads[BusinessEntity] = (json: JsValue) => JsSuccess(
+    BusinessEntity(
+      (json \ "businessEntityIdentifier").as[EORI],
+      (json \ "leadEORIIndicator").as[Boolean]
+    )
+  )
+
+  private implicit val businessEntityWrites: Writes[BusinessEntity] = (
     (JsPath \ "businessEntityIdentifier").write[EORI] and
       (JsPath \ "leadEORIIndicator").write[Boolean]
   )(unlift(BusinessEntity.unapply))
+
+  implicit val businessEntityUpdateReads: Reads[BusinessEntityUpdate] = (json: JsValue) => JsSuccess(
+    BusinessEntityUpdate(
+      (json \ "amendmentType").as[AmendmentType],
+      (json \ "amendmentEffectiveDate").as[LocalDate],
+      (json \ "businessEntity").as[BusinessEntity]
+    )
+  )
 
   implicit val businessEntityUpdateWrites: Writes[BusinessEntityUpdate] = (o: BusinessEntityUpdate) => Json.obj(
     "amendmentType" -> o.amendmentType,
@@ -41,23 +57,4 @@ object BusinessEntityUpdate {
     "businessEntity" -> o.businessEntity
   )
 
-  val businessEntityReads: Reads[BusinessEntity] = (json: JsValue) => JsSuccess(
-    BusinessEntity(
-      (json \ "businessEntityIdentifier").as[EORI],
-      (json \ "leadEORIIndicator").as[Boolean]
-    )
-  )
-
-  implicit val reads: Reads[BusinessEntityUpdate] = new Reads[BusinessEntityUpdate] {
-    implicit val beReads = businessEntityReads
-
-    override def reads(json: JsValue): JsResult[BusinessEntityUpdate] =
-      JsSuccess(
-        BusinessEntityUpdate(
-          (json \ "amendmentType").as[AmendmentType],
-          (json \ "amendmentEffectiveDate").as[LocalDate],
-          (json \ "businessEntity").as[BusinessEntity]
-        )
-      )
-  }
 }
