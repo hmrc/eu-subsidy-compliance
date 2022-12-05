@@ -81,7 +81,7 @@ package object digital {
   implicit val amendSubsidyUpdateResponseReads: Reads[Unit] =
     readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
 
-  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]) = new Reads[A] {
+  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]): Reads[A] = new Reads[A] {
     override def reads(json: JsValue): JsResult[A] = {
       val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
       (responseCommon \ "status").as[String] match {

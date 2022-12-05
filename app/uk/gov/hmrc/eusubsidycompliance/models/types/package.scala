@@ -106,7 +106,7 @@ package object types extends SimpleJson {
   object EisAmendmentType extends Enumeration {
     type EisAmendmentType = Value
     val A, D = Value
-    implicit val format = Json.formatEnum(EisAmendmentType)
+    implicit val format: Format[types.EisAmendmentType.Value] = Json.formatEnum(EisAmendmentType)
   }
 
   type EisSubsidyAmendmentType = String @@ EisSubsidyAmendmentType.Tag
