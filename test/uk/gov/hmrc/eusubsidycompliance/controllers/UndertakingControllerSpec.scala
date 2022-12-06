@@ -19,7 +19,6 @@ package uk.gov.hmrc.eusubsidycompliance.controllers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play.PlaySpec
-import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
@@ -57,7 +56,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
 
       }
@@ -113,7 +112,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
       }
     }
@@ -130,7 +129,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
       }
     }
@@ -148,7 +147,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
             .withJsonBody(Json.toJson(businessEntity))
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
       }
     }
@@ -165,7 +164,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
             .withJsonBody(Json.toJson(SubsidyUpdate(undertakingReference, NilSubmissionDate(date))))
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
       }
     }
@@ -176,7 +175,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenCreateUndertakingReturns(Future.successful(undertakingReference))
         givenUpdateSubsidy(Future.successful((): Unit))
-        returningFixedDate(date)
+        givenTimeProviderReturnsDate(date)
 
         val app = configuredAppInstance
 
@@ -186,7 +185,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
           contentAsJson(result) mustBe Json.toJson(undertakingReference)
         }
       }
@@ -206,7 +205,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       "throw an exception if the call to EIS fails to add default subsidy usage" in {
         givenCreateUndertakingReturns(Future.successful(undertakingReference))
-        returningFixedDate(date)
+        givenTimeProviderReturnsDate(date)
         givenUpdateSubsidy(Future.failed(new RuntimeException("Something failed")))
 
         val app = configuredAppInstance
@@ -235,7 +234,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
           contentAsJson(result) mustBe Json.toJson(undertakingSubsidies)
         }
       }
@@ -252,7 +251,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
           contentAsJson(result) mustBe Json.toJson(undertakingSubsidies)
         }
       }
@@ -277,7 +276,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           val request = fakeJsonPost(routes.UndertakingController.retrieveSubsidies().url)
             .withBody("This is not valid JSON")
 
-          status(route(app, request).value) mustBe Status.BAD_REQUEST
+          status(route(app, request).value) mustBe BAD_REQUEST
         }
       }
 
@@ -294,7 +293,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
             .withJsonBody(Json.toJson(undertaking))
           val result = route(app, request).value
 
-          status(result) mustBe Status.OK
+          status(result) mustBe OK
         }
       }
     }
@@ -335,7 +334,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .expects(SubsidyUpdate(undertakingReference, NilSubmissionDate(date)), *, *)
       .returning(res)
 
-  private def returningFixedDate(fixedDate: LocalDate): Unit =
+  private def givenTimeProviderReturnsDate(fixedDate: LocalDate): Unit =
     (mockTimeProvider.today _).expects().returning(fixedDate)
 
   private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, UndertakingRetrieve]): Unit =
