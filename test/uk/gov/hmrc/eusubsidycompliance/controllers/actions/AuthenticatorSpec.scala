@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.tools.Stubs.stubMessagesControllerComponents
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
-class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport with DefaultAwaitTimeout
+class AuthenticatorSpec extends AnyWordSpec with Matchers with AuthTestSupport with DefaultAwaitTimeout
   with EitherValues with ScalaFutures {
 
   private val mcc = stubMessagesControllerComponents()
