@@ -16,20 +16,27 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 // Fake authenticator that allows every request.
-class FakeAuth extends Auth {
+class FakeAuthenticator extends Authenticator(
+  authConnector = new FakeAuthConnector(),
+  controllerComponents = Helpers.stubControllerComponents()) {
   override def authCommon[A](
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
-  override protected def controllerComponents: ControllerComponents = Helpers.stubControllerComponents()
-  // This isn't used in this implementation so can be left as unimplemented.
-  override def authConnector: AuthConnector = ???
+}
+
+// This isn't used in this implementation so can be left as unimplemented.
+class FakeAuthConnector extends AuthConnector {
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = ???
 }

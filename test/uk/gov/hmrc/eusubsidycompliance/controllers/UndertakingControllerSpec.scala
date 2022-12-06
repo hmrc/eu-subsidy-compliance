@@ -26,12 +26,12 @@ import play.api.libs.json.{Format, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.test.FakeAuth
+import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
@@ -319,7 +319,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     .overrides(
       bind[EisConnector].to(mockEisConnector),
       bind[TimeProvider].to(mockTimeProvider),
-      bind[Auth].to(new FakeAuth)
+      bind[Authenticator].to(new FakeAuthenticator)
     )
     .build()
 

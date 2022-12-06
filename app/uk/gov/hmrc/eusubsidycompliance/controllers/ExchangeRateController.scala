@@ -18,7 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -30,7 +30,7 @@ import scala.util.Try
 @Singleton
 class ExchangeRateController @Inject() (
   cc: ControllerComponents,
-  authenticator: Auth,
+  authenticator: Authenticator,
   service: ExchangeRateService
 )(implicit ec: ExecutionContext) extends BackendController(cc) {
 

@@ -38,7 +38,7 @@ class AuthenticatorSpecs extends AnyWordSpec with Matchers with AuthTestSupport 
 
   private val mcc = stubMessagesControllerComponents()
   private val request = FakeRequest()
-  private val authenticator = new AuthImpl(mockAuthConnector, mcc)
+  private val authenticator = new Authenticator(mockAuthConnector, mcc)
   private val requestWithAuthHeader = request.withHeaders(("Authorization", "XXXX"))
 
   // Simple case class to validate request body deserialization.

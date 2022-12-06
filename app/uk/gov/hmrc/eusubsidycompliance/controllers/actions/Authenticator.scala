@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 
-import com.google.inject.{ImplementedBy, Inject, Singleton}
+import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
@@ -28,10 +28,16 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[AuthImpl])
-trait Auth extends AuthorisedFunctions with Results with BaseController {
+@Singleton
+class Authenticator @Inject() (
+  val authConnector: AuthConnector,
+  val controllerComponents: ControllerComponents
+) extends AuthorisedFunctions with Results with BaseController {
 
   type AuthAction[A] = Request[A] => String => Future[Result]
+
+  private val EnrollmentKey = "HMRC-ESC-ORG"
+  private val EnrolmentIdentifier = "EORINumber"
 
   def authorised(action: AuthAction[AnyContent])(implicit ec: ExecutionContext): Action[AnyContent] =
     Action.async { implicit request =>
@@ -44,21 +50,9 @@ trait Auth extends AuthorisedFunctions with Results with BaseController {
     authCommon(action)
   }
 
-  def authCommon[A](
-    action: AuthAction[A]
-  )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result]
-}
-
-@Singleton
-class AuthImpl @Inject() (val authConnector: AuthConnector, val controllerComponents: ControllerComponents)
-    extends Auth {
-
-  private val EnrollmentKey = "HMRC-ESC-ORG"
-  private val EnrolmentIdentifier = "EORINumber"
-
   private val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
 
-  def authCommon[A](
+  protected def authCommon[A](
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] =
     request.headers

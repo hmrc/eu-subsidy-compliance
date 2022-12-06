@@ -20,7 +20,7 @@ import cats.data.EitherT
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext
 @Singleton()
 class UndertakingController @Inject() (
   cc: ControllerComponents,
-  authenticator: Auth,
+  authenticator: Authenticator,
   eis: EisConnector,
   timeProvider: TimeProvider
 )(implicit ec: ExecutionContext)

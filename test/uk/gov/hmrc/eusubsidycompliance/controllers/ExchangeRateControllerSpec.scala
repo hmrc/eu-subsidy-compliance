@@ -24,10 +24,10 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsJson, defaultAwaitTimeout, route, running, status, writeableOf_AnyContentAsEmpty}
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Auth
+import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.ExchangeRate
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
-import uk.gov.hmrc.eusubsidycompliance.test.FakeAuth
+import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.exchangeRate
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -89,7 +89,7 @@ class ExchangeRateControllerSpec extends PlaySpec with MockFactory with ScalaFut
     )
     .overrides(
       bind[ExchangeRateService].to(mockExchangeRateService),
-      bind[Auth].to(new FakeAuth)
+      bind[Authenticator].to(new FakeAuthenticator)
     )
     .build()
 
