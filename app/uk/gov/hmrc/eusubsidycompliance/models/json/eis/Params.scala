@@ -16,39 +16,16 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models.json.eis
 
-import java.time.LocalDateTime
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.json.digital.RichLocalDateTime
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
-import uk.gov.hmrc.eusubsidycompliance.models.types.EisStatus.EisStatus
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EisParamValue, EisStatusString}
+import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamValue
 
 case class Params(
   paramName: EisParamName,
   paramValue: EisParamValue
 )
 
-case object Params {
+object Params {
   implicit val paramsFormat: OFormat[Params] =
     Json.format[Params]
-}
-
-case class ResponseCommon(
-  status: EisStatus,
-  statusText: EisStatusString,
-  processingDate: LocalDateTime,
-  returnParameters: Option[List[Params]]
-)
-
-object ResponseCommon {
-
-  implicit val ldtwrites: Writes[LocalDateTime] = (o: LocalDateTime) => JsString(o.eisFormat)
-  implicit val writes: Writes[ResponseCommon] = (
-    (JsPath \ "status").write[EisStatus] and
-      (JsPath \ "statusText").write[EisStatusString] and
-      (JsPath \ "processingDate").write[LocalDateTime] and
-      (JsPath \ "returnParameters").writeNullable[List[Params]]
-  )(unlift(ResponseCommon.unapply))
-
 }

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import play.api.http.HeaderNames.ACCEPT
 import uk.gov.hmrc.eusubsidycompliance.models.ExchangeRate
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -48,7 +49,7 @@ class EuropaConnector @Inject() (
   def retrieveApplicableExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
     client.GET[ExchangeRate](
       url = s"$europaBasePath/$ResourcePath",
-      headers = Seq("Accept" -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),
+      headers = Seq(ACCEPT -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),
       queryParams = Seq(
         "startPeriod" -> yearMonthFormatter.format(date),
         "endPeriod" -> yearMonthFormatter.format(date),
