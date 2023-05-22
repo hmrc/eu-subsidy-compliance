@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EisSubsidyAmendmentType, SubsidyAmount, SubsidyRef, TraderRef}
+
+import java.time.LocalDate
 
 case class NonHmrcSubsidy(
   subsidyUsageTransactionId: Option[SubsidyRef],

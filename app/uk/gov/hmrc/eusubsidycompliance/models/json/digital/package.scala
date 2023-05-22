@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,10 @@ package object digital {
     }
 
   implicit val amendUndertakingMemberResponseReads: Reads[Unit] =
-    readResponseFor[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(Unit))
+    readResponseFor[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(()))
 
   implicit val amendSubsidyUpdateResponseReads: Reads[Unit] =
-    readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(Unit))
+    readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess((())))
 
   def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]): Reads[A] = new Reads[A] {
     override def reads(json: JsValue): JsResult[A] = {

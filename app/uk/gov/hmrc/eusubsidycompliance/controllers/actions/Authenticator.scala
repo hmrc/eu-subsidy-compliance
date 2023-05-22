@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class Authenticator @Inject() (
   val authConnector: AuthConnector,
   val controllerComponents: ControllerComponents
-) extends AuthorisedFunctions with Results with BaseController {
+) extends AuthorisedFunctions
+    with Results
+    with BaseController {
 
   type AuthAction[A] = Request[A] => String => Future[Result]
 

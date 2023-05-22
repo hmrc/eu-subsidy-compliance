@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 // Fake authenticator that allows every request.
-class FakeAuthenticator extends Authenticator(
-  authConnector = new FakeAuthConnector(),
-  controllerComponents = Helpers.stubControllerComponents()) {
+class FakeAuthenticator
+    extends Authenticator(
+      authConnector = new FakeAuthConnector(),
+      controllerComponents = Helpers.stubControllerComponents()
+    ) {
   override def authCommon[A](
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
@@ -38,5 +40,8 @@ class FakeAuthenticator extends Authenticator(
 
 // This isn't used in this implementation so can be left as unimplemented.
 class FakeAuthConnector extends AuthConnector {
-  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = ???
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[A] = ???
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import uk.gov.hmrc.play.http.ws.{WSProxy, WSProxyConfiguration}
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class ProxiedHttpClient @Inject()(
+class ProxiedHttpClient @Inject() (
   configuration: Configuration,
   httpAuditing: HttpAuditing,
   wsClient: WSClient,
   actorSystem: ActorSystem
-) extends DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem) with WSProxy {
+) extends DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem)
+    with WSProxy {
 
   override def wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration.buildWsProxyServer(configuration)
 

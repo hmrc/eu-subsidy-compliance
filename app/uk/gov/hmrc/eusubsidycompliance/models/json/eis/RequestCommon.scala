@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models.json.eis
 
-import java.util.UUID
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.receiptDate
 import uk.gov.hmrc.eusubsidycompliance.models.types.AcknowledgementRef
+
+import java.util.UUID
 
 final case class RequestCommon(
   originatingSystem: String = "MDTP",

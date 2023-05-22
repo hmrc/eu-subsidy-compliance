@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package uk.gov.hmrc.eusubsidycompliance.models
 
 import cats.implicits._
-import java.time.LocalDate
-
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 import uk.gov.hmrc.eusubsidycompliance.models.json._
+import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
+
+import java.time.LocalDate
 
 // assuming that we always want both subsidy types, and that any date range should apply to both
 case class SubsidyRetrieve(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,12 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EuropaConnectorSpec extends AnyWordSpecLike
-  with Matchers
-  with WiremockSupport
-  with ScalaFutures
-  with IntegrationPatience {
+class EuropaConnectorSpec
+    extends AnyWordSpecLike
+    with Matchers
+    with WiremockSupport
+    with ScalaFutures
+    with IntegrationPatience {
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
@@ -200,8 +201,8 @@ class EuropaConnectorSpec extends AnyWordSpecLike
       .configure(
         "microservice.services.europa.host" -> "localhost",
         "microservice.services.europa.port" -> server.port()
-      ).build()
-
+      )
+      .build()
 
   private def testWithRunningApp(f: EuropaConnector => Unit): Unit = {
     val app = configuredApplication
