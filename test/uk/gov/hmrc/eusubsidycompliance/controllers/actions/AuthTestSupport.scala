@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,9 @@ trait AuthTestSupport extends MockitoSugar {
 
   lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
-  def withAuthorizedUser(enrolments: Enrolments = Enrolments(Set.empty)): Unit = {
+  def withAuthorizedUser(enrolments: Enrolments = Enrolments(Set.empty)): Unit =
     when(mockAuthConnector.authorise(any(), argEq(allEnrolments))(any(), any()))
       .thenReturn(Future.successful(enrolments))
-  }
 
   def withUnauthorizedUser(error: Throwable): Unit =
     when(mockAuthConnector.authorise(any(), any())(any(), any())).thenReturn(Future.failed(error))

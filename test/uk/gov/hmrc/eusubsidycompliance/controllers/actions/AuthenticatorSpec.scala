@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,13 @@ import uk.gov.hmrc.play.bootstrap.tools.Stubs.stubMessagesControllerComponents
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
-class AuthenticatorSpec extends AnyWordSpec with Matchers with AuthTestSupport with DefaultAwaitTimeout
-  with EitherValues with ScalaFutures {
+class AuthenticatorSpec
+    extends AnyWordSpec
+    with Matchers
+    with AuthTestSupport
+    with DefaultAwaitTimeout
+    with EitherValues
+    with ScalaFutures {
 
   private val mcc = stubMessagesControllerComponents()
   private val request = FakeRequest()
@@ -46,7 +51,8 @@ class AuthenticatorSpec extends AnyWordSpec with Matchers with AuthTestSupport w
   private implicit val fooFormat: OFormat[Foo] = Json.format[Foo]
 
   private val requestWithAuthHeaderAndJsonBody =
-    requestWithAuthHeader.withJsonBody(Json.toJson(Foo("Bar")))
+    requestWithAuthHeader
+      .withJsonBody(Json.toJson(Foo("Bar")))
       .withHeaders("Content-type" -> "application/json")
       .withMethod(POST)
 
@@ -54,10 +60,11 @@ class AuthenticatorSpec extends AnyWordSpec with Matchers with AuthTestSupport w
 
   private val actionResponse = "Hello world"
 
-  private def handleRequestWithNoBody = authenticator.authorised { _ => _ => Future.successful(Ok(actionResponse)) }
+  private def handleRequestWithNoBody = authenticator.authorised(_ => _ => Future.successful(Ok(actionResponse)))
 
-  private def handleRequestWithJsonBody = authenticator.
-    authorisedWithJson(mcc.parsers.json) { _ => _ => Future.successful(Ok(actionResponse)) }
+  private def handleRequestWithJsonBody = authenticator.authorisedWithJson(mcc.parsers.json) { _ => _ =>
+    Future.successful(Ok(actionResponse))
+  }
 
   private def newEnrolment(identifierName: String, identifierValue: String) =
     Enrolment("HMRC-ESC-ORG").withIdentifier(identifierName, identifierValue)
@@ -79,10 +86,9 @@ class AuthenticatorSpec extends AnyWordSpec with Matchers with AuthTestSupport w
       val app = new GuiceApplicationBuilder()
         .configure(
           "metrics.jvm" -> false,
-          "microservice.metrics.graphite.enabled" -> false,
+          "microservice.metrics.graphite.enabled" -> false
         )
-        .overrides(
-          bind[AuthConnector].to(mockAuthConnector))
+        .overrides(bind[AuthConnector].to(mockAuthConnector))
         .build()
 
       running(app) {

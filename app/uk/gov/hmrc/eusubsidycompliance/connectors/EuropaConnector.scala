@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * A simple connector to fetch GBP to EUR spot rates from the europa ECB API.
- */
+  * A simple connector to fetch GBP to EUR spot rates from the europa ECB API.
+  */
 @Singleton
 class EuropaConnector @Inject() (
   val client: ProxiedHttpClient,
@@ -46,7 +46,9 @@ class EuropaConnector @Inject() (
   // We request the last two rates for the month of the specified date. The penultimate rate will be the rate that
   // applies which corresponds to the first of the two rates returned.
   // The europa response parsing takes care of selecting this rate. See ExchangeRate companion object.
-  def retrieveApplicableExchangeRate(date: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
+  def retrieveApplicableExchangeRate(
+    date: LocalDate
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExchangeRate] =
     client.GET[ExchangeRate](
       url = s"$europaBasePath/$ResourcePath",
       headers = Seq(ACCEPT -> "application/vnd.sdmx.data+json;version=1.0.0-wd"),

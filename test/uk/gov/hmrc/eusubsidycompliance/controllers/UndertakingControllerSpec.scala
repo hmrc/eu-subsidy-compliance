@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,7 +335,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .returning(res)
 
   private def givenTimeProviderReturnsDate(fixedDate: LocalDate): Unit =
-    (mockTimeProvider.today _).expects().returning(fixedDate)
+    (() => mockTimeProvider.today).expects().returning(fixedDate)
 
   private def givenRetrieveRetrieveUndertaking(res: Either[ConnectorError, UndertakingRetrieve]): Unit =
     (mockEisConnector

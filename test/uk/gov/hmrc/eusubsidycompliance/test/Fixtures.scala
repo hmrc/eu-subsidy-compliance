@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ExchangeRate, HmrcSubsidy, NonHmrcSubsidy, UndertakingCreate, UndertakingRetrieve, UndertakingSubsidies}
+import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 
 import java.time.{Instant, ZoneId}
@@ -78,7 +78,7 @@ object Fixtures {
     traderReference = Some(traderRef),
     nonHMRCSubsidyAmtEUR = subsidyAmount,
     businessEntityIdentifier = Some(eori),
-    amendmentType = None,
+    amendmentType = None
   )
 
   val undertakingSubsidies = UndertakingSubsidies(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,8 @@ class ExchangeRateController @Inject() (
   cc: ControllerComponents,
   authenticator: Authenticator,
   service: ExchangeRateService
-)(implicit ec: ExecutionContext) extends BackendController(cc) {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
   def getExchangeRate(dateString: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
     Try(LocalDate.parse(dateString))

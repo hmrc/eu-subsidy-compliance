@@ -4,7 +4,7 @@ import scoverage.ScoverageKeys
 
 val appName = "eu-subsidy-compliance"
 
-val silencerVersion = "1.7.8"
+val silencerVersion = "1.7.12"
 
 PlayKeys.playDefaultPort := 9094
 
@@ -12,7 +12,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     majorVersion := 0,
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.13.8",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // Use the silencer plugin to suppress warnings
     scalacOptions += "-P:silencer:pathFilters=routes",
@@ -31,7 +31,7 @@ lazy val microservice = Project(appName, file("."))
       ".*ControllerConfiguration;.*testonly.*",
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true,
+    ScoverageKeys.coverageHighlighting := true
   )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
@@ -42,3 +42,24 @@ lazy val testSettings: Seq[Def.Setting[_]] = Seq(
     "-Dlogger.resource=logback-test.xml"
   )
 )
+
+//Check both integration and normal scopes so formatAndTest can be applied when needed more easily.
+Test / test := (Test / test)
+  .dependsOn(scalafmtCheckAll)
+  .value
+
+IntegrationTest / test := (IntegrationTest / test)
+  .dependsOn(scalafmtCheckAll)
+  .value
+
+//not to be used in ci, intellij has got a bit bumpy in the format on save on optimize imports across the project
+//Look at readme.md for setting up auto-format on save
+val formatAndTest =
+  taskKey[Unit]("format all code then run tests, do not use on CI as any changes will not be committed")
+
+formatAndTest :=
+  scalafmtAll
+    .dependsOn(Test / test)
+    .dependsOn(IntegrationTest / test)
+    .dependsOn(scalafmtAll)
+    .value

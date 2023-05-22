@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import play.api.libs.json.{JsSuccess, JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 
 case class ExchangeRate(from: String, to: String, rate: BigDecimal)
 
@@ -49,7 +49,7 @@ object ExchangeRate {
     //
     // Note - we request the last 2 rate observations for the month and return the penultimate value for that month
     //        in order to align with the Europa exchange rate converter (see https://ec.europa.eu/info/funding-tenders/procedures-guidelines-tenders/information-contractors-and-beneficiaries/exchange-rate-inforeuro_en)
-    val rate = ((json \ "dataSets") (0) \ "series" \ "0:0:0:0:0" \ "observations" \ "0") (0).as[BigDecimal]
+    val rate = ((json \ "dataSets")(0) \ "series" \ "0:0:0:0:0" \ "observations" \ "0")(0).as[BigDecimal]
 
     JsSuccess(ExchangeRate(rate))
   }
@@ -57,4 +57,3 @@ object ExchangeRate {
   implicit val exchangeRateWrites: Writes[ExchangeRate] = Json.writes[ExchangeRate]
 
 }
-
