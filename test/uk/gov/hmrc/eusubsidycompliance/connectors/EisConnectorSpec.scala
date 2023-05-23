@@ -225,7 +225,7 @@ class EisConnectorSpec
         // When no date is specified the connector falls back to a range of 2000-01-01 to LocalDate.now()
         val requestBody = retrieveSubsidiesRequestWithDates(LocalDate.of(2000, 1, 1), LocalDate.now())
 
-        givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
+        givenEisReturns(RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
         testWithRunningApp { underTest =>
           underTest.retrieveSubsidies(undertakingReference, None).futureValue mustBe undertakingSubsidies
@@ -238,7 +238,7 @@ class EisConnectorSpec
 
         val requestBody = retrieveSubsidiesRequestWithDates(date, date.plusDays(7))
 
-        givenEisReturns(200, RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
+        givenEisReturns(RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
         testWithRunningApp { underTest =>
           underTest
@@ -289,7 +289,7 @@ class EisConnectorSpec
               BusinessEntity(eori, leadEORI = false),
               AmendmentType.add
             )
-            .futureValue mustBe (())
+            .futureValue mustBe ()
         }
 
       }
@@ -345,7 +345,7 @@ class EisConnectorSpec
               undertakingReference,
               BusinessEntity(eori, leadEORI = false)
             )
-            .futureValue mustBe (())
+            .futureValue mustBe ()
         }
 
       }
@@ -399,7 +399,7 @@ class EisConnectorSpec
             .upsertSubsidyUsage(
               SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy)))
             )
-            .futureValue mustBe (())
+            .futureValue mustBe ()
         }
 
       }
@@ -482,7 +482,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.deleteMember(undertakingReference, businessEntity).futureValue mustBe (())
+          underTest.deleteMember(undertakingReference, businessEntity).futureValue mustBe ()
         }
       }
     }
@@ -511,7 +511,7 @@ class EisConnectorSpec
         testWithRunningApp { underTest =>
           underTest
             .upsertSubsidyUsage(SubsidyUpdate(undertakingReference, UndertakingSubsidyAmendment(List(nonHmrcSubsidy))))
-            .futureValue mustBe (())
+            .futureValue mustBe ()
         }
       }
     }
@@ -537,13 +537,13 @@ class EisConnectorSpec
         )
     )
 
-  private def givenEisReturns(status: Int, url: String, requestBody: String, responseBody: String): Unit =
+  private def givenEisReturns(url: String, requestBody: String, responseBody: String): Unit =
     server.stubFor(
       post(urlEqualTo(url))
         .withRequestBody(equalToJson(requestBody))
         .willReturn(
           aResponse()
-            .withStatus(status)
+            .withStatus(200)
             .withBody(responseBody)
         )
     )

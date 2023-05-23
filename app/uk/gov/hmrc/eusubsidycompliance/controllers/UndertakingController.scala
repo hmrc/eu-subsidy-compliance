@@ -57,7 +57,7 @@ class UndertakingController @Inject() (
     }
   }
 
-  def updateUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
+  def updateUndertaking(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
       eis.updateUndertaking(undertaking, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
     }
