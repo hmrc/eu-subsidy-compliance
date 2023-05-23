@@ -74,22 +74,20 @@ package object digital {
     readResponseFor[Unit]("amendUndertakingMemberDataResponse")(_ => JsSuccess(()))
 
   implicit val amendSubsidyUpdateResponseReads: Reads[Unit] =
-    readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess((())))
+    readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(()))
 
-  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]): Reads[A] = new Reads[A] {
-    override def reads(json: JsValue): JsResult[A] = {
-      val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
-      (responseCommon \ "status").as[String] match {
-        case OK => extractValue(json)
-        case NOT_OK =>
-          throw new EisBadResponseException(
-            status = NOT_OK,
-            processingDate = (responseCommon \ "processingDate").as[ZonedDateTime],
-            statusText = (responseCommon \ "statusText").asOpt[String],
-            returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
-          )
-        case _ => JsError("unable to parse status from response")
-      }
+  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]): Reads[A] = (json: JsValue) => {
+    val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
+    (responseCommon \ "status").as[String] match {
+      case OK => extractValue(json)
+      case NOT_OK =>
+        throw new EisBadResponseException(
+          status = NOT_OK,
+          processingDate = (responseCommon \ "processingDate").as[ZonedDateTime],
+          statusText = (responseCommon \ "statusText").asOpt[String],
+          returnParameters = (responseCommon \ "returnParameters").asOpt[List[Params]]
+        )
+      case _ => JsError("unable to parse status from response")
     }
   }
 

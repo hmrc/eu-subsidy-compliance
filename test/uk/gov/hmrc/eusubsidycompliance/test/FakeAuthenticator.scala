@@ -43,5 +43,7 @@ class FakeAuthConnector extends AuthConnector {
   override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[A] = ???
+  ): Future[A] = throw new NotImplementedError(
+    "FakeAuthConnector.authorise is not implemented as this should not be called in tests"
+  )
 }

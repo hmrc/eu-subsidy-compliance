@@ -16,24 +16,25 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import uk.gov.hmrc.eusubsidycompliance.models._
+import shapeless.tag.@@
+import uk.gov.hmrc.eusubsidycompliance.models.{types, _}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 
-import java.time.{Instant, ZoneId}
+import java.time.{Instant, LocalDate, ZoneId}
 
 object Fixtures {
 
-  val eori = EORI("GB123456789012")
-  val fixedInstant = Instant.parse("2022-01-01T12:00:00Z")
+  val eori: String @@ types.EORI.Tag = EORI("GB123456789012")
+  val fixedInstant: Instant = Instant.parse("2022-01-01T12:00:00Z")
 
-  val undertakingReference = UndertakingRef("SomeUndertakingReference")
-  val undertakingName = UndertakingName("SomeUndertakingName")
-  val sector = Sector.other
-  val industrySectorLimit = IndustrySectorLimit(BigDecimal(200000.00))
-  val date = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
-  val subsidyAmount = SubsidyAmount(BigDecimal(123.45))
+  val undertakingReference: String @@ types.UndertakingRef.Tag = UndertakingRef("SomeUndertakingReference")
+  val undertakingName: String @@ types.UndertakingName.Tag = UndertakingName("SomeUndertakingName")
+  val sector: types.Sector.Value = Sector.other
+  val industrySectorLimit: BigDecimal @@ types.IndustrySectorLimit.Tag = IndustrySectorLimit(BigDecimal(200000.00))
+  val date: LocalDate = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
+  val subsidyAmount: BigDecimal @@ types.SubsidyAmount.Tag = SubsidyAmount(BigDecimal(123.45))
 
-  val undertakingCreate = UndertakingCreate(
+  val undertakingCreate: UndertakingCreate = UndertakingCreate(
     undertakingName,
     sector,
     Some(industrySectorLimit),
@@ -41,7 +42,7 @@ object Fixtures {
     List(BusinessEntity(eori, leadEORI = true))
   )
 
-  val undertaking = UndertakingRetrieve(
+  val undertaking: UndertakingRetrieve = UndertakingRetrieve(
     Some(undertakingReference),
     undertakingName,
     sector,
@@ -50,15 +51,15 @@ object Fixtures {
     List(BusinessEntity(eori, leadEORI = true))
   )
 
-  val businessEntity = BusinessEntity(eori, leadEORI = true)
+  val businessEntity: BusinessEntity = BusinessEntity(eori, leadEORI = true)
 
-  val subsidyRef = SubsidyRef("ABC12345")
-  val declarationId = DeclarationID("12345")
-  val traderRef = TraderRef("SomeTraderReference")
-  val taxType = TaxType("1")
+  val subsidyRef: String @@ types.SubsidyRef.Tag = SubsidyRef("ABC12345")
+  val declarationId: String @@ types.DeclarationID.Tag = DeclarationID("12345")
+  val traderRef: String @@ types.TraderRef.Tag = TraderRef("SomeTraderReference")
+  val taxType: String @@ types.TaxType.Tag = TaxType("1")
   val publicAuthority = "SomePublicAuthority"
 
-  val hmrcSubsidy = HmrcSubsidy(
+  val hmrcSubsidy: HmrcSubsidy = HmrcSubsidy(
     declarationID = declarationId,
     issueDate = Some(date),
     acceptanceDate = date,
@@ -70,7 +71,7 @@ object Fixtures {
     tradersOwnRefUCR = Some(traderRef)
   )
 
-  val nonHmrcSubsidy = NonHmrcSubsidy(
+  val nonHmrcSubsidy: NonHmrcSubsidy = NonHmrcSubsidy(
     subsidyUsageTransactionId = Some(subsidyRef),
     allocationDate = date,
     submissionDate = date,
@@ -81,7 +82,7 @@ object Fixtures {
     amendmentType = None
   )
 
-  val undertakingSubsidies = UndertakingSubsidies(
+  val undertakingSubsidies: UndertakingSubsidies = UndertakingSubsidies(
     undertakingIdentifier = undertakingReference,
     nonHMRCSubsidyTotalEUR = subsidyAmount,
     nonHMRCSubsidyTotalGBP = subsidyAmount,
@@ -91,6 +92,6 @@ object Fixtures {
     hmrcSubsidyUsage = List(hmrcSubsidy)
   )
 
-  val exchangeRate = ExchangeRate(BigDecimal(0.80))
+  val exchangeRate: ExchangeRate = ExchangeRate(BigDecimal(0.80))
 
 }
