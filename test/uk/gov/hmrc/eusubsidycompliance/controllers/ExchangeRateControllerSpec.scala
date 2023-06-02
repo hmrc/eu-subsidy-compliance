@@ -27,6 +27,7 @@ import play.api.test.Helpers.{GET, contentAsJson, defaultAwaitTimeout, route, ru
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.ExchangeRate
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
+import uk.gov.hmrc.eusubsidycompliance.shared.PlayBaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.exchangeRate
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,7 +36,7 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ExchangeRateControllerSpec extends PlaySpec with MockFactory with ScalaFutures with IntegrationPatience {
+class ExchangeRateControllerSpec extends PlayBaseSpec with MockFactory with ScalaFutures with IntegrationPatience {
 
   private val mockExchangeRateService = mock[ExchangeRateService]
 

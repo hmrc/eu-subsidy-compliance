@@ -19,19 +19,14 @@ package uk.gov.hmrc.eusubsidycompliance.util
 import com.google.inject.{ImplementedBy, Singleton}
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.util.UUID
 
 @ImplementedBy(classOf[SystemTimeProvider])
-trait TimeProvider {
-  def today: LocalDate
-  def today(z: ZoneId): LocalDate
-  def now: LocalDateTime
-  def nowAsInstant: Instant
+trait UuidProvider {
+  def getRandom: UUID
 }
 
 @Singleton
-class SystemTimeProvider extends TimeProvider {
-  override def today: LocalDate = LocalDate.now()
-  override def today(z: ZoneId): LocalDate = LocalDate.now(z)
-  override def now: LocalDateTime = LocalDateTime.now()
-  override def nowAsInstant: Instant = Instant.now()
+class SystemUuidProvider extends UuidProvider {
+  override def getRandom: UUID = UUID.randomUUID()
 }

@@ -38,8 +38,10 @@ trait DesHelpers extends TracedLogging {
     rds: HttpReads[O],
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[O] =
-    http.POST[I, O](url, body, headers(eisTokenKey))(wts, rds, addHeaders, ec)
+  ): Future[O] = {
+    val headers2 = headers(eisTokenKey)
+    http.POST[I, O](url, body, headers2)(wts, rds, addHeaders, ec)
+  }
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)

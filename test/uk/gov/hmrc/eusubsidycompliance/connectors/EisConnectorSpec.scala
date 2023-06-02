@@ -27,6 +27,7 @@ import play.api.test.Helpers.running
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
+import uk.gov.hmrc.eusubsidycompliance.shared.BaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
@@ -34,12 +35,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EisConnectorSpec
-    extends AnyWordSpecLike
-    with Matchers
-    with WiremockSupport
-    with ScalaFutures
-    with IntegrationPatience {
+class EisConnectorSpec extends BaseSpec with WiremockSupport {
 
   private val AmendSubsidyPath = "/scp/amendundertakingsubsidyusage/v1"
   private val AmendUndertakingMemberPath = "/scp/amendundertakingmemberdata/v1"

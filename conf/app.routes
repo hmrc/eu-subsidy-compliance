@@ -15,3 +15,5 @@ POST       /undertaking/disable                             uk.gov.hmrc.eusubsid
 POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
 
 GET        /exchangerate/:date                              uk.gov.hmrc.eusubsidycompliance.controllers.ExchangeRateController.getExchangeRate(date)
+
+POST       /email/start-verification                        uk.gov.hmrc.eusubsidycompliance.controllers.EmailController.startVerification

@@ -30,6 +30,7 @@ import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.shared.PlayBaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -38,7 +39,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
-class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutures with IntegrationPatience {
+class UndertakingControllerSpec extends PlayBaseSpec with MockFactory {
 
   private val mockEisConnector = mock[EisConnector]
   private val mockTimeProvider = mock[TimeProvider]
