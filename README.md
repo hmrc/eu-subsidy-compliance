@@ -20,7 +20,7 @@ This service uses `mongodb` to persist user answers about Undertaking, Business 
 This service is written in [Scala](http://www.scala-lang.org/) using the
 [Play framework](http://playframework.com/), so needs at least a JRE to run.
 
-JRE/JDK 1.8 is recommended.
+JRE/JDK 11 is recommended.
 
 The service also depends on `mongodb`
 
@@ -30,7 +30,7 @@ All dependant services can run via
 ```
 sm --start ESC_ALL
 ```
-By default, this service runs on port `9094`. To bring up only this service , use
+By default, this service runs on port `9094`. To bring up only this service, use
 ```
 sbt run
 ```
