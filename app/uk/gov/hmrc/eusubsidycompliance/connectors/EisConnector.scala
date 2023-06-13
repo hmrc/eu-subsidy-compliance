@@ -55,6 +55,11 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp04"
     val retrieveUndertakingRequest = RetrieveUndertakingAPIRequest(eori)
+
+    val jsValue = RetrieveUndertakingAPIRequest.writes.writes(retrieveUndertakingRequest)
+
+    logger.info(s"eori: $eori : ${jsValue.toString()}")
+
     desPost[RetrieveUndertakingAPIRequest, UndertakingRetrieve](
       s"$eisURL/$retrieveUndertakingPath",
       retrieveUndertakingRequest,
