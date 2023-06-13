@@ -41,7 +41,7 @@ object MessageTypes {
   implicit val writes: Writes[MessageTypes] = Json.writes
 }
 
-case class RequestParameters(paramName: String = "REGIME", paramValue: String = "ES")
+case class RequestParameters(paramName: String = "REGIME", paramValue: String = "SC")
 
 object RequestParameters {
   implicit val writes: Writes[RequestParameters] = Json.writes
