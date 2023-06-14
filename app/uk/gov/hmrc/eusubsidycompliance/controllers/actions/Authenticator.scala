@@ -46,14 +46,6 @@ class Authenticator @Inject() (
       authCommon(action)
     }
 
-  def authorisedWithJson(json: BodyParser[JsValue])(
-    action: AuthAction[JsValue]
-  )(implicit executionContext: ExecutionContext): Action[JsValue] = Action.async(json) { implicit request =>
-    authCommon(action)
-  }
-
-  private val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
-
   protected def authCommon[A](
     action: AuthAction[A]
   )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] =
@@ -61,8 +53,13 @@ class Authenticator @Inject() (
       .get(AUTHORIZATION)
       .fold(Future.successful(Forbidden("Authorization header missing")))(_ => checkEnrolment(action))
 
-  private def checkEnrolment[A](action: AuthAction[A])(implicit request: Request[A], ec: ExecutionContext) = {
+  private def checkEnrolment[A](
+    action: AuthAction[A]
+  )(implicit request: Request[A], ec: ExecutionContext): Future[Result] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+
+    val retrievals: Retrieval[Enrolments] = Retrievals.allEnrolments
+
     authorised(Enrolment(EnrollmentKey))
       .retrieve(retrievals) {
         case enrolments: Enrolments =>
@@ -81,4 +78,9 @@ class Authenticator @Inject() (
       }
   }
 
+  def authorisedWithJson(json: BodyParser[JsValue])(
+    action: AuthAction[JsValue]
+  )(implicit executionContext: ExecutionContext): Action[JsValue] = Action.async(json) { implicit request =>
+    authCommon(action)
+  }
 }
