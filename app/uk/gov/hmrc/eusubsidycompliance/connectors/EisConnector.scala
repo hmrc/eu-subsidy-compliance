@@ -18,6 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 
 import play.api.Logger
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
+import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
@@ -36,9 +37,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class EisConnector @Inject() (
   val http: HttpClient,
   val servicesConfig: ServicesConfig
-) extends DesHelpers {
+) extends DesHelpers
+    with TracedLogging {
 
-  private val logger: Logger = Logger(this.getClass)
   private lazy val eisURL: String = servicesConfig.baseUrl("eis")
 
   private val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
@@ -68,11 +69,11 @@ class EisConnector @Inject() (
       .map(Right(_))
       .recover {
         case e: EisBadResponseException if e.code == EisParamValue("107") =>
-          logger.info(s"No undertaking found for $eori")
+          logger.error(s"No undertaking found for $eori", e)
           Left(ConnectorError(NOT_FOUND, s"Undertaking reference EORI:$eori in the API not subscribed in ETMP."))
 
         case e: EisBadResponseException if e.code == EisParamValue("055") =>
-          logger.info(s" Eori : $eori does not exist in ETMP")
+          logger.error(s" Eori : $eori does not exist in ETMP", e)
           Left(ConnectorError(NOT_ACCEPTABLE, s"Eori : $eori does not exist in ETMP"))
       }
   }
@@ -80,8 +81,13 @@ class EisConnector @Inject() (
   def createUndertaking(
     undertaking: UndertakingCreate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
-
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.createUndertakingResponseReads
+
+    logger.info(
+      s"attempting createUndertaking for NAME:${undertaking.name}, business EORIs:${undertaking.undertakingBusinessEntity
+        .map(_.businessEntityIdentifier)
+        .mkString(", ")}"
+    )
 
     val eisTokenKey = "eis.token.scp02"
     desPost[CreateUndertakingApiRequest, UndertakingRef](
@@ -116,7 +122,7 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp05"
 
-    val result = desPost[UndertakingBusinessEntityUpdate, Unit](
+    val eventualUnit = desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingIdentifier = undertakingRef,
@@ -129,19 +135,26 @@ class EisConnector @Inject() (
       addHeaders,
       implicitly
     )
-    result
+
+    eventualUnit.failed.foreach(error =>
+      logger.error(
+        s"failed adding member undertakingRef:$undertakingRef AmendmentType:$amendmentType $businessEntity",
+        error
+      )
+    )
+
+    eventualUnit
   }
 
   def deleteMember(
     undertakingRef: UndertakingRef,
     businessEntity: BusinessEntity
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendUndertakingMemberResponseReads
 
     val eisTokenKey = "eis.token.scp05"
 
-    desPost[UndertakingBusinessEntityUpdate, Unit](
+    val eventualUnit = desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
@@ -155,6 +168,15 @@ class EisConnector @Inject() (
       addHeaders,
       implicitly
     )
+
+    eventualUnit.failed.foreach(error =>
+      logger.error(
+        s"failed deleteMember undertakingRef:$undertakingRef BusinessEntity:$businessEntity",
+        error
+      )
+    )
+
+    eventualUnit
   }
 
   def upsertSubsidyUsage(
@@ -165,11 +187,20 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp06"
 
-    desPost[SubsidyUpdate, Unit](
+    val eventualUnit = desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate,
       eisTokenKey
     )(implicitly, readFromJson(amendSubsidyUpdateResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
+
+    eventualUnit.failed.foreach(error =>
+      logger.error(
+        s"failed upsertSubsidyUsage SubsidyUpdate:$subsidyUpdate",
+        error
+      )
+    )
+
+    eventualUnit
   }
 
   def retrieveSubsidies(
@@ -183,11 +214,20 @@ class EisConnector @Inject() (
 
     val defaultDateRange = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
 
-    desPost[SubsidyRetrieve, UndertakingSubsidies](
+    val eventualUndertakingSubsidies = desPost[SubsidyRetrieve, UndertakingSubsidies](
       s"$eisURL/$retrieveSubsidyPath",
       SubsidyRetrieve(ref, dateRange.orElse(defaultDateRange)),
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
+
+    eventualUndertakingSubsidies.failed.foreach(error =>
+      logger.error(
+        s"failed retrieveSubsidies UndertakingRef:$ref dateRange:$dateRange",
+        error
+      )
+    )
+
+    eventualUndertakingSubsidies
   }
 
 }

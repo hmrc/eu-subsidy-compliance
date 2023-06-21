@@ -19,6 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.controllers
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
+import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -33,14 +34,24 @@ class ExchangeRateController @Inject() (
   authenticator: Authenticator,
   service: ExchangeRateService
 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+    extends BackendController(cc)
+    with TracedLogging {
 
   def getExchangeRate(dateString: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    Try(LocalDate.parse(dateString))
+    val eventualResult = Try(LocalDate.parse(dateString))
       .fold(
         _ => Future.successful(BadRequest("Invalid date string")),
         date => service.getExchangeRate(date).map(r => Ok(Json.toJson(r)))
       )
+
+    eventualResult.foreach { _ =>
+      logger.info(s"successfully getExchangeRate with dateString $dateString")
+    }
+    eventualResult.failed.foreach { e =>
+      logger.error(s"failed getExchangeRate with dateString $dateString", e)
+    }
+
+    eventualResult
   }
 
 }
