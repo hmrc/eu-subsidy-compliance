@@ -18,70 +18,106 @@ package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import cats.data.EitherT
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
-import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
+import uk.gov.hmrc.eusubsidycompliance.models.{types, _}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class UndertakingController @Inject() (
   cc: ControllerComponents,
   authenticator: Authenticator,
-  eis: EisConnector,
+  eisConnector: EisConnector,
   timeProvider: TimeProvider
 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+    extends BackendController(cc)
+    with TracedLogging {
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    EitherT(eis.retrieveUndertaking(EORI(eori)))
+    EitherT(eisConnector.retrieveUndertaking(EORI(eori)))
       .map(u => Ok(Json.toJson(u)))
       .recover {
-        case ConnectorError(NOT_FOUND, _) => NotFound
-        case ConnectorError(NOT_ACCEPTABLE, _) => NotAcceptable
+        case ConnectorError(NOT_FOUND, _) =>
+          logger.error(s"Undertaking not found for EORI $eori")
+          NotFound
+        case ConnectorError(NOT_ACCEPTABLE, error: String) =>
+          logger.error(s"Undertaking not found for EORI $eori - $error")
+          NotAcceptable
       }
       .getOrElse(InternalServerError)
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[UndertakingCreate] { undertaking: UndertakingCreate =>
-      for {
-        ref <- eis.createUndertaking(undertaking)
-        _ <- eis.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
+      val eventualResult = for {
+        ref <- eisConnector.createUndertaking(undertaking)
+        _ <- eisConnector.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
       } yield Ok(Json.toJson(ref))
+
+      eventualResult.foreach { _ =>
+        logger.info(s"successfully created undertaking $undertaking")
+      }
+      eventualResult.failed.foreach { e =>
+        logger.error(s"failed created undertaking $undertaking", e)
+      }
+
+      eventualResult
     }
   }
 
   def updateUndertaking(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
-      eis.updateUndertaking(undertaking, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
+    withJsonBody[UndertakingRetrieve] { undertakingRetrieve: UndertakingRetrieve =>
+      val eventualResult =
+        eisConnector.updateUndertaking(undertakingRetrieve, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
+
+      eventualResult.foreach { _ =>
+        logger.info(s"successfully updateUndertaking undertaking $undertakingRetrieve")
+      }
+      eventualResult.failed.foreach { e =>
+        logger.error(s"failed updateUndertaking undertaking $undertakingRetrieve", e)
+      }
+
+      eventualResult
     }
   }
 
   def disableUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
-      eis.updateUndertaking(undertaking, EisAmendmentType.D).map(ref => Ok(Json.toJson(ref)))
+      eisConnector.updateUndertaking(undertaking, EisAmendmentType.D).map(ref => Ok(Json.toJson(ref)))
     }
   }
 
   def addMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
       withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-        for {
+        val eventualResult = for {
           amendmentType <- getAmendmentTypeForBusinessEntity(businessEntity)
           ref = UndertakingRef(undertakingRef)
-          _ <- eis.addMember(ref, businessEntity, amendmentType)
+          _ <- eisConnector.addMember(ref, businessEntity, amendmentType)
         } yield Ok(Json.toJson(ref))
+
+        eventualResult.foreach { _ =>
+          logger.info(s"successfully addMember undertaking $undertakingRef BusinessEntity:$businessEntity")
+        }
+        eventualResult.failed.foreach { e =>
+          logger.error(s"failed updateUndertaking undertaking $undertakingRef  BusinessEntity:$businessEntity", e)
+        }
+
+        eventualResult
       }
   }
 
-  private def getAmendmentTypeForBusinessEntity(be: BusinessEntity)(implicit r: Request[JsValue]) =
-    eis.retrieveUndertaking(EORI(be.businessEntityIdentifier)) map {
+  private def getAmendmentTypeForBusinessEntity(
+    be: BusinessEntity
+  )(implicit r: Request[JsValue]): Future[types.AmendmentType.Value] =
+    eisConnector.retrieveUndertaking(EORI(be.businessEntityIdentifier)) map {
       case Left(_) => AmendmentType.add
       case Right(_) => AmendmentType.amend
     }
@@ -89,25 +125,53 @@ class UndertakingController @Inject() (
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
       withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
-        eis.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
+        val eventualResult = eisConnector.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
           Ok(Json.toJson(UndertakingRef(undertakingRef)))
         }
+
+        eventualResult.foreach { _ =>
+          logger.info(s"successfully deleteMember undertaking $undertakingRef BusinessEntity:$businessEntity")
+        }
+        eventualResult.failed.foreach { e =>
+          logger.error(s"failed deleteMember undertaking $undertakingRef  BusinessEntity:$businessEntity", e)
+        }
+
+        eventualResult
       }
   }
 
   def updateSubsidy(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
-      eis.upsertSubsidyUsage(update).map { _ =>
+      val eventualResult = eisConnector.upsertSubsidyUsage(update).map { _ =>
         Ok(Json.toJson(update.undertakingIdentifier))
       }
+
+      eventualResult.foreach { _ =>
+        logger.info(s"successfully updateSubsidy SubsidyUpdate $update")
+      }
+      eventualResult.failed.foreach { e =>
+        logger.error(s"failed updateSubsidy SubsidyUpdate $update", e)
+      }
+
+      eventualResult
     }
   }
 
   def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[SubsidyRetrieve] { retrieve: SubsidyRetrieve =>
-      eis.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map { e =>
-        Ok(Json.toJson(e))
+      val eventualResult =
+        eisConnector.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map { e =>
+          Ok(Json.toJson(e))
+        }
+
+      eventualResult.foreach { _ =>
+        logger.info(s"successfully retrieveSubsidies SubsidyRetrieve $retrieve")
       }
+      eventualResult.failed.foreach { e =>
+        logger.error(s"failed retrieveSubsidies SubsidyRetrieve $retrieve", e)
+      }
+
+      eventualResult
     }
   }
 
