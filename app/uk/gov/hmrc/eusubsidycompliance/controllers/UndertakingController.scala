@@ -48,7 +48,7 @@ class UndertakingController @Inject() (
           logger.error(s"Undertaking not found for EORI $eori")
           NotFound
         case ConnectorError(NOT_ACCEPTABLE, error: String) =>
-          logger.error(s"Undertaking not found for EORI $eori - $error")
+          logger.error(s"Undertaking NOT_ACCEPTABLE for EORI $eori - $error")
           NotAcceptable
       }
       .getOrElse(InternalServerError)
