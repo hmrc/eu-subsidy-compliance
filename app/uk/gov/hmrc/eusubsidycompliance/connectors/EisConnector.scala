@@ -69,7 +69,7 @@ class EisConnector @Inject() (
       .recover {
         case e: EisBadResponseException if e.code == EisParamValue("107") =>
           logger.info(s"No undertaking found for $eori")
-          Left(ConnectorError(NOT_FOUND, s"Undertaking reference in the API not subscribed in ETMP."))
+          Left(ConnectorError(NOT_FOUND, s"Undertaking reference EORI:$eori in the API not subscribed in ETMP."))
 
         case e: EisBadResponseException if e.code == EisParamValue("055") =>
           logger.info(s" Eori : $eori does not exist in ETMP")
