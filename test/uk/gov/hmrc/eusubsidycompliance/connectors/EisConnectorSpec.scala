@@ -106,7 +106,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Left(
-            ConnectorError(404, "Undertaking reference in the API not subscribed in ETMP.")
+            ConnectorError(404, "Undertaking reference EORI:GB123456789012 in the API not subscribed in ETMP.")
           )
         }
       }
