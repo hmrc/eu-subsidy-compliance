@@ -106,7 +106,10 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Left(
-            ConnectorError(404, "Undertaking reference EORI:GB123456789012 in the API not subscribed in ETMP.")
+            ConnectorError(
+              404,
+              "retrieveUndertaking NOT_FOUND - No undertaking found for GB123456789012 (EIS error code 107)"
+            )
           )
         }
       }
@@ -131,7 +134,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest.retrieveUndertaking(EORI("GB123456789777")).futureValue mustBe Left(
-            ConnectorError(406, "Eori : GB123456789777 does not exist in ETMP")
+            ConnectorError(406, "retrieveUndertaking NOT_ACCEPTABLE - Eori:GB123456789777 (Eis error code 055)")
           )
         }
       }

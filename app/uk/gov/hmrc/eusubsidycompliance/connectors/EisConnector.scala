@@ -61,6 +61,9 @@ class EisConnector @Inject() (
 
     logger.info(s"eori: $eori : ${jsValue.toString()}")
 
+    val notFoundEisErrorCode = "107"
+    val unacceptableEisErrorCode = "055"
+
     desPost[RetrieveUndertakingAPIRequest, UndertakingRetrieve](
       s"$eisURL/$retrieveUndertakingPath",
       retrieveUndertakingRequest,
@@ -68,13 +71,29 @@ class EisConnector @Inject() (
     )(implicitly, implicitly, addHeaders, implicitly)
       .map(Right(_))
       .recover {
-        case e: EisBadResponseException if e.code == EisParamValue("107") =>
-          logger.error(s"No undertaking found for $eori", e)
-          Left(ConnectorError(NOT_FOUND, s"Undertaking reference EORI:$eori in the API not subscribed in ETMP."))
+        case e: EisBadResponseException if e.code == EisParamValue(notFoundEisErrorCode) =>
+          logger.error(
+            s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode)",
+            e
+          )
+          Left(
+            ConnectorError(
+              NOT_FOUND,
+              s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode)"
+            )
+          )
 
-        case e: EisBadResponseException if e.code == EisParamValue("055") =>
-          logger.error(s" Eori : $eori does not exist in ETMP", e)
-          Left(ConnectorError(NOT_ACCEPTABLE, s"Eori : $eori does not exist in ETMP"))
+        case e: EisBadResponseException if e.code == EisParamValue(unacceptableEisErrorCode) =>
+          logger.error(
+            s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode)",
+            e
+          )
+          Left(
+            ConnectorError(
+              NOT_ACCEPTABLE,
+              s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode)"
+            )
+          )
       }
   }
 
