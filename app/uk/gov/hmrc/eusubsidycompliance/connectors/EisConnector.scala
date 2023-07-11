@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import play.api.Logger
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models._
