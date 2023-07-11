@@ -28,7 +28,17 @@ case class UndertakingCreate(
   industrySectorLimit: Option[IndustrySectorLimit],
   lastSubsidyUsageUpdt: Option[LocalDate],
   undertakingBusinessEntity: List[BusinessEntity]
-)
+) {
+
+  //name is user entered so could break GPDR
+  lazy val loggableString: String =
+    s"""UndertakingCreate:
+       | nameLength:${name.length},
+       | industrySector:$industrySector,
+       | industrySectorLimit:$industrySectorLimit,
+       | lastSubsidyUsageUpdt:$lastSubsidyUsageUpdt,
+       | undertakingBusinessEntity:$undertakingBusinessEntity""".stripMargin
+}
 
 object UndertakingCreate {
   implicit val undertakingFormat: OFormat[UndertakingCreate] = Json.format[UndertakingCreate]
@@ -41,7 +51,16 @@ case class UndertakingRetrieve(
   industrySectorLimit: Option[IndustrySectorLimit],
   lastSubsidyUsageUpdt: Option[LocalDate],
   undertakingBusinessEntity: List[BusinessEntity]
-)
+) {
+  lazy val loggableString: String =
+    s"""UndertakingRetrieve:
+       | reference:$reference,
+       | nameLength:${name.length},
+       | industrySector:$industrySector,
+       | industrySectorLimit:$industrySectorLimit,
+       | lastSubsidyUsageUpdt:$lastSubsidyUsageUpdt,
+       | undertakingBusinessEntity:$undertakingBusinessEntity""".stripMargin
+}
 
 object UndertakingRetrieve {
   implicit val undertakingFormat: OFormat[UndertakingRetrieve] = Json.format[UndertakingRetrieve]

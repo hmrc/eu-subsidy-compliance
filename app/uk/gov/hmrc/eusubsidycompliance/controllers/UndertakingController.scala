@@ -55,20 +55,21 @@ class UndertakingController @Inject() (
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[UndertakingCreate] { undertaking: UndertakingCreate =>
+    withJsonBody[UndertakingCreate] { undertakingCreate: UndertakingCreate =>
       val eventualResult = for {
-        ref <- eisConnector.createUndertaking(undertaking)
+        ref <- eisConnector.createUndertaking(undertakingCreate)
         _ <- eisConnector.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
-      } yield Ok(Json.toJson(ref))
+      } yield ref -> Ok(Json.toJson(ref))
 
-      eventualResult.foreach { _ =>
-        logger.info(s"successfully created undertaking $undertaking")
+      eventualResult.foreach { ref =>
+        logger.info(s"successfully created undertaking ref $ref")
       }
       eventualResult.failed.foreach { e =>
-        logger.error(s"failed created undertaking $undertaking", e)
+        //Unfortunately business name make contain GPDR as it is human entered with no restrictive validations
+        logger.error(s"failed created undertaking with ${undertakingCreate.loggableString}", e)
       }
 
-      eventualResult
+      eventualResult.map(_._2)
     }
   }
 
@@ -78,10 +79,10 @@ class UndertakingController @Inject() (
         eisConnector.updateUndertaking(undertakingRetrieve, EisAmendmentType.A).map(ref => Ok(Json.toJson(ref)))
 
       eventualResult.foreach { _ =>
-        logger.info(s"successfully updateUndertaking undertaking $undertakingRetrieve")
+        logger.info(s"successfully updateUndertaking undertaking ${undertakingRetrieve.loggableString}")
       }
       eventualResult.failed.foreach { e =>
-        logger.error(s"failed updateUndertaking undertaking $undertakingRetrieve", e)
+        logger.error(s"failed updateUndertaking undertaking ${undertakingRetrieve.loggableString}", e)
       }
 
       eventualResult
@@ -158,17 +159,17 @@ class UndertakingController @Inject() (
   }
 
   def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[SubsidyRetrieve] { retrieve: SubsidyRetrieve =>
+    withJsonBody[SubsidyRetrieve] { subsidyRetrieve: SubsidyRetrieve =>
       val eventualResult =
-        eisConnector.retrieveSubsidies(retrieve.undertakingIdentifier, retrieve.inDateRange).map { e =>
+        eisConnector.retrieveSubsidies(subsidyRetrieve.undertakingIdentifier, subsidyRetrieve.inDateRange).map { e =>
           Ok(Json.toJson(e))
         }
 
       eventualResult.foreach { _ =>
-        logger.info(s"successfully retrieveSubsidies SubsidyRetrieve $retrieve")
+        logger.info(s"successfully retrieveSubsidies SubsidyRetrieve $subsidyRetrieve")
       }
       eventualResult.failed.foreach { e =>
-        logger.error(s"failed retrieveSubsidies SubsidyRetrieve $retrieve", e)
+        logger.error(s"failed retrieveSubsidies SubsidyRetrieve $subsidyRetrieve", e)
       }
 
       eventualResult
