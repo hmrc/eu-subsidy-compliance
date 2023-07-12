@@ -18,7 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 
 import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
-import play.api.mvc.{Action, AnyContent, BaseController, BodyParser, ControllerComponents, Request, Result, Results}
+import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
