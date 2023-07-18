@@ -127,7 +127,7 @@ class EoriEmailRepository @Inject() (
   def markEmailAsVerifiedByVerificationId(
     eori: EORI,
     verificationId: String
-  ): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
+  ): Future[Either[EoriEmailRepositoryError, Option[WriteSuccess.type]]] = {
     val inputDocument = createVerifiedUpdateDocument
     collection
       .updateOne(
@@ -138,11 +138,11 @@ class EoriEmailRepository @Inject() (
         Document("$set" -> Document(inputDocument))
       )
       .toFuture()
-      .flatMap { updateResult: UpdateResult =>
+      .map { updateResult: UpdateResult =>
         if (updateResult.getMatchedCount > 0) {
-          getEmailVerification(eori)
+          Right(Some(WriteSuccess))
         } else {
-          Future.successful(Right(None))
+          Right(None)
         }
       }
       .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))

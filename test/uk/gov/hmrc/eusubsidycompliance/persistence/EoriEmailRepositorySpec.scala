@@ -208,15 +208,15 @@ class EoriEmailRepositorySpec
         val errorOrMaybeUpdatedEmailCache =
           repository.markEmailAsVerifiedByVerificationId(eori, verificationId).futureValue
 
+        errorOrMaybeUpdatedEmailCache mustBe Right(Some(WriteSuccess))
+
+        val updatedMongoDbValue: Option[EmailCache] =
+          find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+
         val expectedEmailCachePostValidation =
           EmailCache
             .createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
             .copy(verified = true, lastUpdated = updatedInstant)
-
-        errorOrMaybeUpdatedEmailCache mustBe Right(Some(expectedEmailCachePostValidation))
-
-        val updatedMongoDbValue: Option[EmailCache] =
-          find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
 
         updatedMongoDbValue mustBe Some(expectedEmailCachePostValidation)
       }

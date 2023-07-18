@@ -215,7 +215,7 @@ class EmailControllerSpec
     def expectMarkEoriAsVerifiedByVerificationId(
       eori: EORI,
       verificationId: String
-    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]]): Unit =
+    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[WriteSuccess.type]]): Unit =
       Mockito
         .when(eoriEmailRepository.markEmailAsVerifiedByVerificationId(eori = eori, verificationId = verificationId))
         .thenReturn(Future.successful(returningErrorOrMaybeEmailCache))
