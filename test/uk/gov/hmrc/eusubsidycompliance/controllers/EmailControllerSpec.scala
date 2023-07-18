@@ -86,8 +86,9 @@ class EmailControllerSpec
           val result = route(app, startVerificationRequest).value
           Helpers.status(result) mustBe Status.CREATED
 
-          Helpers.contentAsJson(result) mustBe Json
-            .toJson(VerifiedEmailResponse.fromEmailCache(createdEmailCache))
+          Helpers.contentAsJson(result) mustBe JsString(
+            value = "successfully started verification for email EORI GB123443211231"
+          )
 
           eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
@@ -139,7 +140,7 @@ class EmailControllerSpec
           val result = route(app, approveByEoriHttpRequest).value
           Helpers.status(result) mustBe Status.OK
           Helpers.contentAsJson(result) mustBe JsString(
-            ""
+            "EORI GB123443211231 has been marked as verified"
           )
 
         }

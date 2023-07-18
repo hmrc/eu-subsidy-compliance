@@ -56,9 +56,9 @@ class EmailController @Inject() (
           val errorMessage = s"Failed starting verification for email EORI ${startEmailVerificationRequest.eori}"
           logger.error(errorMessage, error)
           InternalServerError(JsString(errorMessage))
-        case Right(writeWasAknowledged) =>
+        case Right(_) =>
           val successMessage =
-            s"successfully added startVerification for email EORI ${startEmailVerificationRequest.eori}"
+            s"successfully started verification for email EORI ${startEmailVerificationRequest.eori}"
           logger.info(
             successMessage
           )
@@ -83,7 +83,7 @@ class EmailController @Inject() (
           case Right(maybeWriteSuccess) =>
             maybeWriteSuccess
               .map { _: WriteSuccess.type =>
-                val message = s"EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} have been verified"
+                val message = s"EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} has been marked as verified"
                 logger.info(message)
                 Ok(JsString(message))
               }
