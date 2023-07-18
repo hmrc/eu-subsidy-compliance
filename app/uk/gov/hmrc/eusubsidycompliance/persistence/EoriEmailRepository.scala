@@ -79,12 +79,15 @@ class EoriEmailRepository @Inject() (
       )
       .toFuture()
       .flatMap { _ =>
-        getEmailVerification(initialEmailCache.eori).map { maybeEmailCache =>
-          maybeEmailCache
-            .map(Right.apply)
-            .getOrElse(
-              Left(EoriEmailRepositoryError(s"Failed adding then retrieving email for ${initialEmailCache.eori}"))
-            )
+        getEmailVerification(initialEmailCache.eori).map { errorOrMaybeEmailCache =>
+          val errorOrEmailCache = errorOrMaybeEmailCache.map { maybeEmailCache =>
+            maybeEmailCache
+              .map(Right.apply)
+              .getOrElse(
+                Left(EoriEmailRepositoryError(s"Failed adding then retrieving email for ${initialEmailCache.eori}"))
+              )
+          }.flatten
+          errorOrEmailCache
         }
       }
       .recover { case e: Throwable =>
@@ -106,6 +109,7 @@ class EoriEmailRepository @Inject() (
       .flatMap(_ => getEmailVerification(eori))
       .map(Right.apply)
       .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
+      .map(_.flatten)
   }
 
   private def createVerifiedUpdateDocument = {
@@ -132,53 +136,21 @@ class EoriEmailRepository @Inject() (
         if (updateResult.getMatchedCount > 0) {
           getEmailVerification(eori)
         } else {
-          Future.successful(None)
+          Future.successful(Right(None))
         }
       }
-      .map(Right.apply)
       .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
   }
 
-  //  Unit in Future hides flattening issues and as futures are eager you can breaks things such as errors
-  //  Future[Unit] = Future(Future.failed(error))
-  // Tests will race as well
-  def update(updateEmailCache: UpdateEmailCache): Future[Either[NotFound.type, Boolean]] = {
-    val eventualMaybeUpdateResult = getEmailVerification(updateEmailCache.eori).flatMap { maybeEmailCache: Option[EmailCache] =>
-      val maybeEventualMaybeUpdateResult: Option[Future[Option[UpdateResult]]] = maybeEmailCache.map { emailCache =>
-        val fullUpdate: EmailCache =
-          updateEmailCache.asEmailCache(
-            emailCache.created,
-            timeProvider.nowAsInstant
-          )
-
-        collection
-          .replaceOne( // TODO: Replace with insert
-            filter = Filters.equal("_id", emailCache.eori),
-            replacement = fullUpdate,
-            options = ReplaceOptions().upsert(true)
-          )
-          .headOption()
-      }
-
-      maybeEventualMaybeUpdateResult match {
-        case Some(eventualMaybeUpdateResult) => eventualMaybeUpdateResult
-        case None => Future.successful(None)
-      }
-    }
-
-    eventualMaybeUpdateResult.map { maybeUpdateResult =>
-      maybeUpdateResult.map(_ => Right(true)).getOrElse(Left(NotFound))
-    }
-  }
-
-  def getEmailVerification(eori: EORI): Future[Option[EmailCache]] =
+  def getEmailVerification(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] =
     collection
       .find(
         filter = Filters.equal("_id", eori)
       )
       .toFuture()
       .map { result =>
-        result.headOption
+        Right(result.headOption)
       }
+      .recover(error => Left(EoriEmailRepositoryError(s"Failed getting verification for EORI:$eori", Some(error))))
 
 }

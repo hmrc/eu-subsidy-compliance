@@ -79,14 +79,15 @@ object EmailCache {
     OFormat(encryptedReads, encryptedWrites)
   }
 
-  def createUnverifiedInitialEmailCache(initialEmailCache: InitialEmailCache, createdInstant: Instant) = EmailCache(
-    eori = initialEmailCache.eori,
-    email = initialEmailCache.email,
-    verificationId = initialEmailCache.verificationId,
-    verified = false,
-    created = createdInstant,
-    lastUpdated = createdInstant
-  )
+  def createUnverifiedInitialEmailCache(initialEmailCache: InitialEmailCache, createdInstant: Instant): EmailCache =
+    EmailCache(
+      eori = initialEmailCache.eori,
+      email = initialEmailCache.email,
+      verificationId = initialEmailCache.verificationId,
+      verified = false,
+      created = createdInstant,
+      lastUpdated = createdInstant
+    )
 }
 
 final case class EmailCache(

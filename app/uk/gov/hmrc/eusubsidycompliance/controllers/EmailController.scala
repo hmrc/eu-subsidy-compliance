@@ -103,22 +103,9 @@ class EmailController @Inject() (
   }
 
   def getEmailVerification(eori: EORI): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    remapGetEmailVerificationResponse(eoriEmailRepository.getEmailVerification(eori), NotFound)
+    ///eoriEmailRepository.getEmailVerification(eori), NotFound)
+  ???
 
   }
 
-  private def remapGetEmailVerificationResponse(
-    eventualMaybeEmailCache: Future[Option[EmailCache]],
-    nonMapping: => Status
-  ): Future[Result] = {
-    eventualMaybeEmailCache.map { maybeEmailCache: Option[EmailCache] =>
-      maybeEmailCache match {
-        case Some(value: EmailCache) =>
-          Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(value)))
-
-        case None =>
-          nonMapping
-      }
-    }
-  }
 }

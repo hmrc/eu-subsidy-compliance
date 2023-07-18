@@ -306,9 +306,10 @@ class EoriEmailRepositorySpec
 
     "getEmailVerification" must {
       "return None when it does not exist" in {
-        val maybeEmailCache: Option[EmailCache] = repository.getEmailVerification(EORI("GB123456783309")).futureValue
+        val errorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]] =
+          repository.getEmailVerification(EORI("GB123456783309")).futureValue
 
-        maybeEmailCache mustBe None
+        errorOrMaybeEmailCache mustBe Right(None)
       }
 
       "return None when the EORI is the wrong value" in {
@@ -335,7 +336,7 @@ class EoriEmailRepositorySpec
 
         val maybeEmailCache = repository.getEmailVerification(EORI("GB223456783309")).futureValue
 
-        maybeEmailCache mustBe None
+        maybeEmailCache mustBe Right(None)
       }
 
       "when there is matching cached value for an EORI" in {
@@ -361,7 +362,7 @@ class EoriEmailRepositorySpec
           .futureValue
 
         val maybeEmailCache = repository.getEmailVerification(EORI("GB123456783309")).futureValue
-        maybeEmailCache mustBe Some(data)
+        maybeEmailCache mustBe Right(Some(data))
       }
     }
   }
