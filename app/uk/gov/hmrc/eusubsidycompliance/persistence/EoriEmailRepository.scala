@@ -98,17 +98,43 @@ class EoriEmailRepository @Inject() (
   }
 
   def markEmailAsVerifiedByEori(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
-    val inputDocument =
-      s"""
-        |{"verified" : true, "lastUpdated" : ISODate("${timeProvider.nowAsInstant.toString}")}
-        |""".stripMargin
-
-    val updateDocument = Document("$set" -> Document(inputDocument))
+    val inputDocument = createVerifiedUpdateDocument
 
     collection
-      .updateOne(Filters.eq("_id", eori), updateDocument)
+      .updateOne(Filters.eq("_id", eori), Document("$set" -> Document(inputDocument)))
       .toFuture()
       .flatMap(_ => get(eori))
+      .map(Right.apply)
+      .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
+  }
+
+  private def createVerifiedUpdateDocument = {
+    s"""
+       |{"verified" : true, "lastUpdated" : ISODate("${timeProvider.nowAsInstant.toString}")}
+       |""".stripMargin
+  }
+
+  def markEmailAsVerifiedByVerificationId(
+    eori: EORI,
+    verificationId: String
+  ): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
+    val inputDocument = createVerifiedUpdateDocument
+    collection
+      .updateOne(
+        Filters.and(
+          Filters.equal("_id", eori),
+          Filters.equal("verificationId", verificationId)
+        ),
+        Document("$set" -> Document(inputDocument))
+      )
+      .toFuture()
+      .flatMap { updateResult: UpdateResult =>
+        if (updateResult.getMatchedCount > 0) {
+          get(eori)
+        } else {
+          Future.successful(None)
+        }
+      }
       .map(Right.apply)
       .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
   }

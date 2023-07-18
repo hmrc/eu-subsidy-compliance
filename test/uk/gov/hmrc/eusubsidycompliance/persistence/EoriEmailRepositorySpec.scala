@@ -80,22 +80,14 @@ class EoriEmailRepositorySpec
       val initialEmailCache =
         InitialEmailCache(EORI("GB123456783306"), "emailValueSet", "verificationIdSet", verified = false)
 
-      val instant = Instant.parse("2023-06-22T11:44:14.681Z")
+      val createdInstant = Instant.parse("2023-06-22T11:44:14.681Z")
 
-      val expectedOriginalEntry =
-        EmailCache(
-          eori = initialEmailCache.eori,
-          email = initialEmailCache.email,
-          verificationId = initialEmailCache.verificationId,
-          verified = initialEmailCache.verified,
-          created = instant,
-          lastUpdated = instant
-        )
+      val expectedOriginalEntry = EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
 
       "save the detail, with verification flag as false" in {
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(instant)
+          .returning(createdInstant)
 
         val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
         val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
@@ -113,11 +105,11 @@ class EoriEmailRepositorySpec
       "raise an error if a record with the EORI exists" in {
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(instant)
+          .returning(createdInstant)
 
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(instant.plus(30, ChronoUnit.DAYS))
+          .returning(createdInstant.plus(30, ChronoUnit.DAYS))
 
         repository.addEmailInitialisation(initialEmailCache).futureValue
         val errorOrEmailCache =
@@ -139,21 +131,20 @@ class EoriEmailRepositorySpec
       "succeed if eori is found" in {
         val eori = EORI("GB223456783307")
         val initialEmailCache =
-          InitialEmailCache(eori, "emailValueSet", "verificationIdSet", verified = false)
+          InitialEmailCache(
+            eori = eori,
+            verificationId = "verificationIdSet",
+            email = "emailValueSet",
+            verified = false
+          )
 
-        val instant = Instant.parse("2023-06-22T11:44:14.681Z")
+        val createdInstant = Instant.parse("2023-06-22T11:44:14.681Z")
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(instant)
+          .returning(createdInstant)
 
-        val emailCacheBeforeVerification = EmailCache(
-          eori = initialEmailCache.eori,
-          email = initialEmailCache.email,
-          verificationId = initialEmailCache.verificationId,
-          verified = false,
-          created = instant,
-          lastUpdated = instant
-        )
+        val emailCacheBeforeVerification =
+          EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
 
         val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(emailCacheBeforeVerification)
@@ -194,24 +185,53 @@ class EoriEmailRepositorySpec
     }
 
     "markEmailAsVerifiedByVerificationId" should {
-      "succeed if eori is found" in {
+      "succeed if eori and verification id is found" in {
         val eori = EORI("GB223456783307")
+        val verificationId = "verificationIdSet"
         val initialEmailCache =
-          InitialEmailCache(eori, "emailValueSet", "verificationIdSet", verified = false)
+          InitialEmailCache(eori = eori, verificationId = verificationId, email = "emailValueSet", verified = false)
 
-        val instant = Instant.parse("2023-06-22T11:44:14.681Z")
+        val createdInstant = Instant.parse("2023-06-22T11:44:14.681Z")
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(instant)
+          .returning(createdInstant)
 
-        val emailCacheBeforeVerification = EmailCache(
-          eori = initialEmailCache.eori,
-          email = initialEmailCache.email,
-          verificationId = initialEmailCache.verificationId,
-          verified = false,
-          created = instant,
-          lastUpdated = instant
-        )
+        val emailCacheBeforeVerification =
+          EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
+        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        errorOrEmailCache mustBe Right(emailCacheBeforeVerification)
+
+        val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(updatedInstant)
+
+        val errorOrMaybeUpdatedEmailCache =
+          repository.markEmailAsVerifiedByVerificationId(eori, verificationId).futureValue
+        val expectedEmailCachePostValidation =
+          emailCacheBeforeVerification.copy(verified = true, lastUpdated = updatedInstant)
+
+        errorOrMaybeUpdatedEmailCache mustBe Right(Some(expectedEmailCachePostValidation))
+
+        val updatedMongoDbValue: Option[EmailCache] =
+          find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+
+        updatedMongoDbValue mustBe Some(expectedEmailCachePostValidation)
+      }
+
+      "update nothing if the verificationId is not correct" in {
+        val eori = EORI("GB223456783307")
+        val verificationId = "verificationIdSet"
+        val initialEmailCache =
+          InitialEmailCache(eori = eori, verificationId = verificationId, email = "emailValueSet", verified = false)
+
+        val createdInstant = Instant.parse("2023-06-22T11:44:14.681Z")
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(createdInstant)
+
+        val emailCacheBeforeVerification =
+          EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
 
         val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(emailCacheBeforeVerification)
@@ -221,25 +241,59 @@ class EoriEmailRepositorySpec
           .expects()
           .returning(updatedInstant)
 
-        val errorOrMaybeUpdatedEmailCache = repository.markEmailAsVerifiedByEori(eori).futureValue
-        val expectedEmailCachePostValidation =
-          emailCacheBeforeVerification.copy(verified = true, lastUpdated = updatedInstant)
-        errorOrMaybeUpdatedEmailCache mustBe Right(Some(expectedEmailCachePostValidation))
+        val errorOrMaybeUpdatedEmailCache =
+          repository.markEmailAsVerifiedByVerificationId(eori, "anotherVerificationId").futureValue
+
+        errorOrMaybeUpdatedEmailCache mustBe Right(None)
 
         val updatedMongoDbValue: Option[EmailCache] =
           find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
 
-        updatedMongoDbValue mustBe Some(expectedEmailCachePostValidation)
+        updatedMongoDbValue mustBe Some(emailCacheBeforeVerification)
       }
 
-      "return None when EORI is not found" in {
+      "update nothing if the EORI is not correct but the verification id is" in {
+        val eori = EORI("GB223456783307")
+        val verificationId = "verificationIdSet"
+        val initialEmailCache =
+          InitialEmailCache(eori = eori, verificationId = verificationId, email = "emailValueSet", verified = false)
+
+        val createdInstant = Instant.parse("2023-06-22T11:44:14.681Z")
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(createdInstant)
+
+        val emailCacheBeforeVerification =
+          EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
+
+        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        errorOrEmailCache mustBe Right(emailCacheBeforeVerification)
+
+        val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(updatedInstant)
+
+        val errorOrMaybeUpdatedEmailCache =
+          repository.markEmailAsVerifiedByVerificationId(EORI("GB323456783307"), verificationId).futureValue
+
+        errorOrMaybeUpdatedEmailCache mustBe Right(None)
+
+        val updatedMongoDbValue: Option[EmailCache] =
+          find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+
+        updatedMongoDbValue mustBe Some(emailCacheBeforeVerification)
+      }
+
+      "return None when the record does not exist" in {
         val eori = EORI("GB223456783307")
 
         (() => timeProvider.nowAsInstant)
           .expects()
           .returning(Instant.now())
 
-        val errorOrMaybeUpdatedEmailCache = repository.markEmailAsVerifiedByEori(eori).futureValue
+        val errorOrMaybeUpdatedEmailCache =
+          repository.markEmailAsVerifiedByVerificationId(eori, "verificationIdSet").futureValue
 
         errorOrMaybeUpdatedEmailCache mustBe Right(None)
 

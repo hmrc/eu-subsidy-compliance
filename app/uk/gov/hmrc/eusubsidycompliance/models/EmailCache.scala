@@ -21,6 +21,7 @@ import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.crypto.json.JsonEncryption
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
+import uk.gov.hmrc.eusubsidycompliance.persistence.InitialEmailCache
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
@@ -77,6 +78,15 @@ object EmailCache {
 
     OFormat(encryptedReads, encryptedWrites)
   }
+
+  def createUnverifiedInitialEmailCache(initialEmailCache: InitialEmailCache, createdInstant: Instant) = EmailCache(
+    eori = initialEmailCache.eori,
+    email = initialEmailCache.email,
+    verificationId = initialEmailCache.verificationId,
+    verified = false,
+    created = createdInstant,
+    lastUpdated = createdInstant
+  )
 }
 
 final case class EmailCache(
