@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import play.api.Logger
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models._
@@ -72,9 +71,8 @@ class EisConnector @Inject() (
       .map(Right(_))
       .recover {
         case e: EisBadResponseException if e.code == EisParamValue(notFoundEisErrorCode) =>
-          logger.error(
-            s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode)",
-            e
+          logger.info(
+            s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode) - available for undertakingCreate"
           )
           Left(
             ConnectorError(
@@ -85,7 +83,7 @@ class EisConnector @Inject() (
 
         case e: EisBadResponseException if e.code == EisParamValue(unacceptableEisErrorCode) =>
           logger.error(
-            s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode)",
+            s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode) - NOT available for undertakingCreate",
             e
           )
           Left(
@@ -103,9 +101,7 @@ class EisConnector @Inject() (
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.createUndertakingResponseReads
 
     logger.info(
-      s"attempting createUndertaking for NAME:${undertaking.name}, business EORIs:${undertaking.undertakingBusinessEntity
-        .map(_.businessEntityIdentifier)
-        .mkString(", ")}"
+      s"attempting createUndertaking ${undertaking.loggableString}"
     )
 
     val eisTokenKey = "eis.token.scp02"
@@ -214,7 +210,7 @@ class EisConnector @Inject() (
 
     eventualUnit.failed.foreach(error =>
       logger.error(
-        s"failed upsertSubsidyUsage SubsidyUpdate:$subsidyUpdate",
+        s"failed upsertSubsidyUsage SubsidyUpdate undertakingRef:${subsidyUpdate.undertakingIdentifier}",
         error
       )
     )

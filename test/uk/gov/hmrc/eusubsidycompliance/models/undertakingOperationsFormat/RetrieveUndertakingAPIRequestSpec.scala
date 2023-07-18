@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 
-import org.joda.time.{LocalDate, LocalDateTime}
-import org.scalatest.funsuite.AnyFunSuiteLike
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.libs.json.Json

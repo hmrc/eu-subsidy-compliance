@@ -17,8 +17,8 @@
 package uk.gov.hmrc.eusubsidycompliance.test
 
 import shapeless.tag.@@
-import uk.gov.hmrc.eusubsidycompliance.models.{types, _}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models._
 
 import java.time.{Instant, LocalDate, ZoneId}
 
