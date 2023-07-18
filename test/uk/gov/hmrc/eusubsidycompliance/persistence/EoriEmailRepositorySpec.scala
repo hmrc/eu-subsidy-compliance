@@ -155,9 +155,6 @@ class EoriEmailRepositorySpec
           lastUpdated = instant
         )
 
-        //Usually I wouldn't call a prod method for setup in a test for another prod method as unwittingly tests can actually
-        //change in unknown ways and end up with successes for different reasons but the whole mongo/encryption thing
-        //is very opinionated.
         val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(emailCacheBeforeVerification)
 
