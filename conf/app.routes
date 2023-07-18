@@ -17,3 +17,4 @@ POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsid
 GET        /exchangerate/:date                              uk.gov.hmrc.eusubsidycompliance.controllers.ExchangeRateController.getExchangeRate(date)
 
 POST       /email/start-verification                        uk.gov.hmrc.eusubsidycompliance.controllers.EmailController.startVerification
+POST       /email/verify-by-eori                            uk.gov.hmrc.eusubsidycompliance.controllers.EmailController.approveEmailByEori

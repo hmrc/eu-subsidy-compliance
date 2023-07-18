@@ -24,7 +24,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
-import uk.gov.hmrc.eusubsidycompliance.models.{EmailCache, StartEmailVerificationRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
 import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache}
 import uk.gov.hmrc.eusubsidycompliance.shared.PlayBaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
@@ -59,16 +59,16 @@ class EmailControllerSpec
       "process successfully" in {
         eoriUuidProviderMock.randomReturns(uuid)
 
-        val successResponse = Right(
-          EmailCache(
-            eori = eori,
-            email = emailAddress,
-            verificationId = uuid.toString,
-            verified = false,
-            created = Instant.EPOCH,
-            lastUpdated = Instant.EPOCH
-          )
+        val createdEmailCache = EmailCache(
+          eori = eori,
+          email = emailAddress,
+          verificationId = uuid.toString,
+          verified = false,
+          created = Instant.EPOCH,
+          lastUpdated = Instant.EPOCH
         )
+
+        val successResponse = Right(createdEmailCache)
 
         eoriEmailRepositoryMock.expectAddEmailInitialisation(returningErrorOrEmailCache = successResponse)
 
@@ -85,6 +85,7 @@ class EmailControllerSpec
 
           val result = route(app, startVerificationRequest).value
           Helpers.status(result) mustBe Status.CREATED
+          Helpers.contentAsString(result) mustBe Json.toJson(createdEmailCache)
 
           eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
@@ -102,12 +103,12 @@ class EmailControllerSpec
 
         Helpers.running(app) {
           val startVerificationUrl = routes.EmailController.startVerification.url
-          val startVerificationRequest =
+          val startVerificationHttpRequest =
             createPostRequest(startVerificationUrl, Json.toJson(startEmailVerificationRequest))
 
           FakeRequest(POST, startVerificationUrl).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
 
-          val result = route(app, startVerificationRequest).value
+          val result = route(app, startVerificationHttpRequest).value
           Helpers.status(result) mustBe Status.INTERNAL_SERVER_ERROR
 
           eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
@@ -117,7 +118,37 @@ class EmailControllerSpec
     }
 
     "approveEmailByEori" should {
-      "successfully an EORI when found" in {}
+      "return OK on a success" in {
+        val eori = EORI("GB123443211231")
+        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
+          Right(
+            Some(
+              EmailCache(
+                eori = eori,
+                email = "",
+                verificationId = "",
+                verified = true,
+                created = Instant.now,
+                lastUpdated = Instant.now
+              )
+            )
+          )
+        )
+
+        val app = configuredAppInstance
+        Helpers.running(app) {
+          val verifyByEoriUri = routes.EmailController.approveEmailByEori.url
+          val approveByEoriHttpRequest =
+            createPostRequest(verifyByEoriUri, Json.toJson(ApproveEmailAsVerifiedByEoriRequest(eori)))
+
+          FakeRequest(POST, verifyByEoriUri).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
+
+          val result = route(app, approveByEoriHttpRequest).value
+          Helpers.status(result) mustBe Status.OK
+
+        }
+
+      }
     }
 
   }
@@ -130,6 +161,14 @@ class EmailControllerSpec
 
     def verifyAddEmailInitialisation(initialEmailCache: InitialEmailCache): Unit =
       Mockito.verify(eoriEmailRepository).addEmailInitialisation(initialEmailCache)
+
+    def expectMarkEoriAsVerified(
+      eori: EORI
+    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]]): Unit =
+      Mockito
+        .when(eoriEmailRepository.markEoriAsVerified(eori = eori))
+        .thenReturn(Future.successful(returningErrorOrMaybeEmailCache))
+
   }
 
   private implicit class UuidProviderMock(uuidProvider: UuidProvider) {

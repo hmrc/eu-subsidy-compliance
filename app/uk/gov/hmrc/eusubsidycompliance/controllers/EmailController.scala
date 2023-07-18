@@ -64,26 +64,19 @@ class EmailController @Inject() (
     }
   }
 
-  private def remapGetEmailVerificationResponse(
-    eventualMaybeEmailCache: Future[Option[EmailCache]],
-    nonMapping: => Status
-  ): Future[Result] = {
-    eventualMaybeEmailCache.map { maybeEmailCache: Option[EmailCache] =>
-      maybeEmailCache match {
-        case Some(value: EmailCache) =>
-          Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(value)))
-
-        case None =>
-          nonMapping
-      }
-    }
-  }
-
   def approveEmailByEori: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[ApproveEmailAsVerifiedByEoriRequest] {
       approveEmailAsVerifiedByEoriRequest: ApproveEmailAsVerifiedByEoriRequest =>
         // eoriEmailRepository.update()
-        ???
+        eoriEmailRepository.markEoriAsVerified(approveEmailAsVerifiedByEoriRequest.eoriToVerify).map {
+          case Left(error) => ???
+          case Right(maybeEmailCache) =>
+            maybeEmailCache
+              .map { emailCache =>
+                Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
+              }
+              .getOrElse(NotFound)
+        }
     }
   }
 
@@ -100,4 +93,18 @@ class EmailController @Inject() (
 
   }
 
+  private def remapGetEmailVerificationResponse(
+    eventualMaybeEmailCache: Future[Option[EmailCache]],
+    nonMapping: => Status
+  ): Future[Result] = {
+    eventualMaybeEmailCache.map { maybeEmailCache: Option[EmailCache] =>
+      maybeEmailCache match {
+        case Some(value: EmailCache) =>
+          Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(value)))
+
+        case None =>
+          nonMapping
+      }
+    }
+  }
 }
