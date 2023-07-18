@@ -20,7 +20,7 @@ import org.mockito.{ArgumentMatchers, Mockito}
 import play.api.http.{MimeTypes, Status}
 import play.api.inject
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
@@ -56,7 +56,7 @@ class EmailControllerSpec
       val initialEmailCache =
         InitialEmailCache(eori = eori, verificationId = uuid.toString, email = emailAddress, verified = false)
 
-      "process successfully" in {
+      "process successfully returning the updated response" in {
         eoriUuidProviderMock.randomReturns(uuid)
 
         val createdEmailCache = EmailCache(
@@ -85,7 +85,9 @@ class EmailControllerSpec
 
           val result = route(app, startVerificationRequest).value
           Helpers.status(result) mustBe Status.CREATED
-          Helpers.contentAsString(result) mustBe Json.toJson(createdEmailCache)
+
+          Helpers.contentAsJson(result) mustBe Json
+            .toJson(VerifiedEmailResponse.fromEmailCache(createdEmailCache))
 
           eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
@@ -110,6 +112,7 @@ class EmailControllerSpec
 
           val result = route(app, startVerificationHttpRequest).value
           Helpers.status(result) mustBe Status.INTERNAL_SERVER_ERROR
+          Helpers.contentAsJson(result) mustBe JsString("Failed starting verification for email EORI GB123443211231")
 
           eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
@@ -120,19 +123,16 @@ class EmailControllerSpec
     "approveEmailByEori" should {
       "return OK on a success" in {
         val eori = EORI("GB123443211231")
+        val verifiedEmailCache = EmailCache(
+          eori = eori,
+          email = "",
+          verificationId = "",
+          verified = true,
+          created = Instant.now,
+          lastUpdated = Instant.now
+        )
         eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
-          returningErrorOrMaybeEmailCache = Right(
-            Some(
-              EmailCache(
-                eori = eori,
-                email = "",
-                verificationId = "",
-                verified = true,
-                created = Instant.now,
-                lastUpdated = Instant.now
-              )
-            )
-          )
+          returningErrorOrMaybeEmailCache = Right(Some(verifiedEmailCache))
         )
 
         val app = configuredAppInstance
@@ -145,12 +145,15 @@ class EmailControllerSpec
 
           val result = route(app, approveByEoriHttpRequest).value
           Helpers.status(result) mustBe Status.OK
+          Helpers.contentAsJson(result) mustBe Json.toJson(
+            VerifiedEmailResponse.fromEmailCache(verifiedEmailCache)
+          )
 
         }
       }
 
       "return Not found when the EORI is not found" in {
-        val eori = EORI("GB123443211231")
+        val eori = EORI("GB123443211232")
         eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
           returningErrorOrMaybeEmailCache = Right(None)
         )
@@ -165,7 +168,29 @@ class EmailControllerSpec
 
           val result = route(app, approveByEoriHttpRequest).value
           Helpers.status(result) mustBe Status.NOT_FOUND
-          Helpers.contentAsString(result) mustBe "Eori GB123443211231 could not be found for verification"
+          Helpers.contentAsJson(result) mustBe JsString("EORI GB123443211232 could not be found for verification")
+        }
+      }
+
+      "return a friendly error message on failure" in {
+        val eori = EORI("GB123443211233")
+        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
+          returningErrorOrMaybeEmailCache = Left(EoriEmailRepositoryError("I had problems"))
+        )
+
+        val app = configuredAppInstance
+        Helpers.running(app) {
+          val verifyByEoriUri = routes.EmailController.approveEmailByEori.url
+          val approveByEoriHttpRequest =
+            createPostRequest(verifyByEoriUri, Json.toJson(ApproveEmailAsVerifiedByEoriRequest(eori)))
+
+          FakeRequest(POST, verifyByEoriUri).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
+
+          val result = route(app, approveByEoriHttpRequest).value
+          Helpers.status(result) mustBe Status.INTERNAL_SERVER_ERROR
+          Helpers.contentAsJson(result) mustBe JsString(
+            "There was an error approving the email for EORI GB123443211233"
+          )
         }
       }
     }

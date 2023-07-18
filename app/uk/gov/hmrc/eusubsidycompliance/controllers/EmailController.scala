@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
@@ -53,11 +53,12 @@ class EmailController @Inject() (
 
       eventualErrorOrEmailCache.map {
         case Left(error) =>
-          logger.error(s"Failed adding startVerification for email eori ${startEmailVerificationRequest.eori}", error)
-          InternalServerError
+          val errorMessage = s"Failed starting verification for email EORI ${startEmailVerificationRequest.eori}"
+          logger.error(errorMessage, error)
+          InternalServerError(JsString(errorMessage))
         case Right(emailCache) =>
           logger.info(
-            s"successfully added startVerification for email eori ${startEmailVerificationRequest.eori}"
+            s"successfully added startVerification for email EORI ${startEmailVerificationRequest.eori}"
           )
           Created(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
       }
@@ -72,17 +73,22 @@ class EmailController @Inject() (
           case Left(error: EoriEmailRepositoryError) =>
             val errorMessage = s"Failed verifying email eori ${approveEmailAsVerifiedByEoriRequest.eoriToVerify}"
             logger.error(errorMessage, error)
-            InternalServerError(errorMessage)
+            InternalServerError(
+              Json.toJson(
+                s"There was an error approving the email for EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify}"
+              )
+            )
           case Right(maybeEmailCache) =>
             maybeEmailCache
               .map { emailCache =>
-                logger.info(s"Eori ${emailCache.eori} have been verified")
+                logger.info(s"EORI ${emailCache.eori} have been verified")
                 Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
               }
               .getOrElse {
-                val message = s"Eori ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} could not be found for verification"
+                val message =
+                  s"EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} could not be found for verification"
                 logger.warn(message)
-                NotFound(message)
+                NotFound(JsString(message))
               }
         }
     }
