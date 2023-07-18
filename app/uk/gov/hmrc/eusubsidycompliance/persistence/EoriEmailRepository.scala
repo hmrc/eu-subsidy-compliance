@@ -97,7 +97,7 @@ class EoriEmailRepository @Inject() (
       }
   }
 
-  def markEoriAsVerified(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
+  def markEmailAsVerifiedByEori(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
     val inputDocument =
       s"""
         |{"verified" : true, "lastUpdated" : ISODate("${timeProvider.nowAsInstant.toString}")}

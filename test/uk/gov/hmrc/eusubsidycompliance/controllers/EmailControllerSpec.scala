@@ -210,7 +210,7 @@ class EmailControllerSpec
       eori: EORI
     )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]]): Unit =
       Mockito
-        .when(eoriEmailRepository.markEoriAsVerified(eori = eori))
+        .when(eoriEmailRepository.markEmailAsVerifiedByEori(eori = eori))
         .thenReturn(Future.successful(returningErrorOrMaybeEmailCache))
 
   }

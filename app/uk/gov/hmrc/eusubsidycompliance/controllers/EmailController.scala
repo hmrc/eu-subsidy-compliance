@@ -69,7 +69,7 @@ class EmailController @Inject() (
     withJsonBody[ApproveEmailAsVerifiedByEoriRequest] {
       approveEmailAsVerifiedByEoriRequest: ApproveEmailAsVerifiedByEoriRequest =>
         // eoriEmailRepository.update()
-        eoriEmailRepository.markEoriAsVerified(approveEmailAsVerifiedByEoriRequest.eoriToVerify).map {
+        eoriEmailRepository.markEmailAsVerifiedByEori(approveEmailAsVerifiedByEoriRequest.eoriToVerify).map {
           case Left(error: EoriEmailRepositoryError) =>
             val errorMessage = s"Failed verifying email eori ${approveEmailAsVerifiedByEoriRequest.eoriToVerify}"
             logger.error(errorMessage, error)
