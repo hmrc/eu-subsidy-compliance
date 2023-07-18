@@ -121,7 +121,7 @@ class EmailControllerSpec
       "return OK on a success" in {
         val eori = EORI("GB123443211231")
         eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
-          Right(
+          returningErrorOrMaybeEmailCache = Right(
             Some(
               EmailCache(
                 eori = eori,
@@ -147,7 +147,26 @@ class EmailControllerSpec
           Helpers.status(result) mustBe Status.OK
 
         }
+      }
 
+      "return Not found when the EORI is not found" in {
+        val eori = EORI("GB123443211231")
+        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
+          returningErrorOrMaybeEmailCache = Right(None)
+        )
+
+        val app = configuredAppInstance
+        Helpers.running(app) {
+          val verifyByEoriUri = routes.EmailController.approveEmailByEori.url
+          val approveByEoriHttpRequest =
+            createPostRequest(verifyByEoriUri, Json.toJson(ApproveEmailAsVerifiedByEoriRequest(eori)))
+
+          FakeRequest(POST, verifyByEoriUri).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
+
+          val result = route(app, approveByEoriHttpRequest).value
+          Helpers.status(result) mustBe Status.NOT_FOUND
+          Helpers.contentAsString(result) mustBe "Eori GB123443211231 could not be found for verification"
+        }
       }
     }
 

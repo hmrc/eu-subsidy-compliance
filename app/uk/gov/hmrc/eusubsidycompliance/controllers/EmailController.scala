@@ -22,7 +22,7 @@ import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, ApproveEmailByVerificationIdRequest, ConnectorError, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
-import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, InitialEmailCache}
+import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache}
 import uk.gov.hmrc.eusubsidycompliance.util.UuidProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -69,13 +69,21 @@ class EmailController @Inject() (
       approveEmailAsVerifiedByEoriRequest: ApproveEmailAsVerifiedByEoriRequest =>
         // eoriEmailRepository.update()
         eoriEmailRepository.markEoriAsVerified(approveEmailAsVerifiedByEoriRequest.eoriToVerify).map {
-          case Left(error) => ???
+          case Left(error: EoriEmailRepositoryError) =>
+            val errorMessage = s"Failed verifying email eori ${approveEmailAsVerifiedByEoriRequest.eoriToVerify}"
+            logger.error(errorMessage, error)
+            InternalServerError(errorMessage)
           case Right(maybeEmailCache) =>
             maybeEmailCache
               .map { emailCache =>
+                logger.info(s"Eori ${emailCache.eori} have been verified")
                 Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
               }
-              .getOrElse(NotFound)
+              .getOrElse {
+                val message = s"Eori ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} could not be found for verification"
+                logger.warn(message)
+                NotFound(message)
+              }
         }
     }
   }
