@@ -103,7 +103,7 @@ class EmailController @Inject() (
   }
 
   def getEmailVerification(eori: EORI): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    remapGetEmailVerificationResponse(eoriEmailRepository.get(eori), NotFound)
+    remapGetEmailVerificationResponse(eoriEmailRepository.getEmailVerification(eori), NotFound)
 
   }
 

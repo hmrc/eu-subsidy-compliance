@@ -79,7 +79,7 @@ class EoriEmailRepository @Inject() (
       )
       .toFuture()
       .flatMap { _ =>
-        get(initialEmailCache.eori).map { maybeEmailCache =>
+        getEmailVerification(initialEmailCache.eori).map { maybeEmailCache =>
           maybeEmailCache
             .map(Right.apply)
             .getOrElse(
@@ -103,7 +103,7 @@ class EoriEmailRepository @Inject() (
     collection
       .updateOne(Filters.eq("_id", eori), Document("$set" -> Document(inputDocument)))
       .toFuture()
-      .flatMap(_ => get(eori))
+      .flatMap(_ => getEmailVerification(eori))
       .map(Right.apply)
       .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
   }
@@ -130,7 +130,7 @@ class EoriEmailRepository @Inject() (
       .toFuture()
       .flatMap { updateResult: UpdateResult =>
         if (updateResult.getMatchedCount > 0) {
-          get(eori)
+          getEmailVerification(eori)
         } else {
           Future.successful(None)
         }
@@ -143,7 +143,7 @@ class EoriEmailRepository @Inject() (
   //  Future[Unit] = Future(Future.failed(error))
   // Tests will race as well
   def update(updateEmailCache: UpdateEmailCache): Future[Either[NotFound.type, Boolean]] = {
-    val eventualMaybeUpdateResult = get(updateEmailCache.eori).flatMap { maybeEmailCache: Option[EmailCache] =>
+    val eventualMaybeUpdateResult = getEmailVerification(updateEmailCache.eori).flatMap { maybeEmailCache: Option[EmailCache] =>
       val maybeEventualMaybeUpdateResult: Option[Future[Option[UpdateResult]]] = maybeEmailCache.map { emailCache =>
         val fullUpdate: EmailCache =
           updateEmailCache.asEmailCache(
@@ -171,7 +171,7 @@ class EoriEmailRepository @Inject() (
     }
   }
 
-  def get(eori: EORI): Future[Option[EmailCache]] =
+  def getEmailVerification(eori: EORI): Future[Option[EmailCache]] =
     collection
       .find(
         filter = Filters.equal("_id", eori)

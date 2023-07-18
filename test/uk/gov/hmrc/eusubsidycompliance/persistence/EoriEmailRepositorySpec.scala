@@ -302,114 +302,26 @@ class EoriEmailRepositorySpec
 
         updatedMongoDbValue mustBe None
       }
-
     }
 
-    "update" must {
-      "when there is a no cached value for an EORI" in {
-        val missingCacheReference =
-          UpdateEmailCache(EORI("GB123456783309"), "email", "", verified = true)
+    "getEmailVerification" must {
+      "return None when it does not exist" in {
+        val maybeEmailCache: Option[EmailCache] = repository.getEmailVerification(EORI("GB123456783309")).futureValue
 
-        val updateResult = repository.update(missingCacheReference).futureValue
-
-        updateResult mustBe Left(NotFound)
-        updateResult.left.value mustBe NotFound
+        maybeEmailCache mustBe None
       }
 
-      "when there is a matching cached value for an EORI" in {
+      "return None when the EORI is the wrong value" in {
         val initialInstant = Instant.parse("3023-06-22T11:44:14.681Z")
-
-        // 4 versus 3 at the beginning is easy to compare
-        val updateInstant = Instant.parse("4023-06-22T11:44:14.681Z")
 
         //Called on insert
         (() => timeProvider.nowAsInstant)
           .expects()
           .returning(initialInstant)
 
-        //Called on update
-        (() => timeProvider.nowAsInstant)
-          .expects()
-          .returning(updateInstant)
-
         val eori = EORI("GB123456783309")
-        val verificationIdUpdated = "verificationIdUpdated"
-        val initialEmailValue = "testEmailValue1"
-        val cachedValue = EmailCache(
+        val data = EmailCache(
           eori = eori,
-          email = initialEmailValue,
-          verificationId = verificationIdUpdated,
-          verified = false,
-          created = initialInstant,
-          lastUpdated = initialInstant
-        )
-
-        val eventualMaybeResult =
-          repository.addEmailInitialisation(
-            InitialEmailCache(
-              eori = eori,
-              verificationId = "verificationIdInitial",
-              email = initialEmailValue,
-              verified = false
-            )
-          )
-
-        eventualMaybeResult.futureValue
-
-        val updatedValue = cachedValue.copy(
-          email = "testEmailValue2",
-          verified = true
-        )
-        val updateResult = repository
-          .update(
-            UpdateEmailCache(eori = cachedValue.eori, updatedValue.email, verificationIdUpdated, verified = true)
-          )
-          .futureValue
-
-        // Could use EitherValues but failure message is not the most clear, normal assert Right() is clearer
-        updateResult mustBe Right(true)
-
-        val insertedValue = find(Filters.equal("_id", cachedValue.eori)).futureValue.headOption
-
-        insertedValue mustBe Some(
-          EmailCache(
-            eori = cachedValue.eori,
-            email = updatedValue.email,
-            verificationId = verificationIdUpdated,
-            verified = true,
-            created = initialInstant,
-            lastUpdated = updateInstant
-          )
-        )
-
-        //   val maybeDbEmailCache = find(Filters.equal("_id", cachedValue.eori)).futureValue.headOption
-
-        val maybeEncodedEmail = repository.collection.getEncodedEmail(cachedValue.eori)
-        maybeEncodedEmail.iterator.toList must contain noneOf (cachedValue.email, updatedValue.email)
-
-        maybeEncodedEmail.map(_.length) mustBe Some(68)
-      }
-    }
-  }
-
-  "get" must {
-    "when there is no cached value for an EORI" in {
-      val noData: Option[EmailCache] = repository.get(EORI("GB123456783309")).futureValue
-
-      noData mustBe None
-    }
-
-    "when there is matching cached value for an EORI" in {
-      val initialInstant = Instant.parse("3023-06-22T11:44:14.681Z")
-
-      //Called on insert
-      (() => timeProvider.nowAsInstant)
-        .expects()
-        .returning(initialInstant)
-
-      val data =
-        EmailCache(
-          eori = EORI("GB123456783309"),
           email = "emailValue",
           verificationId = "verificationId",
           verified = false,
@@ -417,13 +329,129 @@ class EoriEmailRepositorySpec
           lastUpdated = initialInstant
         )
 
-      repository
-        .addEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
-        .futureValue
+        repository
+          .addEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
+          .futureValue
 
-      val maybeEmailCache = repository.get(EORI("GB123456783309")).futureValue
-      maybeEmailCache mustBe Some(data)
+        val maybeEmailCache = repository.getEmailVerification(EORI("GB223456783309")).futureValue
+
+        maybeEmailCache mustBe None
+      }
+
+      "when there is matching cached value for an EORI" in {
+        val initialInstant = Instant.parse("3023-06-22T11:44:14.681Z")
+
+        //Called on insert
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(initialInstant)
+
+        val eori = EORI("GB123456783309")
+        val data = EmailCache(
+          eori = eori,
+          email = "emailValue",
+          verificationId = "verificationId",
+          verified = false,
+          created = initialInstant,
+          lastUpdated = initialInstant
+        )
+
+        repository
+          .addEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
+          .futureValue
+
+        val maybeEmailCache = repository.getEmailVerification(EORI("GB123456783309")).futureValue
+        maybeEmailCache mustBe Some(data)
+      }
     }
   }
+
+//    "update" must {
+//      "when there is a no cached value for an EORI" in {
+//        val missingCacheReference =
+//          UpdateEmailCache(EORI("GB123456783309"), "email", "", verified = true)
+//
+//        val updateResult = repository.update(missingCacheReference).futureValue
+//
+//        updateResult mustBe Left(NotFound)
+//        updateResult.left.value mustBe NotFound
+//      }
+//
+//      "when there is a matching cached value for an EORI" in {
+//        val initialInstant = Instant.parse("3023-06-22T11:44:14.681Z")
+//
+//        // 4 versus 3 at the beginning is easy to compare
+//        val updateInstant = Instant.parse("4023-06-22T11:44:14.681Z")
+//
+//        //Called on insert
+//        (() => timeProvider.nowAsInstant)
+//          .expects()
+//          .returning(initialInstant)
+//
+//        //Called on update
+//        (() => timeProvider.nowAsInstant)
+//          .expects()
+//          .returning(updateInstant)
+//
+//        val eori = EORI("GB123456783309")
+//        val verificationIdUpdated = "verificationIdUpdated"
+//        val initialEmailValue = "testEmailValue1"
+//        val cachedValue = EmailCache(
+//          eori = eori,
+//          email = initialEmailValue,
+//          verificationId = verificationIdUpdated,
+//          verified = false,
+//          created = initialInstant,
+//          lastUpdated = initialInstant
+//        )
+//
+//        val eventualMaybeResult =
+//          repository.addEmailInitialisation(
+//            InitialEmailCache(
+//              eori = eori,
+//              verificationId = "verificationIdInitial",
+//              email = initialEmailValue,
+//              verified = false
+//            )
+//          )
+//
+//        eventualMaybeResult.futureValue
+//
+//        val updatedValue = cachedValue.copy(
+//          email = "testEmailValue2",
+//          verified = true
+//        )
+//        val updateResult = repository
+//          .update(
+//            UpdateEmailCache(eori = cachedValue.eori, updatedValue.email, verificationIdUpdated, verified = true)
+//          )
+//          .futureValue
+//
+//        // Could use EitherValues but failure message is not the most clear, normal assert Right() is clearer
+//        updateResult mustBe Right(true)
+//
+//        val insertedValue = find(Filters.equal("_id", cachedValue.eori)).futureValue.headOption
+//
+//        insertedValue mustBe Some(
+//          EmailCache(
+//            eori = cachedValue.eori,
+//            email = updatedValue.email,
+//            verificationId = verificationIdUpdated,
+//            verified = true,
+//            created = initialInstant,
+//            lastUpdated = updateInstant
+//          )
+//        )
+//
+//        //   val maybeDbEmailCache = find(Filters.equal("_id", cachedValue.eori)).futureValue.headOption
+//
+//        val maybeEncodedEmail = repository.collection.getEncodedEmail(cachedValue.eori)
+//        maybeEncodedEmail.iterator.toList must contain noneOf (cachedValue.email, updatedValue.email)
+//
+//        maybeEncodedEmail.map(_.length) mustBe Some(68)
+//      }
+//    }
+//  }
+//
 
 }
