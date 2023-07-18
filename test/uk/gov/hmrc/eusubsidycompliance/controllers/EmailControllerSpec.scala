@@ -70,7 +70,7 @@ class EmailControllerSpec
           )
         )
 
-        eoriEmailRepositoryMock.expectAdd(returningErrorOrEmailCache = successResponse)
+        eoriEmailRepositoryMock.expectAddEmailInitialisation(returningErrorOrEmailCache = successResponse)
 
         val startEmailVerificationRequest = StartEmailVerificationRequest(eori = eori, emailAddress = emailAddress)
 
@@ -86,7 +86,7 @@ class EmailControllerSpec
           val result = route(app, startVerificationRequest).value
           Helpers.status(result) mustBe Status.CREATED
 
-          eoriEmailRepositoryMock.verifyAdd(initialEmailCache)
+          eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
       }
 
@@ -94,7 +94,7 @@ class EmailControllerSpec
         eoriUuidProviderMock.randomReturns(uuid)
         val failure = Left(EoriEmailRepositoryError("I had a problem"))
 
-        eoriEmailRepositoryMock.expectAdd(returningErrorOrEmailCache = failure)
+        eoriEmailRepositoryMock.expectAddEmailInitialisation(returningErrorOrEmailCache = failure)
 
         val startEmailVerificationRequest = StartEmailVerificationRequest(eori = eori, emailAddress = emailAddress)
 
@@ -110,7 +110,7 @@ class EmailControllerSpec
           val result = route(app, startVerificationRequest).value
           Helpers.status(result) mustBe Status.INTERNAL_SERVER_ERROR
 
-          eoriEmailRepositoryMock.verifyAdd(initialEmailCache)
+          eoriEmailRepositoryMock.verifyAddEmailInitialisation(initialEmailCache)
         }
 
       }
@@ -123,12 +123,12 @@ class EmailControllerSpec
   }
 
   private implicit class EoriEmailRepositoryMock(eoriEmailRepository: EoriEmailRepository) {
-    def expectAdd(returningErrorOrEmailCache: Either[EoriEmailRepositoryError, EmailCache]): Unit =
+    def expectAddEmailInitialisation(returningErrorOrEmailCache: Either[EoriEmailRepositoryError, EmailCache]): Unit =
       Mockito
         .when(eoriEmailRepository.addEmailInitialisation(ArgumentMatchers.any()))
         .thenReturn(Future.successful(returningErrorOrEmailCache))
 
-    def verifyAdd(initialEmailCache: InitialEmailCache): Unit =
+    def verifyAddEmailInitialisation(initialEmailCache: InitialEmailCache): Unit =
       Mockito.verify(eoriEmailRepository).addEmailInitialisation(initialEmailCache)
   }
 

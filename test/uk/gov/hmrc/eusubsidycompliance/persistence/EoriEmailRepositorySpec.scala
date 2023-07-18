@@ -75,20 +75,14 @@ class EoriEmailRepositorySpec
     timeProvider = timeProvider
   )
 
-  "addEmailInitialisation" must {
-    "save the detail, with verification flag as false" in {
+  "EoriEmailRepositorySpec" must {
+    "addEmailInitialisation" should {
       val initialEmailCache =
         InitialEmailCache(EORI("GB123456783306"), "emailValueSet", "verificationIdSet", verified = false)
 
       val instant = Instant.parse("2023-06-22T11:44:14.681Z")
-      (() => timeProvider.nowAsInstant)
-        .expects()
-        .returning(instant)
 
-      val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
-      val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
-
-      val expected =
+      val expectedOriginalEntry =
         EmailCache(
           eori = initialEmailCache.eori,
           email = initialEmailCache.email,
@@ -98,20 +92,50 @@ class EoriEmailRepositorySpec
           lastUpdated = instant
         )
 
-      errorOrEmailCache mustBe Right(expected)
-      insertedValue mustBe Some(expected)
+      "save the detail, with verification flag as false" in {
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(instant)
 
-      // OptionValues and EitherValues don't give the best failure messages (not very concise)
-      // A bit too success happy. Breaks diff ability in Intellij as well
-      val maybeEncodedEmail = repository.collection.getEncodedEmail(initialEmailCache.eori)
-      maybeEncodedEmail must not be Some(
-        initialEmailCache.email
-      )
+        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
 
-      maybeEncodedEmail.map(_.length) mustBe Some(68)
+        errorOrEmailCache mustBe Right(expectedOriginalEntry)
+        insertedValue mustBe Some(expectedOriginalEntry)
+
+        // OptionValues and EitherValues don't give the best failure messages (not very concise)
+        // A bit too success happy. Breaks diff ability in Intellij as well
+        val maybeEncodedEmail = repository.collection.getEncodedEmail(initialEmailCache.eori)
+        maybeEncodedEmail must not be Some(initialEmailCache.email)
+        maybeEncodedEmail.map(_.length) mustBe Some(68)
+      }
+
+      "raise an error if a record with the EORI exists" in {
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(instant)
+
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(instant.plus(30, ChronoUnit.DAYS))
+
+        repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache =
+          repository.addEmailInitialisation(initialEmailCache.copy(email = "anotherEmail")).futureValue
+        val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+
+        errorOrEmailCache.left.map(_.getClass) mustBe Left(classOf[EoriEmailRepositoryError])
+        insertedValue mustBe Some(expectedOriginalEntry)
+
+        // OptionValues and EitherValues don't give the best failure messages (not very concise)
+        // A bit too success happy. Breaks diff ability in Intellij as well
+        val maybeEncodedEmail = repository.collection.getEncodedEmail(initialEmailCache.eori)
+        maybeEncodedEmail must not be Some(initialEmailCache.email)
+        maybeEncodedEmail.map(_.length) mustBe Some(68)
+      }
     }
 
-    "markEoriAsVerified" must {
+    "markEoriAsVerified" should {
       "succeed if eori is found" in {
         val eori = EORI("GB223456783307")
         val initialEmailCache =
