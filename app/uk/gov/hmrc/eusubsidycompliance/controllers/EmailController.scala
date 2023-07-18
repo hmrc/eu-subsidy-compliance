@@ -101,7 +101,22 @@ class EmailController @Inject() (
     implicit request => _ =>
       withJsonBody[ApproveEmailByVerificationIdRequest] {
         approveEmailByVerificationIdRequest: ApproveEmailByVerificationIdRequest =>
-          ???
+          val eori = approveEmailByVerificationIdRequest.eori
+          val verificationId = approveEmailByVerificationIdRequest.verificationId
+          eoriEmailRepository
+            .markEmailAsVerifiedByVerificationId(eori, verificationId)
+            .map {
+              case Left(error) => ???
+              case Right(maybeWriteSuccess) =>
+                maybeWriteSuccess
+                  .map { (__ : WriteSuccess.type) =>
+                    val message = s"EORI $eori with verification id $verificationId has been marked as verified"
+                    logger.info(message)
+                    Ok(JsString(message))
+                  }
+                  .getOrElse(???)
+
+            }
       }
   }
 

@@ -24,7 +24,7 @@ import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
-import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
+import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, ApproveEmailByVerificationIdRequest, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
 import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache, WriteSuccess}
 import uk.gov.hmrc.eusubsidycompliance.shared.PlayBaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
@@ -190,7 +190,57 @@ class EmailControllerSpec
     }
 
     "approveEmailByVerificationId" should {
-      "return OK on a success when the EORI with the validation id is pending approval" in {}
+      "return OK on a success when the EORI with the validation id is makred as approved" in {
+        val eori = EORI("GB123443211233")
+        val verificationId = "verification-id"
+        eoriEmailRepositoryMock.expectMarkEoriAsVerifiedByVerificationId(
+          eori = eori,
+          verificationId = verificationId
+        )(
+          returningErrorOrMaybeEmailCache = Right(Some(WriteSuccess))
+        )
+
+        val app = configuredAppInstance
+        Helpers.running(app) {
+          val verifyByEoriUri = routes.EmailController.approveEmailByVerificationId.url
+          val approveByEoriHttpRequest =
+            createPostRequest(verifyByEoriUri, Json.toJson(ApproveEmailByVerificationIdRequest(eori, verificationId)))
+
+          FakeRequest(POST, verifyByEoriUri).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
+
+          val result = route(app, approveByEoriHttpRequest).value
+          Helpers.status(result) mustBe Status.OK
+          Helpers.contentAsJson(result) mustBe JsString(
+            s"EORI $eori with verification id $verificationId has been marked as verified"
+          )
+        }
+      }
+
+      "return NotFound on a success when the EORI with the validation id is makred as approved" in {
+        val eori = EORI("GB123443211233")
+        val verificationId = "verification-id"
+        eoriEmailRepositoryMock.expectMarkEoriAsVerifiedByVerificationId(
+          eori = eori,
+          verificationId = verificationId
+        )(
+          returningErrorOrMaybeEmailCache = Right(None)
+        )
+
+        val app = configuredAppInstance
+        Helpers.running(app) {
+          val verifyByEoriUri = routes.EmailController.approveEmailByVerificationId.url
+          val approveByEoriHttpRequest =
+            createPostRequest(verifyByEoriUri, Json.toJson(ApproveEmailByVerificationIdRequest(eori, verificationId)))
+
+          FakeRequest(POST, verifyByEoriUri).withHeaders(CONTENT_TYPE -> MimeTypes.JSON)
+
+          val result = route(app, approveByEoriHttpRequest).value
+          Helpers.status(result) mustBe Status.NOT_FOUND
+          Helpers.contentAsJson(result) mustBe JsString(
+            s"EORI $eori with verification id $verificationId has been marked as verified"
+          )
+        }
+      }
     }
   }
 
