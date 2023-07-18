@@ -51,6 +51,8 @@ case object NotFound
 case class EoriEmailRepositoryError(message: String, maybeCause: Option[Throwable] = None)
     extends RuntimeException(message, maybeCause.orNull)
 
+case object WriteSuccess
+
 @Singleton
 class EoriEmailRepository @Inject() (
   mongoComponent: MongoComponent,
@@ -70,7 +72,7 @@ class EoriEmailRepository @Inject() (
 
   def addEmailInitialisation(
     initialEmailCache: InitialEmailCache
-  ): Future[Either[EoriEmailRepositoryError, EmailCache]] = {
+  ): Future[Either[EoriEmailRepositoryError, WriteSuccess.type]] = {
     val now = timeProvider.nowAsInstant
     collection
       .insertOne(
@@ -78,17 +80,17 @@ class EoriEmailRepository @Inject() (
         options = InsertOneOptions().ensuring(true)
       )
       .toFuture()
-      .flatMap { _ =>
-        getEmailVerification(initialEmailCache.eori).map { errorOrMaybeEmailCache =>
-          val errorOrEmailCache = errorOrMaybeEmailCache.map { maybeEmailCache =>
-            maybeEmailCache
-              .map(Right.apply)
-              .getOrElse(
-                Left(EoriEmailRepositoryError(s"Failed adding then retrieving email for ${initialEmailCache.eori}"))
-              )
-          }.flatten
-          errorOrEmailCache
+      .map { insertOneResult: InsertOneResult =>
+        if (insertOneResult.wasAcknowledged()) {
+          Right(WriteSuccess)
+        } else {
+          Left(
+            EoriEmailRepositoryError(
+              s"Failed addEmailInitialisation for EORI ${initialEmailCache.eori} - the write was not acknowledged"
+            )
+          )
         }
+
       }
       .recover { case e: Throwable =>
         Left(
@@ -100,16 +102,20 @@ class EoriEmailRepository @Inject() (
       }
   }
 
-  def markEmailAsVerifiedByEori(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[EmailCache]]] = {
+  def markEmailAsVerifiedByEori(eori: EORI): Future[Either[EoriEmailRepositoryError, Option[WriteSuccess.type]]] = {
     val inputDocument = createVerifiedUpdateDocument
 
     collection
       .updateOne(Filters.eq("_id", eori), Document("$set" -> Document(inputDocument)))
       .toFuture()
-      .flatMap(_ => getEmailVerification(eori))
-      .map(Right.apply)
-      .recover(error => Left(EoriEmailRepositoryError(s"Failed markEoriAsVerified for EORI:$eori", Some(error))))
-      .map(_.flatten)
+      .map { updateResult: UpdateResult =>
+        if (updateResult.getModifiedCount > 0) {
+          Right(Some(WriteSuccess))
+        } else {
+          Right(None)
+        }
+      }
+
   }
 
   private def createVerifiedUpdateDocument = {

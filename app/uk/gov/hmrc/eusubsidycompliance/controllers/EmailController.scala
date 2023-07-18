@@ -22,7 +22,7 @@ import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, ApproveEmailByVerificationIdRequest, ConnectorError, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
-import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache}
+import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache, WriteSuccess}
 import uk.gov.hmrc.eusubsidycompliance.util.UuidProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -56,11 +56,13 @@ class EmailController @Inject() (
           val errorMessage = s"Failed starting verification for email EORI ${startEmailVerificationRequest.eori}"
           logger.error(errorMessage, error)
           InternalServerError(JsString(errorMessage))
-        case Right(emailCache) =>
-          logger.info(
+        case Right(writeWasAknowledged) =>
+          val successMessage =
             s"successfully added startVerification for email EORI ${startEmailVerificationRequest.eori}"
+          logger.info(
+            successMessage
           )
-          Created(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
+          Created(Json.toJson(successMessage))
       }
     }
   }
@@ -78,11 +80,12 @@ class EmailController @Inject() (
                 s"There was an error approving the email for EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify}"
               )
             )
-          case Right(maybeEmailCache) =>
-            maybeEmailCache
-              .map { emailCache =>
-                logger.info(s"EORI ${emailCache.eori} have been verified")
-                Ok(Json.toJson(VerifiedEmailResponse.fromEmailCache(emailCache)))
+          case Right(maybeWriteSuccess) =>
+            maybeWriteSuccess
+              .map { _: WriteSuccess.type =>
+                val message = s"EORI ${approveEmailAsVerifiedByEoriRequest.eoriToVerify} have been verified"
+                logger.info(message)
+                Ok(JsString(message))
               }
               .getOrElse {
                 val message =

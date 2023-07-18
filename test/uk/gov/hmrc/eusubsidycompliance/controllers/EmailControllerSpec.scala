@@ -25,7 +25,7 @@ import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.eusubsidycompliance.models.{ApproveEmailAsVerifiedByEoriRequest, EmailCache, StartEmailVerificationRequest, VerifiedEmailResponse}
-import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache}
+import uk.gov.hmrc.eusubsidycompliance.persistence.{EoriEmailRepository, EoriEmailRepositoryError, InitialEmailCache, WriteSuccess}
 import uk.gov.hmrc.eusubsidycompliance.shared.PlayBaseSpec
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.util.UuidProvider
@@ -68,9 +68,9 @@ class EmailControllerSpec
           lastUpdated = Instant.EPOCH
         )
 
-        val successResponse = Right(createdEmailCache)
+        val successResponse = Right(WriteSuccess)
 
-        eoriEmailRepositoryMock.expectAddEmailInitialisation(returningErrorOrEmailCache = successResponse)
+        eoriEmailRepositoryMock.expectAddEmailInitialisation(emailRepositoryErrorOrSuccess = successResponse)
 
         val startEmailVerificationRequest = StartEmailVerificationRequest(eori = eori, emailAddress = emailAddress)
 
@@ -97,7 +97,7 @@ class EmailControllerSpec
         eoriUuidProviderMock.randomReturns(uuid)
         val failure = Left(EoriEmailRepositoryError("I had a problem"))
 
-        eoriEmailRepositoryMock.expectAddEmailInitialisation(returningErrorOrEmailCache = failure)
+        eoriEmailRepositoryMock.expectAddEmailInitialisation(emailRepositoryErrorOrSuccess = failure)
 
         val startEmailVerificationRequest = StartEmailVerificationRequest(eori = eori, emailAddress = emailAddress)
 
@@ -121,18 +121,11 @@ class EmailControllerSpec
     }
 
     "approveEmailByEori" should {
-      "return OK on a success" in {
+      "return OK on a success when the EORI is pending approval" in {
         val eori = EORI("GB123443211231")
-        val verifiedEmailCache = EmailCache(
-          eori = eori,
-          email = "",
-          verificationId = "",
-          verified = true,
-          created = Instant.now,
-          lastUpdated = Instant.now
-        )
-        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
-          returningErrorOrMaybeEmailCache = Right(Some(verifiedEmailCache))
+
+        eoriEmailRepositoryMock.expectMarkEoriAsVerifiedByEori(eori)(
+          returningErrorOrMaybeEmailCache = Right(Some(WriteSuccess))
         )
 
         val app = configuredAppInstance
@@ -145,8 +138,8 @@ class EmailControllerSpec
 
           val result = route(app, approveByEoriHttpRequest).value
           Helpers.status(result) mustBe Status.OK
-          Helpers.contentAsJson(result) mustBe Json.toJson(
-            VerifiedEmailResponse.fromEmailCache(verifiedEmailCache)
+          Helpers.contentAsJson(result) mustBe JsString(
+            ""
           )
 
         }
@@ -154,7 +147,7 @@ class EmailControllerSpec
 
       "return Not found when the EORI is not found" in {
         val eori = EORI("GB123443211232")
-        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
+        eoriEmailRepositoryMock.expectMarkEoriAsVerifiedByEori(eori)(
           returningErrorOrMaybeEmailCache = Right(None)
         )
 
@@ -174,7 +167,7 @@ class EmailControllerSpec
 
       "return a friendly error message on failure" in {
         val eori = EORI("GB123443211233")
-        eoriEmailRepositoryMock.expectMarkEoriAsVerified(eori)(
+        eoriEmailRepositoryMock.expectMarkEoriAsVerifiedByEori(eori)(
           returningErrorOrMaybeEmailCache = Left(EoriEmailRepositoryError("I had problems"))
         )
 
@@ -195,22 +188,35 @@ class EmailControllerSpec
       }
     }
 
+    "approveEmailByVerificationId" should {
+      "return OK on a success when the EORI with the validation id is pending approval" in {}
+    }
   }
 
   private implicit class EoriEmailRepositoryMock(eoriEmailRepository: EoriEmailRepository) {
-    def expectAddEmailInitialisation(returningErrorOrEmailCache: Either[EoriEmailRepositoryError, EmailCache]): Unit =
+    def expectAddEmailInitialisation(
+      emailRepositoryErrorOrSuccess: Either[EoriEmailRepositoryError, WriteSuccess.type]
+    ): Unit =
       Mockito
         .when(eoriEmailRepository.addEmailInitialisation(ArgumentMatchers.any()))
-        .thenReturn(Future.successful(returningErrorOrEmailCache))
+        .thenReturn(Future.successful(emailRepositoryErrorOrSuccess))
 
     def verifyAddEmailInitialisation(initialEmailCache: InitialEmailCache): Unit =
       Mockito.verify(eoriEmailRepository).addEmailInitialisation(initialEmailCache)
 
-    def expectMarkEoriAsVerified(
+    def expectMarkEoriAsVerifiedByEori(
       eori: EORI
-    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]]): Unit =
+    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[WriteSuccess.type]]): Unit =
       Mockito
         .when(eoriEmailRepository.markEmailAsVerifiedByEori(eori = eori))
+        .thenReturn(Future.successful(returningErrorOrMaybeEmailCache))
+
+    def expectMarkEoriAsVerifiedByVerificationId(
+      eori: EORI,
+      verificationId: String
+    )(returningErrorOrMaybeEmailCache: Either[EoriEmailRepositoryError, Option[EmailCache]]): Unit =
+      Mockito
+        .when(eoriEmailRepository.markEmailAsVerifiedByVerificationId(eori = eori, verificationId = verificationId))
         .thenReturn(Future.successful(returningErrorOrMaybeEmailCache))
 
   }
