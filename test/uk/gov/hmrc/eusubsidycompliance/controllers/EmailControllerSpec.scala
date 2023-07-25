@@ -249,11 +249,11 @@ class EmailControllerSpec
       emailRepositoryErrorOrSuccess: Either[EoriEmailRepositoryError, WriteSuccess.type]
     ): Unit =
       Mockito
-        .when(eoriEmailRepository.addEmailInitialisation(ArgumentMatchers.any()))
+        .when(eoriEmailRepository.setEmailInitialisation(ArgumentMatchers.any()))
         .thenReturn(Future.successful(emailRepositoryErrorOrSuccess))
 
     def verifyAddEmailInitialisation(initialEmailCache: InitialEmailCache): Unit =
-      Mockito.verify(eoriEmailRepository).addEmailInitialisation(initialEmailCache)
+      Mockito.verify(eoriEmailRepository).setEmailInitialisation(initialEmailCache)
 
     def expectMarkEoriAsVerifiedByEori(
       eori: EORI

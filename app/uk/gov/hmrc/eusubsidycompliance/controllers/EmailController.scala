@@ -49,7 +49,7 @@ class EmailController @Inject() (
 
       logger.info(s"startVerification for email eori ${startEmailVerificationRequest.eori}")
 
-      val eventualErrorOrEmailCache = eoriEmailRepository.addEmailInitialisation(initialEmailCache)
+      val eventualErrorOrEmailCache = eoriEmailRepository.setEmailInitialisation(initialEmailCache)
 
       eventualErrorOrEmailCache.map {
         case Left(error) =>

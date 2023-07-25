@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.eusubsidycompliance.persistence
 
+import com.mongodb.BasicDBObject
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.model.{Filters, InsertOneOptions, ReplaceOptions, Updates}
+import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, InsertOneOptions, ReplaceOptions, ReturnDocument, Updates}
 import org.mongodb.scala.result.{InsertOneResult, UpdateResult}
+import play.api.libs.json.JsObject
+import play.libs.Json
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter, Sensitive}
+import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.{EmailCache, UpdateEmailCache}
 import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -51,7 +55,9 @@ case object NotFound
 case class EoriEmailRepositoryError(message: String, maybeCause: Option[Throwable] = None)
     extends RuntimeException(message, maybeCause.orNull)
 
-case object WriteSuccess
+sealed trait RegisterStatus
+case object WriteSuccess extends RegisterStatus
+case object UpdateSuccess extends RegisterStatus
 
 @Singleton
 class EoriEmailRepository @Inject() (
@@ -68,15 +74,51 @@ class EoriEmailRepository @Inject() (
       optSchema = None,
       replaceIndexes = false,
       extraCodecs = Seq.empty
-    ) {
+    )
+    with TracedLogging {
 
-  def addEmailInitialisation(
+  def setEmailInitialisation(
+    initialEmailCache: InitialEmailCache
+  ): Future[Either[EoriEmailRepositoryError, RegisterStatus]] = {
+    val now = timeProvider.nowAsInstant
+
+    collection
+      .replaceOne(
+        filter = Filters.equal("_id", initialEmailCache.eori),
+        initialEmailCache.asEmailCache(now, now),
+        options = ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+      .map { updateResult: UpdateResult =>
+        if (updateResult.getMatchedCount > 0) {
+          Right(UpdateSuccess)
+        } else if (updateResult.wasAcknowledged) {
+          Right(WriteSuccess)
+        } else {
+          Left(
+            EoriEmailRepositoryError(
+              s"Failed setEmailInitialisation for EORI ${initialEmailCache.eori} - the write was not acknowledged"
+            )
+          )
+        }
+      }
+      .recover { case e: Throwable =>
+        Left(
+          EoriEmailRepositoryError(
+            s"Failed setEmailInitialisation for EORI ${initialEmailCache.eori} - ${e.getMessage}",
+            Some(e)
+          )
+        )
+      }
+  }
+
+  def addEmailInitialisation2(
     initialEmailCache: InitialEmailCache
   ): Future[Either[EoriEmailRepositoryError, WriteSuccess.type]] = {
     val now = timeProvider.nowAsInstant
     collection
       .insertOne(
-        initialEmailCache.asEmailCache(now, now),
+        document = initialEmailCache.asEmailCache(now, now),
         options = InsertOneOptions().ensuring(true)
       )
       .toFuture()

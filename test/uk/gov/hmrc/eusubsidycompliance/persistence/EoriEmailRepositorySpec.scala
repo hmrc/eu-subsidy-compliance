@@ -76,7 +76,7 @@ class EoriEmailRepositorySpec
   )
 
   "EoriEmailRepositorySpec" must {
-    "addEmailInitialisation" should {
+    "setEmailInitialisation" should {
       val initialEmailCache =
         InitialEmailCache(EORI("GB123456783306"), "emailValueSet", "verificationIdSet", verified = false)
 
@@ -89,7 +89,7 @@ class EoriEmailRepositorySpec
           .expects()
           .returning(createdInstant)
 
-        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache = repository.setEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(WriteSuccess)
 
         val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
@@ -102,28 +102,51 @@ class EoriEmailRepositorySpec
         maybeEncodedEmail.map(_.length) mustBe Some(68)
       }
 
-      "raise an error if a record with the EORI exists" in {
+      "replace an existing validated email with an unvalidate email" in {
         (() => timeProvider.nowAsInstant)
           .expects()
           .returning(createdInstant)
 
         (() => timeProvider.nowAsInstant)
           .expects()
-          .returning(createdInstant.plus(30, ChronoUnit.DAYS))
+          .returning(createdInstant)
 
-        repository.addEmailInitialisation(initialEmailCache).futureValue
+        val updatedInstant = createdInstant.plus(30, ChronoUnit.DAYS)
+        (() => timeProvider.nowAsInstant)
+          .expects()
+          .returning(updatedInstant)
+
+        //Control so we can verify only one updates
+        val otherCacheEntry =
+          InitialEmailCache(EORI("GB923456783306"), "emailValueSet", "verificationIdSet", verified = false)
+
+        repository.setEmailInitialisation(initialEmailCache).futureValue mustBe Right(WriteSuccess)
+        repository.setEmailInitialisation(otherCacheEntry).futureValue mustBe Right(WriteSuccess)
+
+        val updatedEmailCache = initialEmailCache.copy(email = "anotherEmail")
+
         val errorOrEmailCache =
-          repository.addEmailInitialisation(initialEmailCache.copy(email = "anotherEmail")).futureValue
-        val insertedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+          repository.setEmailInitialisation(updatedEmailCache).futureValue
 
-        errorOrEmailCache.left.map(_.getClass) mustBe Left(classOf[EoriEmailRepositoryError])
-        insertedValue mustBe Some(expectedOriginalEntry)
+        errorOrEmailCache mustBe Right(UpdateSuccess)
 
-        // OptionValues and EitherValues don't give the best failure messages (not very concise)
-        // A bit too success happy. Breaks diff ability in Intellij as well
-        val maybeEncodedEmail = repository.collection.getEncodedEmail(initialEmailCache.eori)
-        maybeEncodedEmail must not be Some(initialEmailCache.email)
-        maybeEncodedEmail.map(_.length) mustBe Some(68)
+        withClue("updated value is retrievable unencrypted") {
+          val updatedValue = find(Filters.equal("_id", initialEmailCache.eori)).futureValue.headOption
+          updatedValue mustBe Some(EmailCache.createUnverifiedInitialEmailCache(updatedEmailCache, updatedInstant))
+        }
+
+        withClue("record has been updated in an encrypted fashion") {
+          // OptionValues and EitherValues don't give the best failure messages (not very concise)
+          // A bit too success happy. Breaks diff ability in Intellij as well
+          val maybeEncodedEmail = repository.collection.getEncodedEmail(updatedEmailCache.eori)
+          maybeEncodedEmail must not be Some(updatedEmailCache.email)
+          maybeEncodedEmail.map(_.length) mustBe Some(64)
+        }
+
+        withClue("other value in store is not affected in the update") {
+          val updatedValue = find(Filters.equal("_id", otherCacheEntry.eori)).futureValue.headOption
+          updatedValue mustBe Some(EmailCache.createUnverifiedInitialEmailCache(otherCacheEntry, createdInstant))
+        }
       }
     }
 
@@ -146,7 +169,7 @@ class EoriEmailRepositorySpec
         val emailCacheBeforeVerification =
           EmailCache.createUnverifiedInitialEmailCache(initialEmailCache, createdInstant)
 
-        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache = repository.setEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(WriteSuccess)
 
         val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
@@ -197,7 +220,7 @@ class EoriEmailRepositorySpec
           .expects()
           .returning(createdInstant)
 
-        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache = repository.setEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(WriteSuccess)
 
         val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
@@ -232,7 +255,7 @@ class EoriEmailRepositorySpec
           .expects()
           .returning(createdInstant)
 
-        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache = repository.setEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(WriteSuccess)
 
         val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
@@ -264,7 +287,7 @@ class EoriEmailRepositorySpec
           .expects()
           .returning(createdInstant)
 
-        val errorOrEmailCache = repository.addEmailInitialisation(initialEmailCache).futureValue
+        val errorOrEmailCache = repository.setEmailInitialisation(initialEmailCache).futureValue
         errorOrEmailCache mustBe Right(WriteSuccess)
 
         val updatedInstant = Instant.parse("3023-06-22T11:44:14.681Z")
@@ -332,7 +355,7 @@ class EoriEmailRepositorySpec
         )
 
         repository
-          .addEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
+          .setEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
           .futureValue
 
         val maybeEmailCache = repository.getEmailVerification(EORI("GB223456783309")).futureValue
@@ -359,7 +382,7 @@ class EoriEmailRepositorySpec
         )
 
         repository
-          .addEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
+          .setEmailInitialisation(InitialEmailCache(data.eori, data.verificationId, data.email, data.verified))
           .futureValue
 
         val maybeEmailCache = repository.getEmailVerification(EORI("GB123456783309")).futureValue
