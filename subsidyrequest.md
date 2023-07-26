@@ -46,16 +46,19 @@ scp/amendundertakingsubsidyusage/v1
 
 ## UndertakingSubsidies response from EIS
 
-This comprises the 2 types of subsidies. This response holds currency totals across Euros and Pounds.
+This comprises the 2 types of subsidies. This response holds currency totals across Euros and Pounds for both types of subsidies.
 
+**Non hmrc subsidy totals**
 * nonHMRCSubsidyTotalEUR
 * nonHMRCSubsidyTotalGBP
+
+**HMRC subsidy totals**
+* hmrcSubsidyTotalEUR
+* hmrcSubsidyTotalGBP
 
 Can this cause currency conversion issues on request (ERRORCODE=202)? 
 
 The non hmrc subsidies are what we create and have no currency info on creation. So is it generating the values on the fly?
-
-
 
 ## Subsidy types
 
