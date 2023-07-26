@@ -48,7 +48,7 @@ scp/amendundertakingsubsidyusage/v1
 
 This comprises the 2 types of subsidies. This response holds currency totals across Euros and Pounds for both types of subsidies.
 
-**Non hmrc subsidy totals**
+**Non HMRC subsidy totals**
 * nonHMRCSubsidyTotalEUR
 * nonHMRCSubsidyTotalGBP
 
