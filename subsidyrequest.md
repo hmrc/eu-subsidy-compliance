@@ -51,7 +51,9 @@ This comprises the 2 types of subsidies. This response holds currency totals acr
 * nonHMRCSubsidyTotalEUR
 * nonHMRCSubsidyTotalGBP
 
-Can this cause currency conversion issues on request? (ERRORCODE=202)
+Can this cause currency conversion issues on request (ERRORCODE=202)? 
+
+The non hmrc subsidies are what we create and have no currency info on creation. So is it generating the values on the fly?
 
 
 
