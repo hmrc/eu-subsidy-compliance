@@ -2,32 +2,7 @@
 
 # Undertaking/Subsidy request
 
-On EIS to get subsidies we call 
-```
-scp/getundertakingtransactions/v1
-```
-
-To update subsidies we call
-
-```
-scp/amendundertakingsubsidyusage/v1
-```
-
-
-We have 2 types of subsidy. 
-
-## HmrcSubsidy
-We do not register this type, only retrieve. Where does this come from as it keeps track of currency related
-information?
-
-This type has both 
-
-* hmrcSubsidyAmtGBP
-* hmrcSubsidyAmtEUR
-
-Optional fields. This type possibly fires on the fly conversions, this possibly causes the failure for GB123456123456 internally 
-in EIS.
-
+## Error when doing a scp/getundertakingtransactions/v1 request for GB123456123456
 **ERRORCODE,202. Error while fetching the Currency conversion values**
 
 ```
@@ -55,11 +30,53 @@ at java.base/java.util.concurrent.ForkJoinPool.scan(Unknown Source)
 at java.base/java.util.concurrent.ForkJoinPool.runWorker(Unknown Source) 
 at java.base/java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
 ```
+
+## Endpoints
+
+On EIS to get subsidies we call 
+```
+scp/getundertakingtransactions/v1
+```
+
+To update subsidies we call
+
+```
+scp/amendundertakingsubsidyusage/v1
+```
+
+## UndertakingSubsidies response from EIS
+
+This comprises the 2 types of subsidies. This response holds currency totals across Euros and Pounds.
+
+* nonHMRCSubsidyTotalEUR
+* nonHMRCSubsidyTotalGBP
+
+Can this cause currency conversion issues on request? (ERRORCODE=202)
+
+
+
+## Subsidy types
+
+We have 2 types of subsidy. We only create one of the types, hence we get confused due to the fact it is currency agsnotic.
+
+### HmrcSubsidy
+We do not register this type, only retrieve. Where does this come from as it keeps track of currency-related
+information?
+
+This type has both 
+
+* hmrcSubsidyAmtGBP
+* hmrcSubsidyAmtEUR
+
+Optional fields. This type possibly fires on the fly conversion? This could also possibly cause the failure for GB123456123456 internally 
+in EIS as well as the total calculations.
+
+
 How do these records get created?
 
-## NonHmrcSubsidy
+### NonHmrcSubsidy
 
-Has values in EUR only. This is the value we actually send to the subsidy create in the service, hence the confusion why things 
+Has values in EUR only. This is the value we actually send to the subsidy update in the service, hence the confusion why things 
 blow up on conversion.
 
 
