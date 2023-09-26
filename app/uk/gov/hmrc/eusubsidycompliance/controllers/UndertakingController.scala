@@ -24,6 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisStatus, GetUndertakingBalanceRequest}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -173,6 +174,17 @@ class UndertakingController @Inject() (
       }
 
       eventualResult
+    }
+  }
+
+  def getUndertakingBalance(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
+    eisConnector.getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI(eori)))).map { response =>
+      response.undertakingBalanceResponse.responseCommon.status match {
+        case EisStatus.OK => Ok(Json.toJson(response.undertakingBalanceResponse.responseDetail))
+        case _ =>
+          logger.warn(s"undertaking with eori: $eori not found")
+          NotFound
+      }
     }
   }
 

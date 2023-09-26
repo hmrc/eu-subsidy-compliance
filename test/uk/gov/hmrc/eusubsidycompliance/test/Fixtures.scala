@@ -17,10 +17,11 @@
 package uk.gov.hmrc.eusubsidycompliance.test
 
 import shapeless.tag.@@
-import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, EisParamValue, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisParamName, EisStatus, EisStatusString, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse, Params, ResponseCommon, UndertakingBalance, UndertakingBalanceResponse}
 
-import java.time.{Instant, LocalDate, ZoneId}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 object Fixtures {
 
@@ -93,5 +94,43 @@ object Fixtures {
   )
 
   val exchangeRate: ExchangeRate = ExchangeRate(BigDecimal(0.80))
+
+  val undertakingBalanceResponse = UndertakingBalanceResponse(
+    undertakingIdentifier = undertakingReference,
+    nonHMRCSubsidyAllocationEUR = None,
+    hmrcSubsidyAllocationEUR = None,
+    industrySectorLimit = industrySectorLimit,
+    availableBalanceEUR = subsidyAmount,
+    availableBalanceGBP = subsidyAmount,
+    conversionRate = SubsidyAmount(1.2),
+    nationalCapBalanceEUR = industrySectorLimit
+  )
+
+  val validUndertakingBalanceApiRequest = GetUndertakingBalanceRequest(eori = Some(eori))
+  val validUndertakingBalanceApiResponse = GetUndertakingBalanceApiResponse(
+    GetUndertakingBalanceResponse(responseDetail = Some(undertakingBalanceResponse))
+  )
+  val undertakingBalanceApiErrorResponse = GetUndertakingBalanceApiResponse(
+    GetUndertakingBalanceResponse(
+      responseDetail = None,
+      responseCommon = ResponseCommon(
+        EisStatus.NOT_OK,
+        EisStatusString("String"), //verbatim from spec
+        LocalDateTime.now,
+        Some(
+          List(
+            Params(
+              EisParamName.ERRORCODE,
+              EisParamValue("107")
+            ),
+            Params(
+              EisParamName.ERRORTEXT,
+              EisParamValue("some not found error")
+            )
+          )
+        )
+      )
+    )
+  )
 
 }
