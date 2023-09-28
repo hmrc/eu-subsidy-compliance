@@ -8,6 +8,8 @@ POST       /undertaking/update                              uk.gov.hmrc.eusubsid
 POST       /undertaking/member/:undertakingRef              uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.addMember(undertakingRef)
 POST       /undertaking/member/remove/:undertakingRef       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.deleteMember(undertakingRef)
 
+GET        /undertaking/balance/:eori                       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.getUndertakingBalance(eori)
+
 POST       /subsidy/update                                  uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.updateSubsidy()
 
 POST       /undertaking/disable                             uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.disableUndertaking()

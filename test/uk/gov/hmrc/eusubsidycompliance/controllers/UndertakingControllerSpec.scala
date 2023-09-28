@@ -30,6 +30,7 @@ import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse}
 import uk.gov.hmrc.eusubsidycompliance.test.FakeAuthenticator
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
@@ -298,6 +299,57 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       }
     }
 
+    "get undertaking balance is called" should {
+
+      "return a valid response for a successful request with no date range" in {
+
+        givenGetUndertakingBalanceReturns(Future.successful(validUndertakingBalanceApiResponse))
+
+        val app = configuredAppInstance
+
+        running(app) {
+
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+            .withHeaders(CONTENT_TYPE -> JSON)
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+          contentAsJson(result) mustBe Json.toJson(
+            validUndertakingBalanceApiResponse.undertakingBalanceResponse.responseDetail
+          )
+        }
+      }
+
+      "return a not found response when anything other than a status OK is received" in {
+
+        givenGetUndertakingBalanceReturns(Future.successful(undertakingBalanceApiErrorResponse))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+            .withHeaders(CONTENT_TYPE -> JSON)
+          val result = route(app, request).value
+
+          status(result) mustBe NOT_FOUND
+        }
+      }
+
+      "throw an exception if the call to EIS fails" in {
+        givenGetUndertakingBalanceReturns(Future.failed(new RuntimeException("Something failed")))
+
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+            .withHeaders(CONTENT_TYPE -> JSON)
+
+          route(app, request).value.failed.futureValue mustBe a[RuntimeException]
+        }
+      }
+
+    }
+
   }
 
   private def fakeJsonPost(url: String) =
@@ -315,6 +367,12 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       bind[Authenticator].to(new FakeAuthenticator)
     )
     .build()
+
+  private def givenGetUndertakingBalanceReturns(res: Future[GetUndertakingBalanceApiResponse]): Unit =
+    (mockEisConnector
+      .getUndertakingBalance(_: GetUndertakingBalanceRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(validUndertakingBalanceApiRequest, *, *)
+      .returning(res)
 
   private def givenRetrieveSubsidiesReturns(res: Future[UndertakingSubsidies]): Unit =
     (mockEisConnector

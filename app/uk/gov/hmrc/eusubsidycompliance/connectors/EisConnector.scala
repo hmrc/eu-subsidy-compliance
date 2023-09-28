@@ -23,7 +23,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseExcepti
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -47,6 +47,7 @@ class EisConnector @Inject() (
   private val amendBusinessEntityPath = "scp/amendundertakingmemberdata/v1"
   private val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
   private val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
+  private val getUndertakingBalancePath = "scp/getsamundertakingbalance/v1"
 
   def retrieveUndertaking(
     eori: EORI
@@ -243,6 +244,28 @@ class EisConnector @Inject() (
     )
 
     eventualUndertakingSubsidies
+  }
+
+  def getUndertakingBalance(
+    request: GetUndertakingBalanceRequest
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[GetUndertakingBalanceApiResponse] = {
+
+    val eisTokenKey = "eis.token.scp08"
+
+    val eventualUndertakingBalance = desPost[GetUndertakingBalanceRequest, GetUndertakingBalanceApiResponse](
+      s"$eisURL/$getUndertakingBalancePath",
+      request,
+      eisTokenKey
+    )(implicitly, implicitly, addHeaders, implicitly)
+
+    eventualUndertakingBalance.failed.foreach(error =>
+      logger.error(
+        s"failed getUndertakingBalance GetUndertakingBalanceRequest: $request",
+        error
+      )
+    )
+
+    eventualUndertakingBalance
   }
 
 }

@@ -23,9 +23,11 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
@@ -48,6 +50,7 @@ class EisConnectorSpec
   private val UpdateUndertakingPath = "/scp/updateundertaking/v1"
   private val AmendBusinessEntityPath = "/scp/amendundertakingmemberdata/v1"
   private val RetrieveUndertakingPath = "/scp/retrieveundertaking/v1"
+  private val getUndertakingBalancePath = "/scp/getsamundertakingbalance/v1"
 
   implicit private val hc: HeaderCarrier = HeaderCarrier()
 
@@ -517,6 +520,68 @@ class EisConnectorSpec
             .futureValue mustBe ()
         }
       }
+    }
+
+    "getUndertakingBalance is called" should {
+
+      "return an Undertaking balance for a successful request" in {
+        givenEisReturns(
+          url = getUndertakingBalancePath,
+          status = 200,
+          body = s"""{
+               |   "undertakingBalanceResponse":{
+               |      "responseCommon":{
+               |         "status":"OK",
+               |         "statusText":"ok",
+               |         "processingDate":"2023-09-26T09:02:27Z"
+               |      },
+               |      "responseDetail":{
+               |         "undertakingIdentifier":"SomeUndertakingReference",
+               |         "industrySectorLimit":200000,
+               |         "availableBalanceEUR":123.45,
+               |         "availableBalanceGBP":123.45,
+               |         "conversionRate":1.2,
+               |         "nationalCapBalanceEUR":200000
+               |      }
+               |   }
+               |}""".stripMargin
+        )
+
+        val expectedResponse = GetUndertakingBalanceApiResponse(undertakingBalanceResponse =
+          GetUndertakingBalanceResponse(responseDetail = Some(undertakingBalanceResponse))
+        )
+
+        testWithRunningApp { underTest =>
+          val actualResponse = underTest
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789012"))))
+            .futureValue
+          actualResponse.undertakingBalanceResponse.responseDetail mustBe expectedResponse.undertakingBalanceResponse.responseDetail
+        }
+
+      }
+
+      "throw an UpstreamErrorResponse exception if EIS returns an Internal Server Error" in {
+        givenEisReturns(500, getUndertakingBalancePath, "Internal Server Error")
+
+        testWithRunningApp { underTest =>
+          underTest
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789999"))))
+            .failed
+            .futureValue mustBe a[UpstreamErrorResponse]
+        }
+      }
+
+      "throw a JsonParseException if EIS returns a response that cannot be parsed" in {
+        givenEisReturns(200, getUndertakingBalancePath, "This is not a valid response")
+
+        testWithRunningApp { underTest =>
+          underTest
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789990"))))
+            .failed
+            .futureValue mustBe a[JsonParseException]
+        }
+      }
+
     }
 
   }
