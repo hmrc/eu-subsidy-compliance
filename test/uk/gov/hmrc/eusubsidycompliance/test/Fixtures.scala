@@ -93,8 +93,6 @@ object Fixtures {
     hmrcSubsidyUsage = List(hmrcSubsidy)
   )
 
-  val exchangeRate: ExchangeRate = ExchangeRate(BigDecimal(0.80))
-
   val undertakingBalanceResponse = UndertakingBalanceResponse(
     undertakingIdentifier = undertakingReference,
     nonHMRCSubsidyAllocationEUR = None,
