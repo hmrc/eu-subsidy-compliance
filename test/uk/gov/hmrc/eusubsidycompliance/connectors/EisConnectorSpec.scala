@@ -529,7 +529,7 @@ class EisConnectorSpec
           url = getUndertakingBalancePath,
           status = 200,
           body = s"""{
-               |   "undertakingBalanceResponse":{
+               |   "getUndertakingBalanceResponse":{
                |      "responseCommon":{
                |         "status":"OK",
                |         "statusText":"ok",
