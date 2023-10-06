@@ -530,32 +530,24 @@ class EisConnectorSpec
           status = 200,
           body = s"""{
                |   "getUndertakingBalanceResponse":{
-               |      "responseCommon":{
-               |         "status":"OK",
-               |         "statusText":"ok",
-               |         "processingDate":"2023-09-26T09:02:27Z"
-               |      },
-               |      "responseDetail":{
                |         "undertakingIdentifier":"SomeUndertakingReference",
                |         "industrySectorLimit":200000,
                |         "availableBalanceEUR":123.45,
                |         "availableBalanceGBP":123.45,
                |         "conversionRate":1.2,
                |         "nationalCapBalanceEUR":200000
-               |      }
                |   }
                |}""".stripMargin
         )
 
-        val expectedResponse = GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse =
-          GetUndertakingBalanceResponse(responseDetail = Some(undertakingBalanceResponse))
-        )
+        val expectedResponse =
+          GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse = Some(undertakingBalanceResponse))
 
         testWithRunningApp { underTest =>
           val actualResponse = underTest
             .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789012"))))
             .futureValue
-          actualResponse.getUndertakingBalanceResponse.responseDetail mustBe expectedResponse.getUndertakingBalanceResponse.responseDetail
+          actualResponse.getUndertakingBalanceResponse mustBe expectedResponse.getUndertakingBalanceResponse
         }
 
       }

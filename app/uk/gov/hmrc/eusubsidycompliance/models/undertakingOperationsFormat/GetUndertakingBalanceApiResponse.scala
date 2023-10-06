@@ -24,7 +24,10 @@ import java.time.LocalDateTime
 
 //case class GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse: GetUndertakingBalanceResponse)
 
-case class GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse: Option[UndertakingBalanceResponse], errorDetail: Option[ResponseCommon] = None)
+case class GetUndertakingBalanceApiResponse(
+  getUndertakingBalanceResponse: Option[UndertakingBalanceResponse],
+  errorDetail: Option[ResponseCommon] = None
+)
 
 object GetUndertakingBalanceApiResponse {
 

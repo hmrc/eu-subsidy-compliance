@@ -315,7 +315,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
           status(result) mustBe OK
           contentAsJson(result) mustBe Json.toJson(
-            validUndertakingBalanceApiResponse.getUndertakingBalanceResponse.responseDetail
+            validUndertakingBalanceApiResponse.getUndertakingBalanceResponse
           )
         }
       }
