@@ -547,7 +547,7 @@ class EisConnectorSpec
                |}""".stripMargin
         )
 
-        val expectedResponse = GetUndertakingBalanceApiResponse(undertakingBalanceResponse =
+        val expectedResponse = GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse =
           GetUndertakingBalanceResponse(responseDetail = Some(undertakingBalanceResponse))
         )
 
@@ -555,7 +555,7 @@ class EisConnectorSpec
           val actualResponse = underTest
             .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789012"))))
             .futureValue
-          actualResponse.undertakingBalanceResponse.responseDetail mustBe expectedResponse.undertakingBalanceResponse.responseDetail
+          actualResponse.getUndertakingBalanceResponse.responseDetail mustBe expectedResponse.getUndertakingBalanceResponse.responseDetail
         }
 
       }

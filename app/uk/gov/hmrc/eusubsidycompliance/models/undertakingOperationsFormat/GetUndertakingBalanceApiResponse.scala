@@ -22,7 +22,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, Subsid
 import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 
-case class GetUndertakingBalanceApiResponse(undertakingBalanceResponse: GetUndertakingBalanceResponse)
+case class GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse: GetUndertakingBalanceResponse)
 
 object GetUndertakingBalanceApiResponse {
   implicit val format: Format[GetUndertakingBalanceApiResponse] = Json.format[GetUndertakingBalanceApiResponse]
