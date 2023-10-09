@@ -22,8 +22,6 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, Subsid
 import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 
-//case class GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse: GetUndertakingBalanceResponse)
-
 case class GetUndertakingBalanceApiResponse(
   getUndertakingBalanceResponse: Option[UndertakingBalanceResponse],
   errorDetail: Option[ResponseCommon] = None
