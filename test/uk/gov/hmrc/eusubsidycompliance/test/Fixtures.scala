@@ -105,13 +105,12 @@ object Fixtures {
   )
 
   val validUndertakingBalanceApiRequest = GetUndertakingBalanceRequest(eori = Some(eori))
-  val validUndertakingBalanceApiResponse = GetUndertakingBalanceApiResponse(
-    GetUndertakingBalanceResponse(responseDetail = Some(undertakingBalanceResponse))
-  )
+  val validUndertakingBalanceApiResponse =
+    GetUndertakingBalanceApiResponse(getUndertakingBalanceResponse = Some(undertakingBalanceResponse))
   val undertakingBalanceApiErrorResponse = GetUndertakingBalanceApiResponse(
-    GetUndertakingBalanceResponse(
-      responseDetail = None,
-      responseCommon = ResponseCommon(
+    getUndertakingBalanceResponse = None,
+    errorDetail = Some(
+      ResponseCommon(
         EisStatus.NOT_OK,
         EisStatusString("String"), //verbatim from spec
         LocalDateTime.now,

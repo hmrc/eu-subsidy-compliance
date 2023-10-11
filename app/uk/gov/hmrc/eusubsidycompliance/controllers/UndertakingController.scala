@@ -179,8 +179,8 @@ class UndertakingController @Inject() (
 
   def getUndertakingBalance(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
     eisConnector.getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI(eori)))).map { response =>
-      response.undertakingBalanceResponse.responseCommon.status match {
-        case EisStatus.OK => Ok(Json.toJson(response.undertakingBalanceResponse.responseDetail))
+      response.getUndertakingBalanceResponse match {
+        case Some(balance) => Ok(Json.toJson(balance))
         case _ =>
           logger.warn(s"undertaking with eori: $eori not found")
           NotFound
