@@ -15,3 +15,5 @@ POST       /subsidy/update                                  uk.gov.hmrc.eusubsid
 POST       /undertaking/disable                             uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.disableUndertaking()
 
 POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.retrieveSubsidies()
+
+POST       /send-nudge-email                                uk.gov.hmrc.eusubsidycompliance.controllers.EmailController.sendNudgeEmail()
