@@ -23,11 +23,10 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType}
-import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, ConnectorError, SubsidyUpdate, UndertakingSubsidyAmendment}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures._
 import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport

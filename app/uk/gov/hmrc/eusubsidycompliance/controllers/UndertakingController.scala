@@ -24,7 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
-import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisStatus, GetUndertakingBalanceRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.GetUndertakingBalanceRequest
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

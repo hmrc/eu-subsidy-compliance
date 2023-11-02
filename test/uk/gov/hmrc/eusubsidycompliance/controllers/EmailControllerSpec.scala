@@ -29,7 +29,6 @@ import play.api.http.ContentTypes.JSON
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.Results.BadRequest
 import play.api.test.Helpers._
 import play.mvc.Http.HeaderNames.CONTENT_TYPE
 import play.mvc.Http.Status.{NO_CONTENT, OK}

@@ -18,12 +18,9 @@ package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import play.api.Configuration
 import play.api.libs.json.JsValue
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
-import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
-import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
-import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

@@ -31,11 +31,9 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
  * limitations under the License.
  */
 
-import org.scalamock.handlers.CallHandler6
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should._
 import play.api.libs.json.Writes
-import uk.gov.hmrc.eusubsidycompliance.syntax.FutureSyntax.FutureOps
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

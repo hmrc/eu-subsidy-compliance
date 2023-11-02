@@ -22,9 +22,7 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import play.api.libs.json.JsString
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
-import uk.gov.hmrc.eusubsidycompliance.syntax.FutureSyntax.FutureOps
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
