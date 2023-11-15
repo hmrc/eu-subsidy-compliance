@@ -22,6 +22,7 @@ import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Predicate, Resource, ResourceLocation, ResourceType}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -29,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EmailController @Inject() (
   cc: ControllerComponents,
+  auth: BackendAuthComponents,
   emailConnector: EmailConnector,
   configuration: Configuration
 )(implicit ec: ExecutionContext)
@@ -36,7 +38,11 @@ class EmailController @Inject() (
 
   private val undertakingAdminDeadlineReminder = configuration.get[String]("email.undertakingAdminDeadlineReminder")
   private val undertakingAdminDeadlineExpired = configuration.get[String]("email.undertakingAdminDeadlineExpired")
-  def sendNudgeEmail(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  val permission = Predicate.Permission(
+    Resource(ResourceType("eu-subsidy-compliance"), ResourceLocation("email-notification")),
+    IAAction("ADMIN")
+  )
+  def sendNudgeEmail(): Action[JsValue] = auth.authorizedAction(permission).async(parse.json) { implicit request =>
     withJsonBody[EmailRequest] {
       case deadlineReminderRequest @ EmailRequest(_, _, "1", _) =>
         sendEmail(undertakingAdminDeadlineReminder, deadlineReminderRequest)

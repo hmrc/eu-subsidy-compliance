@@ -58,101 +58,102 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
   val invalidJson: BusinessEntity = BusinessEntity(eori, leadEORI = false)
 
   "Email Controller" when {
-    "handling request to send nudge email" should {
-      "return an ACCEPTED status when an appropriate deadline reminder request is sent" in {
-        val app = configuredAppInstance
-        running(app) {
-          when(
-            mockEmailConnector.sendEmail(
-              param(validDeadlineReminderEmailRequest.copy(messageType = undertakingAdminDeadlineReminder))
-            )(
-              any()
+    "handling request to send nudge email" when {
+      "the request has come from an authorised source" should {
+        "return an ACCEPTED status when an appropriate deadline reminder request is sent" in {
+          val app = configuredAppInstance
+          running(app) {
+            when(
+              mockEmailConnector.sendEmail(
+                param(validDeadlineReminderEmailRequest.copy(messageType = undertakingAdminDeadlineReminder))
+              )(
+                any()
+              )
+            ).thenReturn(Future.successful(HttpResponse(OK, "")))
+            val fakeRequest = FakeRequest(
+              POST,
+              routes.EmailController
+                .sendNudgeEmail()
+                .url
             )
-          ).thenReturn(Future.successful(HttpResponse(OK, "")))
-          val fakeRequest = FakeRequest(
-            POST,
-            routes.EmailController
-              .sendNudgeEmail()
-              .url
-          )
-            .withJsonBody(Json.toJson(validDeadlineReminderEmailRequest))
-            .withHeaders(CONTENT_TYPE -> JSON)
-
-          route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
+              .withJsonBody(Json.toJson(validDeadlineReminderEmailRequest))
+              .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
+            route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
+          }
         }
-      }
-      "return an ACCEPTED status when an appropriate deadline expired request is sent" in {
-        val app = configuredAppInstance
-        running(app) {
-          when(
-            mockEmailConnector.sendEmail(
-              param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
-            )(
-              any()
+        "return an ACCEPTED status when an appropriate deadline expired request is sent" in {
+          val app = configuredAppInstance
+          running(app) {
+            when(
+              mockEmailConnector.sendEmail(
+                param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
+              )(
+                any()
+              )
+            ).thenReturn(Future.successful(HttpResponse(OK, "")))
+            val fakeRequest = FakeRequest(
+              POST,
+              routes.EmailController
+                .sendNudgeEmail()
+                .url
             )
-          ).thenReturn(Future.successful(HttpResponse(OK, "")))
-          val fakeRequest = FakeRequest(
-            POST,
-            routes.EmailController
-              .sendNudgeEmail()
-              .url
-          )
-            .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
-            .withHeaders(CONTENT_TYPE -> JSON)
+              .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
+              .withHeaders(CONTENT_TYPE -> JSON)
 
-          route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
+            route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
+          }
         }
-      }
-      "return an InternalServerError when provided unsupported message type" in {
-        val app = configuredAppInstance
-        running(app) {
-          val fakeRequest = FakeRequest(
-            POST,
-            routes.EmailController
-              .sendNudgeEmail()
-              .url
-          )
-            .withJsonBody(Json.toJson(invalidEmailRequest))
-            .withHeaders(CONTENT_TYPE -> JSON)
-
-          route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
-        }
-      }
-      "return a BadRequest when providing invalid json" in {
-        val app = configuredAppInstance
-        running(app) {
-          val fakeRequest = FakeRequest(
-            POST,
-            routes.EmailController
-              .sendNudgeEmail()
-              .url
-          )
-            .withJsonBody(Json.toJson(invalidJson))
-            .withHeaders(CONTENT_TYPE -> JSON)
-
-          route(app, fakeRequest).value.futureValue.header.status shouldBe BAD_REQUEST
-        }
-      }
-      "return an InternalServerError if the connector replies with a 404" in {
-        val app = configuredAppInstance
-        running(app) {
-          when(
-            mockEmailConnector.sendEmail(
-              param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
-            )(
-              any()
+        "return an InternalServerError when provided unsupported message type" in {
+          val app = configuredAppInstance
+          running(app) {
+            val fakeRequest = FakeRequest(
+              POST,
+              routes.EmailController
+                .sendNudgeEmail()
+                .url
             )
-          ).thenReturn(Future.successful(HttpResponse(NOT_FOUND, "")))
-          val fakeRequest = FakeRequest(
-            POST,
-            routes.EmailController
-              .sendNudgeEmail()
-              .url
-          )
-            .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
-            .withHeaders(CONTENT_TYPE -> JSON)
+              .withJsonBody(Json.toJson(invalidEmailRequest))
+              .withHeaders(CONTENT_TYPE -> JSON)
 
-          route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
+            route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
+          }
+        }
+        "return a BadRequest when providing invalid json" in {
+          val app = configuredAppInstance
+          running(app) {
+            val fakeRequest = FakeRequest(
+              POST,
+              routes.EmailController
+                .sendNudgeEmail()
+                .url
+            )
+              .withJsonBody(Json.toJson(invalidJson))
+              .withHeaders(CONTENT_TYPE -> JSON)
+
+            route(app, fakeRequest).value.futureValue.header.status shouldBe BAD_REQUEST
+          }
+        }
+        "return an InternalServerError if the connector replies with a 404" in {
+          val app = configuredAppInstance
+          running(app) {
+            when(
+              mockEmailConnector.sendEmail(
+                param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
+              )(
+                any()
+              )
+            ).thenReturn(Future.successful(HttpResponse(NOT_FOUND, "")))
+            val fakeRequest = FakeRequest(
+              POST,
+              routes.EmailController
+                .sendNudgeEmail()
+                .url
+            )
+              .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
+              .withHeaders(CONTENT_TYPE -> JSON)
+
+            route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
+          }
         }
       }
     }
