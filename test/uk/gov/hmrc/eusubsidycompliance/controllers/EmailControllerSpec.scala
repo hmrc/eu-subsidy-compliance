@@ -26,6 +26,7 @@ import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
 import org.mockito.Mockito.when
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.ContentTypes.JSON
+import play.api.inject
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
@@ -35,19 +36,28 @@ import play.mvc.Http.Status.{NO_CONTENT, OK}
 import play.test.Helpers.POST
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailRequest}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, Retrieval}
+import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
+import org.mockito.ArgumentMatchers
+import play.api.mvc.ControllerComponents
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockEmailConnector = mock[EmailConnector]
   val undertakingAdminDeadlineReminder = "undertaking_admin_deadline_reminder"
   val undertakingAdminDeadlineExpired = "undertaking_admin_deadline_expired"
-
+  private val authStubBehaviour: StubBehaviour = mock[StubBehaviour]
+  when(authStubBehaviour.stubAuth(any, ArgumentMatchers.eq(Retrieval.EmptyRetrieval)))
+    .thenReturn(Future.unit)
+  private implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+  implicit val cc: ControllerComponents = stubControllerComponents()
   private def configuredAppInstance = new GuiceApplicationBuilder()
     .overrides(
-      bind[EmailConnector].to(mockEmailConnector)
+      bind[EmailConnector].to(mockEmailConnector),
+      inject.bind[BackendAuthComponents].toInstance(BackendAuthComponentsStub(authStubBehaviour))
     )
     .build()
   val validDeadlineReminderEmailRequest: EmailRequest =
@@ -98,7 +108,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .url
             )
               .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
-              .withHeaders(CONTENT_TYPE -> JSON)
+              .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
 
             route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
           }
@@ -113,7 +123,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .url
             )
               .withJsonBody(Json.toJson(invalidEmailRequest))
-              .withHeaders(CONTENT_TYPE -> JSON)
+              .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
 
             route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
           }
@@ -128,7 +138,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .url
             )
               .withJsonBody(Json.toJson(invalidJson))
-              .withHeaders(CONTENT_TYPE -> JSON)
+              .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
 
             route(app, fakeRequest).value.futureValue.header.status shouldBe BAD_REQUEST
           }
@@ -150,7 +160,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .url
             )
               .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
-              .withHeaders(CONTENT_TYPE -> JSON)
+              .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
 
             route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
           }
