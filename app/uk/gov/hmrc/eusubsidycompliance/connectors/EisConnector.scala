@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import play.api.http.Status
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
+import play.api.libs.json.Json
 import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
@@ -25,7 +27,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmen
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
@@ -245,27 +247,25 @@ class EisConnector @Inject() (
 
     eventualUndertakingSubsidies
   }
-
   def getUndertakingBalance(
     request: GetUndertakingBalanceRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[GetUndertakingBalanceApiResponse] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GetUndertakingBalanceApiResponse]] = {
 
     val eisTokenKey = "eis.token.scp08"
 
-    val eventualUndertakingBalance = desPost[GetUndertakingBalanceRequest, GetUndertakingBalanceApiResponse](
-      s"$eisURL/$getUndertakingBalancePath",
-      request,
-      eisTokenKey
-    )(implicitly, implicitly, addHeaders, implicitly)
-
-    eventualUndertakingBalance.failed.foreach(error =>
-      logger.error(
-        s"failed getUndertakingBalance GetUndertakingBalanceRequest: $request",
-        error
+    http
+      .POST[GetUndertakingBalanceRequest, HttpResponse](
+        s"$eisURL/$getUndertakingBalancePath",
+        request,
+        headers(eisTokenKey)
       )
-    )
+      .map { res =>
+        res.status match {
+          case Status.OK => Json.parse(res.body).asOpt[GetUndertakingBalanceApiResponse]
+          case _ => None
+        }
+      }
 
-    eventualUndertakingBalance
   }
 
 }

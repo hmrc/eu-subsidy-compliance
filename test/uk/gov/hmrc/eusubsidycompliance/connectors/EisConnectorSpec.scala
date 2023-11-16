@@ -547,19 +547,18 @@ class EisConnectorSpec
           val actualResponse = underTest
             .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789012"))))
             .futureValue
-          actualResponse.getUndertakingBalanceResponse mustBe expectedResponse.getUndertakingBalanceResponse
+          actualResponse.get.getUndertakingBalanceResponse mustBe expectedResponse.getUndertakingBalanceResponse
         }
 
       }
 
-      "throw an UpstreamErrorResponse exception if EIS returns an Internal Server Error" in {
+      "return None if EIS returns a 500" in {
         givenEisReturns(500, getUndertakingBalancePath, "Internal Server Error")
 
         testWithRunningApp { underTest =>
           underTest
             .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789999"))))
-            .failed
-            .futureValue mustBe a[UpstreamErrorResponse]
+            .futureValue mustBe None
         }
       }
 
