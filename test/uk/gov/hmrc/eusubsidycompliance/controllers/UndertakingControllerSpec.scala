@@ -303,7 +303,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       "return a valid response for a successful request with no date range" in {
 
-        givenGetUndertakingBalanceReturns(Future.successful(validUndertakingBalanceApiResponse))
+        givenGetUndertakingBalanceReturns(Future.successful(Some(validUndertakingBalanceApiResponse)))
 
         val app = configuredAppInstance
 
@@ -322,7 +322,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
       "return a not found response when anything other than a status OK is received" in {
 
-        givenGetUndertakingBalanceReturns(Future.successful(undertakingBalanceApiErrorResponse))
+        givenGetUndertakingBalanceReturns(Future.successful(Some(undertakingBalanceApiErrorResponse)))
 
         val app = configuredAppInstance
 
@@ -368,7 +368,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
     )
     .build()
 
-  private def givenGetUndertakingBalanceReturns(res: Future[GetUndertakingBalanceApiResponse]): Unit =
+  private def givenGetUndertakingBalanceReturns(res: Future[Option[GetUndertakingBalanceApiResponse]]): Unit =
     (mockEisConnector
       .getUndertakingBalance(_: GetUndertakingBalanceRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(validUndertakingBalanceApiRequest, *, *)
