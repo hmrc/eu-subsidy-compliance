@@ -41,6 +41,7 @@ import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, Retrieval}
 import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 import org.mockito.ArgumentMatchers
 import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EmailAddress, UndertakingRef}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
@@ -61,10 +62,11 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
     )
     .build()
   val validDeadlineReminderEmailRequest: EmailRequest =
-    EmailRequest("ABC12345", "GB000000000012", "1", "jdoe@example.com")
+    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "1", EmailAddress("jdoe@example.com"))
   val validDeadlineExpiredEmailRequest: EmailRequest =
-    EmailRequest("ABC12345", "GB000000000012", "2", "jdoe@example.com")
-  val invalidEmailRequest: EmailRequest = EmailRequest("ABC12345", "GB000000000012", "3", "jdoe@example.com")
+    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "2", EmailAddress("jdoe@example.com"))
+  val invalidEmailRequest: EmailRequest =
+    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "3", EmailAddress("jdoe@example.com"))
   val invalidJson: BusinessEntity = BusinessEntity(eori, leadEORI = false)
 
   "Email Controller" when {

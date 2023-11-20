@@ -23,6 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
+import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EmailAddress, UndertakingRef}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -44,7 +45,8 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
          |  }
          |""".stripMargin)
   )
-  val validEmailRequest: EmailRequest = EmailRequest("ABC12345", "GB000000000012", "1", "jdoe@example.com")
+  val validEmailRequest: EmailRequest =
+    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "1", EmailAddress("jdoe@example.com"))
 
   private val connector = new EmailConnector(mockHttp, new ServicesConfig(config))
 

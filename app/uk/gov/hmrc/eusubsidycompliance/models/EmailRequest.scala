@@ -17,15 +17,15 @@
 package uk.gov.hmrc.eusubsidycompliance.models
 
 import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EmailAddress, UndertakingRef}
 
 case class EmailRequest(
-  undertakingIdentifier: String,
-  businessEntityIdentifier: String,
+  undertakingIdentifier: UndertakingRef,
+  businessEntityIdentifier: EORI,
   messageType: String,
-  emailAddress: String
+  emailAddress: EmailAddress
 )
 object EmailRequest {
-
-  implicit val format: OFormat[EmailRequest] = Json.format
+  implicit val format: OFormat[EmailRequest] = Json.format[EmailRequest]
 
 }
