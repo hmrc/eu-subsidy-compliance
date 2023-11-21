@@ -74,6 +74,7 @@ class EisConnectorSpec
              |      "industrySector": "$sector",
              |      "industrySectorLimit": $industrySectorLimit,
              |      "lastSubsidyUsageUpdt": "$date",
+             |      "undertakingStatus": "$undertakingStatus",
              |      "undertakingBusinessEntity": [{
              |        "businessEntityIdentifier": "$eori",
              |        "leadEORI": true

@@ -18,6 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
+import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingStatus.UndertakingStatus
 import uk.gov.hmrc.eusubsidycompliance.models.types._
 
 import java.time.LocalDate
@@ -50,6 +51,7 @@ case class UndertakingRetrieve(
   industrySector: Sector,
   industrySectorLimit: Option[IndustrySectorLimit],
   lastSubsidyUsageUpdt: Option[LocalDate],
+  undertakingStatus: Option[UndertakingStatus],
   undertakingBusinessEntity: List[BusinessEntity]
 ) {
   lazy val loggableString: String =

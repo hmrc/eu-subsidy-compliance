@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.test
 
 import shapeless.tag.@@
-import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, EisParamValue, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, EisParamValue, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef, UndertakingStatus}
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisParamName, EisStatus, EisStatusString, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse, Params, ResponseCommon, UndertakingBalance, UndertakingBalanceResponse}
 
@@ -31,6 +31,7 @@ object Fixtures {
   val undertakingReference: String @@ types.UndertakingRef.Tag = UndertakingRef("SomeUndertakingReference")
   val undertakingName: String @@ types.UndertakingName.Tag = UndertakingName("SomeUndertakingName")
   val sector: types.Sector.Value = Sector.other
+  val undertakingStatus: types.UndertakingStatus.Value = UndertakingStatus.active
   val industrySectorLimit: BigDecimal @@ types.IndustrySectorLimit.Tag = IndustrySectorLimit(BigDecimal(200000.00))
   val date: LocalDate = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
   val subsidyAmount: BigDecimal @@ types.SubsidyAmount.Tag = SubsidyAmount(BigDecimal(123.45))
@@ -49,6 +50,7 @@ object Fixtures {
     sector,
     Some(industrySectorLimit),
     Some(date),
+    Some(undertakingStatus),
     List(BusinessEntity(eori, leadEORI = true))
   )
 
