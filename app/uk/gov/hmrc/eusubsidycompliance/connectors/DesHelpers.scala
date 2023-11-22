@@ -47,7 +47,7 @@ trait DesHelpers extends TracedLogging {
   private val dateTimeFormatter =
     DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))
 
-  private def headers(eisTokenKey: String) = Seq(
+  def headers(eisTokenKey: String) = Seq(
     CONTENT_TYPE -> JSON,
     ACCEPT -> JSON,
     DATE -> LocalDateTime.now().format(dateTimeFormatter),
