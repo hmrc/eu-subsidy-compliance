@@ -69,6 +69,12 @@ package object types extends SimpleJson {
         regex = """.{1,105}"""
       )
 
+  type EmailAddress = String @@ EmailAddress.Tag
+  object EmailAddress
+      extends RegexValidatedString(
+        regex = """^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+)$"""
+      )
+
   type EORI = String @@ EORI.Tag
   object EORI
       extends RegexValidatedString(

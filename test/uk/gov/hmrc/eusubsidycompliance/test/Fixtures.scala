@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.test
 import shapeless.tag.@@
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, EisParamValue, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models._
-import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisParamName, EisStatus, EisStatusString, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, GetUndertakingBalanceResponse, Params, ResponseCommon, UndertakingBalance, UndertakingBalanceResponse}
+import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisParamName, EisStatus, EisStatusString, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, Params, ResponseCommon, UndertakingBalanceResponse}
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
