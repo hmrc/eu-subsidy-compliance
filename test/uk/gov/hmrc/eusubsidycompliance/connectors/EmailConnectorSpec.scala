@@ -38,7 +38,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
 
   private val config = Configuration(
     ConfigFactory.parseString(s"""
-         | microservice.services.email-send {
+         | microservice.services.email {
          |    protocol = "$protocol"
          |    host     = "$host"
          |    port     = $port
