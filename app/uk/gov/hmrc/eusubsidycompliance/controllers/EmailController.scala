@@ -61,7 +61,8 @@ class EmailController @Inject() (
       .map(response =>
         if (response.status == ACCEPTED) NoContent
         else {
-          logger.error(s"Did not receive accepted from email service - instead got ${response.status} and ${response.body}")
+          logger
+            .error(s"Did not receive accepted from email service - instead got ${response.status} and ${response.body}")
           InternalServerError.apply(
             "The request failed due to unavailability of downstream services or an unexpected error."
           )
