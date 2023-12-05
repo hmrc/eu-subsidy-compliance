@@ -81,7 +81,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
               )(
                 any()
               )
-            ).thenReturn(Future.successful(HttpResponse(OK, "")))
+            ).thenReturn(Future.successful(HttpResponse(ACCEPTED, "")))
             val fakeRequest = FakeRequest(
               POST,
               routes.EmailController
@@ -102,7 +102,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
               )(
                 any()
               )
-            ).thenReturn(Future.successful(HttpResponse(OK, "")))
+            ).thenReturn(Future.successful(HttpResponse(ACCEPTED, "")))
             val fakeRequest = FakeRequest(
               POST,
               routes.EmailController
