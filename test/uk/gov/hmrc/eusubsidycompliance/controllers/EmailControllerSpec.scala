@@ -219,7 +219,6 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
             )
               .withJsonBody(Json.toJson(originalEmailRequest))
               .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
-
             route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
           }
         }
