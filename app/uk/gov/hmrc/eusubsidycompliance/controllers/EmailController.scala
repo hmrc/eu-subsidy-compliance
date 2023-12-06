@@ -20,7 +20,7 @@ import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
-import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
+import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest, OriginalEmailRequest}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Predicate, Resource, ResourceLocation, ResourceType}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -35,7 +35,6 @@ class EmailController @Inject() (
   configuration: Configuration
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
-
   private val undertakingAdminDeadlineReminder = configuration.get[String]("email.undertakingAdminDeadlineReminder")
   private val undertakingAdminDeadlineExpired = configuration.get[String]("email.undertakingAdminDeadlineExpired")
   val permission = Predicate.Permission(
@@ -43,20 +42,21 @@ class EmailController @Inject() (
     IAAction("ADMIN")
   )
   def sendNudgeEmail(): Action[JsValue] = auth.authorizedAction(permission).async(parse.json) { implicit request =>
-    withJsonBody[EmailRequest] {
-      case deadlineReminderRequest @ EmailRequest(_, _, "1", _) =>
+    withJsonBody[OriginalEmailRequest] {
+      case deadlineReminderRequest @ OriginalEmailRequest(_, _, "1", _) =>
         sendEmail(undertakingAdminDeadlineReminder, deadlineReminderRequest)
-      case deadlineExpiredRequest @ EmailRequest(_, _, "2", _) =>
+      case deadlineExpiredRequest @ OriginalEmailRequest(_, _, "2", _) =>
         sendEmail(undertakingAdminDeadlineExpired, deadlineExpiredRequest)
       case _ => Future.successful(InternalServerError.apply("Unsupported message type"))
     }
   }
 
-  private def sendEmail(messageType: String, originalRequest: EmailRequest)(implicit
+  private def sendEmail(messageType: String, originalRequest: OriginalEmailRequest)(implicit
     hc: HeaderCarrier
   ): Future[Result] =
     emailConnector
-      .sendEmail(originalRequest.copy(messageType = messageType))
+      //TODO Replace hardcoded date with deadline received from updated request
+      .sendEmail(EmailRequest(List(originalRequest.emailAddress), messageType, EmailParameters("10 December 2023")))
       .map(response =>
         if (response.status == OK) NoContent
         else
