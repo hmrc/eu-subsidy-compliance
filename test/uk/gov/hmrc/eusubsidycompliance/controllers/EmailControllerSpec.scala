@@ -34,7 +34,7 @@ import play.api.test.Helpers._
 import play.mvc.Http.HeaderNames.CONTENT_TYPE
 import play.mvc.Http.Status.{NO_CONTENT, OK}
 import play.test.Helpers.POST
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailParameters, EmailRequest, OriginalEmailRequest}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
 import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, Retrieval}
@@ -61,13 +61,44 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
       inject.bind[BackendAuthComponents].toInstance(BackendAuthComponentsStub(authStubBehaviour))
     )
     .build()
+
+  val validDeadlineReminderOriginalRequest: OriginalEmailRequest =
+    OriginalEmailRequest(
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
+      "1",
+      EmailAddress("jdoe@example.com")
+    )
   val validDeadlineReminderEmailRequest: EmailRequest =
-    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "1", EmailAddress("jdoe@example.com"))
+    EmailRequest(
+      List(EmailAddress("jdoe@example.com")),
+      undertakingAdminDeadlineReminder,
+      EmailParameters("10 December 2023")
+    )
+
   val validDeadlineExpiredEmailRequest: EmailRequest =
-    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "2", EmailAddress("jdoe@example.com"))
-  val invalidEmailRequest: EmailRequest =
-    EmailRequest(UndertakingRef("ABC12345"), EORI("GB000000000012"), "3", EmailAddress("jdoe@example.com"))
+    EmailRequest(
+      List(EmailAddress("jdoe@example.com")),
+      undertakingAdminDeadlineExpired,
+      EmailParameters("10 December 2023")
+    )
+  val validDeadlineExpiredOriginalEmailRequest: OriginalEmailRequest =
+    OriginalEmailRequest(
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
+      "2",
+      EmailAddress("jdoe@example.com")
+    )
+
+  val invalidEmailRequest: OriginalEmailRequest =
+    OriginalEmailRequest(
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
+      "3",
+      EmailAddress("jdoe@example.com")
+    )
   val invalidJson: BusinessEntity = BusinessEntity(eori, leadEORI = false)
+  val deadline: String = "10 December 2023"
 
   "Email Controller" when {
     "handling request to send nudge email" when {
@@ -77,7 +108,13 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
           running(app) {
             when(
               mockEmailConnector.sendEmail(
-                param(validDeadlineReminderEmailRequest.copy(messageType = undertakingAdminDeadlineReminder))
+                param(
+                  EmailRequest(
+                    List(validDeadlineReminderOriginalRequest.emailAddress),
+                    undertakingAdminDeadlineReminder,
+                    EmailParameters(deadline)
+                  )
+                )
               )(
                 any()
               )
@@ -88,7 +125,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .sendNudgeEmail()
                 .url
             )
-              .withJsonBody(Json.toJson(validDeadlineReminderEmailRequest))
+              .withJsonBody(Json.toJson(validDeadlineReminderOriginalRequest))
               .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
             route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
           }
@@ -98,7 +135,13 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
           running(app) {
             when(
               mockEmailConnector.sendEmail(
-                param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
+                param(
+                  EmailRequest(
+                    List(validDeadlineExpiredOriginalEmailRequest.emailAddress),
+                    undertakingAdminDeadlineExpired,
+                    EmailParameters(deadline)
+                  )
+                )
               )(
                 any()
               )
@@ -109,7 +152,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .sendNudgeEmail()
                 .url
             )
-              .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
+              .withJsonBody(Json.toJson(validDeadlineExpiredOriginalEmailRequest))
               .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
 
             route(app, fakeRequest).value.futureValue.header.status shouldBe NO_CONTENT
@@ -146,11 +189,24 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
           }
         }
         "return an InternalServerError if the connector replies with a 404" in {
+          val originalEmailRequest: OriginalEmailRequest =
+            OriginalEmailRequest(
+              UndertakingRef("ABC12345"),
+              EORI("GB000000000012"),
+              "2",
+              EmailAddress("jdoe@example.com")
+            )
           val app = configuredAppInstance
           running(app) {
             when(
               mockEmailConnector.sendEmail(
-                param(validDeadlineExpiredEmailRequest.copy(messageType = undertakingAdminDeadlineExpired))
+                param(
+                  EmailRequest(
+                    List(originalEmailRequest.emailAddress),
+                    undertakingAdminDeadlineExpired,
+                    EmailParameters(deadline)
+                  )
+                )
               )(
                 any()
               )
@@ -161,9 +217,8 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 .sendNudgeEmail()
                 .url
             )
-              .withJsonBody(Json.toJson(validDeadlineExpiredEmailRequest))
+              .withJsonBody(Json.toJson(originalEmailRequest))
               .withHeaders("Authorization" -> "token", CONTENT_TYPE -> JSON)
-
             route(app, fakeRequest).value.futureValue.header.status shouldBe INTERNAL_SERVER_ERROR
           }
         }
