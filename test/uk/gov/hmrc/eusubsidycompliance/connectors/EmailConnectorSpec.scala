@@ -38,7 +38,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
 
   private val config = Configuration(
     ConfigFactory.parseString(s"""
-         | microservice.services.email-send {
+         | microservice.services.email {
          |    protocol = "$protocol"
          |    host     = "$host"
          |    port     = $port
@@ -59,7 +59,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
       "The server returns a response" in {
         val expectedUrl = s"$protocol://$host:$port/hmrc/email"
         mockPost(expectedUrl, Seq.empty, validEmailRequest)(_)
-        () => connector.sendEmail(validEmailRequest) shouldBe Future.successful(HttpResponse(200, "{}"))
+        () => connector.sendEmail(validEmailRequest) shouldBe Future.successful(HttpResponse(202, "{}"))
       }
 
     }

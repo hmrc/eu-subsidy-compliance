@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
@@ -34,7 +34,8 @@ class EmailController @Inject() (
   emailConnector: EmailConnector,
   configuration: Configuration
 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+    extends BackendController(cc)
+    with Logging {
   private val undertakingAdminDeadlineReminder = configuration.get[String]("email.undertakingAdminDeadlineReminder")
   private val undertakingAdminDeadlineExpired = configuration.get[String]("email.undertakingAdminDeadlineExpired")
   val permission = Predicate.Permission(
@@ -58,11 +59,14 @@ class EmailController @Inject() (
       //TODO Replace hardcoded date with deadline received from updated request
       .sendEmail(EmailRequest(List(originalRequest.emailAddress), messageType, EmailParameters("10 December 2023")))
       .map(response =>
-        if (response.status == OK) NoContent
-        else
+        if (response.status == ACCEPTED) NoContent
+        else {
+          logger
+            .error(s"Did not receive accepted from email service - instead got ${response.status} and ${response.body}")
           InternalServerError.apply(
             "The request failed due to unavailability of downstream services or an unexpected error."
           )
+        }
       )
 
 }
