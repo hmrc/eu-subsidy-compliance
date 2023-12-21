@@ -20,8 +20,7 @@ import cats.implicits._
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.Params
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
-import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingStatus.UndertakingStatus
-import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, UndertakingName, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, UndertakingName, UndertakingRef, UndertakingStatus}
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, UndertakingRetrieve}
 
 import java.time.format.DateTimeFormatter
@@ -54,7 +53,7 @@ package object digital {
           lastSubsidyUsageUpdt = (responseDetail \ "lastSubsidyUsageUpdt")
             .asOpt[String]
             .map(ds => LocalDate.parse(ds, oddEisDateFormat)),
-          undertakingStatus = (responseDetail \ "undertakingStatus").asOpt[UndertakingStatus],
+          undertakingStatus = (responseDetail \ "undertakingStatus").asOpt[Int].map(UndertakingStatus(_)),
           undertakingBusinessEntity = (responseDetail \ "undertakingBusinessEntity").as[List[BusinessEntity]]
         )
       )
