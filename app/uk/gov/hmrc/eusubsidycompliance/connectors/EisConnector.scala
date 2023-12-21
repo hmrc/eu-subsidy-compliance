@@ -66,12 +66,16 @@ class EisConnector @Inject() (
     val notFoundEisErrorCode = "107"
     val unacceptableEisErrorCode = "055"
 
-    desPost[RetrieveUndertakingAPIRequest, UndertakingRetrieve](
+    desPost[RetrieveUndertakingAPIRequest, HttpResponse](
       s"$eisURL/$retrieveUndertakingPath",
       retrieveUndertakingRequest,
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
-      .map(Right(_))
+      .map { response =>
+        val body = response.body
+        logger.info(s"Received the following Json Body for SCP04 - $body")
+        Right(Json.parse(body).as[UndertakingRetrieve])
+      }
       .recover {
         case e: EisBadResponseException if e.code == EisParamValue(notFoundEisErrorCode) =>
           logger.info(
