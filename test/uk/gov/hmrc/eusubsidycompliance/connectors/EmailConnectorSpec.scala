@@ -22,8 +22,8 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest, OriginalEmailRequest}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EmailAddress, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
