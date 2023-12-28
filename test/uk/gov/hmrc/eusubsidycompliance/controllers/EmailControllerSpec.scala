@@ -32,11 +32,11 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.mvc.Http.HeaderNames.CONTENT_TYPE
-import play.mvc.Http.Status.{NO_CONTENT, OK}
+import play.mvc.Http.Status.NO_CONTENT
 import play.test.Helpers.POST
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailParameters, EmailRequest, OriginalEmailRequest}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
-import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, Retrieval}
 import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 import org.mockito.ArgumentMatchers

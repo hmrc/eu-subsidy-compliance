@@ -25,7 +25,7 @@ import java.time.LocalDate
 
 class SubsidyUpdateSpec extends AnyWordSpec with Matchers {
 
-  private val maxLengthTraderRef = "TraderRef-".padTo(400, "a").mkString
+  private val maxLengthTraderRef = "TraderRef-".padTo(400, 'a')
   private val maxValueSubsidyUpdateJson = s"""
        |{
        |  "undertakingIdentifier" : "uIdentifier-xxxxx",
@@ -43,7 +43,7 @@ class SubsidyUpdateSpec extends AnyWordSpec with Matchers {
        |""".stripMargin.trim
 
   private val maxValueSubsidyUpdate = SubsidyUpdate(
-    undertakingIdentifier = UndertakingRef("uIdentifier-".padTo(17, "x").mkString),
+    undertakingIdentifier = UndertakingRef("uIdentifier-".padTo(17, 'x').mkString),
     update = UndertakingSubsidyAmendment(
       updates = List(
         NonHmrcSubsidy(
