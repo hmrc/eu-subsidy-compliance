@@ -58,8 +58,9 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
     "handling request to send an email " when {
       "The server returns a response" in {
         val expectedUrl = s"$protocol://$host:$port/hmrc/email"
-        mockPost(expectedUrl, Seq.empty, validEmailRequest)(_)
-        () => connector.sendEmail(validEmailRequest) shouldBe Future.successful(HttpResponse(202, "{}"))
+        val response = Future.successful(HttpResponse(202, "{}"))
+        mockPost(expectedUrl, Seq.empty, validEmailRequest)(response)
+        connector.sendEmail(validEmailRequest) shouldBe response
       }
 
     }
