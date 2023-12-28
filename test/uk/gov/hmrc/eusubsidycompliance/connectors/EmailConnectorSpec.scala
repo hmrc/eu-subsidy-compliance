@@ -22,8 +22,8 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest, OriginalEmailRequest}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EORI, EmailAddress, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -58,8 +58,9 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
     "handling request to send an email " when {
       "The server returns a response" in {
         val expectedUrl = s"$protocol://$host:$port/hmrc/email"
-        mockPost(expectedUrl, Seq.empty, validEmailRequest)(_)
-        () => connector.sendEmail(validEmailRequest) shouldBe Future.successful(HttpResponse(202, "{}"))
+        val response = Future.successful(HttpResponse(202, "{}"))
+        mockPost(expectedUrl, Seq.empty, validEmailRequest)(response)
+        connector.sendEmail(validEmailRequest) shouldBe response
       }
 
     }
