@@ -11,18 +11,12 @@ This microservice serves the following purposes:
 - retrieve existing undertaking subsidies.
 
 
-## Persistence
-
-This service uses `mongodb` to persist user answers about Undertaking, Business Entity and Subsidies.
-
 ## Requirements
 
 This service is written in [Scala](http://www.scala-lang.org/) using the
 [Play framework](http://playframework.com/), so needs at least a JRE to run.
 
 JRE/JDK 11 is recommended.
-
-The service also depends on `mongodb`
 
 ## Running the service
 

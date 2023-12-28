@@ -2,8 +2,6 @@ import scoverage.ScoverageKeys
 
 val appName = "eu-subsidy-compliance"
 
-val silencerVersion = "1.7.12"
-
 PlayKeys.playDefaultPort := 9094
 
 lazy val microservice = Project(appName, file("."))
