@@ -34,7 +34,7 @@ import play.api.test.Helpers._
 import play.mvc.Http.HeaderNames.CONTENT_TYPE
 import play.mvc.Http.Status.NO_CONTENT
 import play.test.Helpers.POST
-import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailParameters, EmailRequest, OriginalEmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, EmailRequest, OriginalEmailRequest}
 import uk.gov.hmrc.eusubsidycompliance.test.Fixtures.eori
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, Retrieval}
@@ -72,15 +72,13 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
   val validDeadlineReminderEmailRequest: EmailRequest =
     EmailRequest(
       List(EmailAddress("jdoe@example.com")),
-      undertakingAdminDeadlineReminder,
-      EmailParameters("10 December 2023")
+      undertakingAdminDeadlineReminder
     )
 
   val validDeadlineExpiredEmailRequest: EmailRequest =
     EmailRequest(
       List(EmailAddress("jdoe@example.com")),
-      undertakingAdminDeadlineExpired,
-      EmailParameters("10 December 2023")
+      undertakingAdminDeadlineExpired
     )
   val validDeadlineExpiredOriginalEmailRequest: OriginalEmailRequest =
     OriginalEmailRequest(
@@ -111,8 +109,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 param(
                   EmailRequest(
                     List(validDeadlineReminderOriginalRequest.emailAddress),
-                    undertakingAdminDeadlineReminder,
-                    EmailParameters(deadline)
+                    undertakingAdminDeadlineReminder
                   )
                 )
               )(
@@ -138,8 +135,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 param(
                   EmailRequest(
                     List(validDeadlineExpiredOriginalEmailRequest.emailAddress),
-                    undertakingAdminDeadlineExpired,
-                    EmailParameters(deadline)
+                    undertakingAdminDeadlineExpired
                   )
                 )
               )(
@@ -203,8 +199,7 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
                 param(
                   EmailRequest(
                     List(originalEmailRequest.emailAddress),
-                    undertakingAdminDeadlineExpired,
-                    EmailParameters(deadline)
+                    undertakingAdminDeadlineExpired
                   )
                 )
               )(
