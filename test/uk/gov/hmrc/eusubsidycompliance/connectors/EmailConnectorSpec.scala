@@ -22,7 +22,7 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -48,8 +48,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
   val validEmailRequest: EmailRequest =
     EmailRequest(
       List(EmailAddress("jdoe@example.com")),
-      "undertaking_admin_deadline_reminder",
-      EmailParameters("10 December 2023")
+      "undertaking_admin_deadline_reminder"
     )
 
   private val connector = new EmailConnector(mockHttp, new ServicesConfig(config))

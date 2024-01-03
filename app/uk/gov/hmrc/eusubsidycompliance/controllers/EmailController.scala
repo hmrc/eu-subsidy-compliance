@@ -20,7 +20,7 @@ import play.api.{Configuration, Logging}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
-import uk.gov.hmrc.eusubsidycompliance.models.{EmailParameters, EmailRequest, OriginalEmailRequest}
+import uk.gov.hmrc.eusubsidycompliance.models.{EmailRequest, OriginalEmailRequest}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Predicate, Resource, ResourceLocation, ResourceType}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -57,7 +57,7 @@ class EmailController @Inject() (
   ): Future[Result] =
     emailConnector
       //TODO Replace hardcoded date with deadline received from updated request
-      .sendEmail(EmailRequest(List(originalRequest.emailAddress), messageType, EmailParameters("10 December 2023")))
+      .sendEmail(EmailRequest(List(originalRequest.emailAddress), messageType))
       .map(response =>
         if (response.status == ACCEPTED) NoContent
         else {

@@ -22,7 +22,6 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 case class EmailRequest(
   to: List[EmailAddress],
   templateId: String,
-  parameters: EmailParameters,
   force: Boolean = true
 )
 object EmailRequest {
