@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
+import play.api.Logging
 import play.api.http.Status
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.libs.json.Json
-import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
@@ -39,7 +39,7 @@ class EisConnector @Inject() (
   val http: HttpClient,
   val servicesConfig: ServicesConfig
 ) extends DesHelpers
-    with TracedLogging {
+    with Logging {
 
   private lazy val eisURL: String = servicesConfig.baseUrl("eis")
 
@@ -144,7 +144,7 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp05"
 
-    val eventualUnit = desPost[UndertakingBusinessEntityUpdate, Unit](
+    desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingIdentifier = undertakingRef,
@@ -157,15 +157,6 @@ class EisConnector @Inject() (
       addHeaders,
       implicitly
     )
-
-    eventualUnit.failed.foreach(error =>
-      logger.error(
-        s"failed adding member undertakingRef:$undertakingRef AmendmentType:$amendmentType $businessEntity",
-        error
-      )
-    )
-
-    eventualUnit
   }
 
   def deleteMember(
@@ -176,7 +167,7 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp05"
 
-    val eventualUnit = desPost[UndertakingBusinessEntityUpdate, Unit](
+    desPost[UndertakingBusinessEntityUpdate, Unit](
       s"$eisURL/$amendBusinessEntityPath",
       UndertakingBusinessEntityUpdate(
         undertakingRef,
@@ -190,15 +181,6 @@ class EisConnector @Inject() (
       addHeaders,
       implicitly
     )
-
-    eventualUnit.failed.foreach(error =>
-      logger.error(
-        s"failed deleteMember undertakingRef:$undertakingRef BusinessEntity:$businessEntity",
-        error
-      )
-    )
-
-    eventualUnit
   }
 
   def upsertSubsidyUsage(
@@ -209,20 +191,11 @@ class EisConnector @Inject() (
 
     val eisTokenKey = "eis.token.scp06"
 
-    val eventualUnit = desPost[SubsidyUpdate, Unit](
+    desPost[SubsidyUpdate, Unit](
       s"$eisURL/$amendSubsidyPath",
       subsidyUpdate,
       eisTokenKey
     )(implicitly, readFromJson(amendSubsidyUpdateResponseReads, implicitly[Manifest[Unit]]), addHeaders, implicitly)
-
-    eventualUnit.failed.foreach(error =>
-      logger.error(
-        s"failed upsertSubsidyUsage SubsidyUpdate undertakingRef:${subsidyUpdate.undertakingIdentifier}",
-        error
-      )
-    )
-
-    eventualUnit
   }
 
   def retrieveSubsidies(
@@ -236,21 +209,13 @@ class EisConnector @Inject() (
 
     val defaultDateRange = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
 
-    val eventualUndertakingSubsidies = desPost[SubsidyRetrieve, UndertakingSubsidies](
+    desPost[SubsidyRetrieve, UndertakingSubsidies](
       s"$eisURL/$retrieveSubsidyPath",
       SubsidyRetrieve(ref, dateRange.orElse(defaultDateRange)),
       eisTokenKey
     )(implicitly, implicitly, addHeaders, implicitly)
-
-    eventualUndertakingSubsidies.failed.foreach(error =>
-      logger.error(
-        s"failed retrieveSubsidies UndertakingRef:$ref dateRange:$dateRange",
-        error
-      )
-    )
-
-    eventualUndertakingSubsidies
   }
+
   def getUndertakingBalance(
     request: GetUndertakingBalanceRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GetUndertakingBalanceApiResponse]] = {
