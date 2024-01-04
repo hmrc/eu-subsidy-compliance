@@ -19,7 +19,6 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 import play.api.http.ContentTypes.JSON
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
 import play.api.libs.json.Writes
-import uk.gov.hmrc.eusubsidycompliance.logging.TracedLogging
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -28,7 +27,7 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DesHelpers extends TracedLogging {
+trait DesHelpers {
 
   def http: HttpClient
   def servicesConfig: ServicesConfig
