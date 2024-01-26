@@ -1,4 +1,5 @@
 import scoverage.ScoverageKeys
+import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "eu-subsidy-compliance"
 
@@ -13,10 +14,12 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
+  .configs(IntegrationTest)
+  .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
-      ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*models.*;.*config.*;.*TimeProvider;.*GuiceInjector;" +
+      ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*models.*;.*connectors.EuropaConnector;.*connectors.ProxiedHttpClient;.*config.*;.*TimeProvider;.*GuiceInjector;" +
       ".*ControllerConfiguration;.*testonly.*",
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
@@ -37,7 +40,10 @@ Test / test := (Test / test)
   .dependsOn(scalafmtCheckAll)
   .value
 
-addCommandAlias("precommit", ";scalafmt;test:scalafmt::scalafmt;coverage;test;coverageReport")
+IntegrationTest / test := (IntegrationTest / test)
+  .dependsOn(scalafmtCheckAll)
+  .value
+addCommandAlias("precommit", ";scalafmt;test:scalafmt;it:test::scalafmt;coverage;test;it:test;coverageReport")
 
 
 
