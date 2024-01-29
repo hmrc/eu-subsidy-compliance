@@ -17,17 +17,16 @@
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
 import play.api.http.HeaderNames.ACCEPT
-import play.api.libs.json.{Format, JsString, Json, OFormat, Reads}
 import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
+import uk.gov.hmrc.eusubsidycompliance.connectors.EuropaConnector.reads
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.chaining.scalaUtilChainingOps
-import EuropaConnector.restFormats
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 @Singleton
 class EuropaConnector @Inject() (
@@ -42,9 +41,13 @@ class EuropaConnector @Inject() (
 
 object EuropaConnector {
   private val datePatternStr = "dd/MM/yyyy"
-  private implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
-    Reads.localDateReads(datePatternStr),
-    date => date.format(DateTimeFormatter.ofPattern(datePatternStr)).pipe(JsString.apply)
-  )
-  implicit val restFormats: OFormat[MonthlyExchangeRate] = Json.format[MonthlyExchangeRate]
+  private implicit val localDateFormat: Reads[LocalDate] = Reads.localDateReads(datePatternStr)
+  implicit val reads: Reads[MonthlyExchangeRate] = (
+    (__ \ "currencyIso").read[String] and
+      (__ \ "refCurrencyIso").read[String] and
+      (__ \ "amount").read[BigDecimal] and
+      (__ \ "dateStart").read[LocalDate] and
+      (__ \ "dateEnd").read[LocalDate] and
+      Reads.pure(LocalDate.now())
+  )(MonthlyExchangeRate.apply _)
 }

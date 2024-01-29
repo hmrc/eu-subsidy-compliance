@@ -38,7 +38,14 @@ class ExchangeRateServiceSpec extends BaseSpec with OptionValues with Matchers w
 
   val exchangeRateService = new ExchangeRateService(mockEuropaConnector, mockMonthlyExchangeRateCache)
   val exchangeRate =
-    MonthlyExchangeRate("EUR", "GBP", BigDecimal(0.891), LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31))
+    MonthlyExchangeRate(
+      "EUR",
+      "GBP",
+      BigDecimal(0.891),
+      LocalDate.of(2023, 1, 1),
+      LocalDate.of(2023, 1, 31),
+      LocalDate.now()
+    )
   val localDate: LocalDate = exchangeRate.dateEnd
   val previousMonthYear: LocalDate = YearMonth.from(localDate).minusMonths(1).atEndOfMonth()
 

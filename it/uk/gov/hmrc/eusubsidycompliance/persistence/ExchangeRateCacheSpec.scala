@@ -27,10 +27,11 @@ class ExchangeRateCacheSpec extends IntegrationBaseSpec with DefaultPlayMongoRep
 
   override protected val repository = new MonthlyExchangeRateCache(mongoComponent)
 
+  private val today = LocalDate.now()
   private val exchangeRate1 =
-    MonthlyExchangeRate("GBP", "EUR", BigDecimal(0.867), LocalDate.of(2023, 9, 1), LocalDate.of(2023, 9, 30))
+    MonthlyExchangeRate("GBP", "EUR", BigDecimal(0.867), LocalDate.of(2023, 9, 1), LocalDate.of(2023, 9, 30), today)
   private val exchangeRate2 =
-    MonthlyExchangeRate("GBP", "EUR", BigDecimal(0.807), LocalDate.of(2023, 8, 1), LocalDate.of(2023, 8, 31))
+    MonthlyExchangeRate("GBP", "EUR", BigDecimal(0.807), LocalDate.of(2023, 8, 1), LocalDate.of(2023, 8, 31), today)
   private val exchangeRateSeq = Seq(exchangeRate1, exchangeRate2)
 
   "ExchangeRateCache" should {

@@ -38,10 +38,12 @@ class MonthlyExchangeRateCache @Inject() (
       domainFormat = MonthlyExchangeRate.formats,
       indexes = Seq(
         IndexModel(
+          Indexes.ascending("createDate"),
+          IndexOptions().name("sessionTTL").expireAfter(30, DAYS)
+        ),
+        IndexModel(
           Indexes.ascending("dateEnd"),
-          IndexOptions()
-            .name("sessionTTL")
-            .expireAfter(30, DAYS)
+          IndexOptions().name("idxDateEnd").background(false)
         )
       ),
       replaceIndexes = true,

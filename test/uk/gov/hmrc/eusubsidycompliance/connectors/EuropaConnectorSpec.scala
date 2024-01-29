@@ -37,9 +37,7 @@ class EuropaConnectorSpec
       "return a successful response for a valid response from the europa API" in {
         givenEuropaReturns(200, requestUrl)
       }
-
     }
-
   }
 
   private def givenEuropaReturns(status: Int, url: String): Unit =
