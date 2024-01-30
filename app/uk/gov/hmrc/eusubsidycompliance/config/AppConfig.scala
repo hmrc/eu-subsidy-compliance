@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.eusubsidycompliance.models
+package uk.gov.hmrc.eusubsidycompliance.config
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.Configuration
 
-import java.time.LocalDate
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.jatLocalDateFormat
+import javax.inject.{Inject, Singleton}
 
-case class MonthlyExchangeRate(
-  currencyIso: String,
-  refCurrencyIso: String,
-  amount: BigDecimal,
-  dateStart: LocalDate,
-  dateEnd: LocalDate,
-  createDate: LocalDate
-)
-
-object MonthlyExchangeRate {
-  implicit val formats: OFormat[MonthlyExchangeRate] = Json.format[MonthlyExchangeRate]
+@Singleton
+class AppConfig @Inject() (config: Configuration) {
+  val dropMonthlyExchangeRateCacheJobEnabled: Boolean =
+    config.getOptional[Boolean]("features.drop-monthly-exchange-rate-cache-job-enabled").getOrElse(false)
 }

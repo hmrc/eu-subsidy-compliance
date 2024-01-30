@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.eusubsidycompliance.models
+import com.google.inject.AbstractModule
+import uk.gov.hmrc.eusubsidycompliance.job.DropMonthlyExchangeRateCacheJob
 
-import play.api.libs.json.{Json, OFormat}
-
-import java.time.LocalDate
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.jatLocalDateFormat
-
-case class MonthlyExchangeRate(
-  currencyIso: String,
-  refCurrencyIso: String,
-  amount: BigDecimal,
-  dateStart: LocalDate,
-  dateEnd: LocalDate,
-  createDate: LocalDate
-)
-
-object MonthlyExchangeRate {
-  implicit val formats: OFormat[MonthlyExchangeRate] = Json.format[MonthlyExchangeRate]
+class StartModule extends AbstractModule {
+  override def configure(): Unit =
+    bind(classOf[DropMonthlyExchangeRateCacheJob]).asEagerSingleton()
 }
