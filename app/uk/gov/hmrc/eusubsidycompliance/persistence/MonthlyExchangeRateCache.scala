@@ -15,7 +15,8 @@
  */
 
 package uk.gov.hmrc.eusubsidycompliance.persistence
-import cats.implicits.{catsSyntaxApply, toFunctorOps}
+
+import cats.implicits.{catsSyntaxApplyOps, toFunctorOps}
 import org.mongodb.scala.model.Filters
 import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

@@ -1,21 +1,20 @@
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
+import uk.gov.hmrc.DefaultBuildSettings
 
 val appName = "eu-subsidy-compliance"
 
 PlayKeys.playDefaultPort := 9094
 
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) // Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
-    majorVersion := 0,
-    scalaVersion := "2.13.12",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
@@ -25,6 +24,11 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test")
+  .settings(DefaultBuildSettings.itSettings())
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
   fork := true,
@@ -40,10 +44,7 @@ Test / test := (Test / test)
   .dependsOn(scalafmtCheckAll)
   .value
 
-IntegrationTest / test := (IntegrationTest / test)
-  .dependsOn(scalafmtCheckAll)
-  .value
-addCommandAlias("precommit", ";scalafmt;test:scalafmt;it:test::scalafmt;coverage;test;it:test;coverageReport")
+addCommandAlias("precommit", ";scalafmt;test:scalafmt;it/Test/scalafmt;coverage;test;it/test;coverageReport")
 
 
 
