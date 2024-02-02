@@ -19,9 +19,6 @@ package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, SubsidyAmount, UndertakingRef}
 
-import java.time.format.DateTimeFormatter
-import java.time.LocalDateTime
-
 case class GetUndertakingBalanceApiResponse(
   getUndertakingBalanceResponse: Option[UndertakingBalanceResponse],
   errorDetail: Option[ResponseCommon] = None
@@ -31,21 +28,6 @@ object GetUndertakingBalanceApiResponse {
 
   implicit val responseCommonFormat: Format[ResponseCommon] = Json.format[ResponseCommon]
   implicit val format: Format[GetUndertakingBalanceApiResponse] = Json.format[GetUndertakingBalanceApiResponse]
-}
-
-case class GetUndertakingBalanceResponse(
-  responseCommon: ResponseCommon = ResponseCommon(
-    EisStatus.OK,
-    EisStatusString("ok"),
-    LocalDateTime.now,
-    None
-  ),
-  responseDetail: Option[UndertakingBalanceResponse]
-)
-object GetUndertakingBalanceResponse {
-
-  implicit val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-  implicit val format: Format[GetUndertakingBalanceResponse] = Json.format[GetUndertakingBalanceResponse]
 }
 
 case class UndertakingBalance(
