@@ -261,9 +261,9 @@ Example response body:
   "currencyIso": "GBP",
   "refCurrencyIso": "EUR",
   "amount": 0.864,
-  "dateStart": "2023-07-01T00:00:00.000+00:00",
-  "dateEnd": "2023-07-31T00:00:00.000+00:00",
-  "createDate": "2024-02-02T00:00:00.000+00:00"
+  "dateStart": "2023-07-01",
+  "dateEnd": "2023-07-31",
+  "createDate": "2024-02-02"
 }
 
 ```
@@ -307,7 +307,39 @@ Example request body:
 }
 ```
 
+## Populating exchange rate cache in test environments
+The exchange rate data is fetched from an external endpoint - https://ec.europa.eu/budg/inforeuro/api/public/currencies/gbp 
 
+When hitting external endpoints proxy access must be configured, This works fine in QA and production where we have this set up but you should not hit anything external in other environments. To resolve this, we manually run a job in Jenkins to populate the exchange rate cache.
+
+The cache has a TTL of 30 days, and the latest exchange rates will also need to be added in if you wish to use the latest dates in testing. To populate the cache, do the following:
+
+1) Visit the following link: https://build.tax.service.gov.uk/job/build-and-deploy/job/Query-Mongo/
+2) Click 'Build with Parameters'
+3) Select which environment you wish to update the cache for, e.g. staging, and ensure the 'REPLICA_SET_CHOICE' is set to 'Protected'
+4) Paste the following into the query, replacing the ***EXCHANGE RATE DATA*** with the table data in the europa endpoint linked above:
+```
+use eu-subsidy-compliance;
+var records = [
+EXCHANGE RATE DATA GOES HERE
+];
+function convertToDate(str) {
+  var parts = str.split("/");
+  var day = parts[0];
+  var month = parts[1];
+  var year = parts[2];
+  return ISODate(year + "-" + month.padStart(2, "0") + "-" + day.padStart(2, "0"));
+}
+records.forEach(function (record) {
+  record.dateStart = convertToDate(record.dateStart);
+  record.dateEnd = convertToDate(record.dateEnd);
+  record.createDate = ISODate();
+});
+
+db.getCollection("exchangeRateMonthlyCache").deleteMany({});
+db.getCollection("exchangeRateMonthlyCache").insertMany(records);
+```
+5) Click 'Build' - once the job completes the cache will be populated with data in the relevant environment, allowing you to use the journey without hitting any external endpoint.
 ## Monitoring
 
 The following grafana and kibana dashboards are availble for this service
