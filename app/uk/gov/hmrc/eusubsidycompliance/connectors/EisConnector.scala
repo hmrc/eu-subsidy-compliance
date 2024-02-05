@@ -42,19 +42,13 @@ class EisConnector @Inject() (
     with Logging {
 
   private lazy val eisURL: String = servicesConfig.baseUrl("eis")
-
-  private val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
-  private val createUndertakingPath = "scp/createundertaking/v1"
-  private val updateUndertakingPath = "scp/updateundertaking/v1"
   private val amendBusinessEntityPath = "scp/amendundertakingmemberdata/v1"
-  private val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
-  private val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
-  private val getUndertakingBalancePath = "scp/getsamundertakingbalance/v1"
 
   def retrieveUndertaking(
     eori: EORI
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ConnectorError, UndertakingRetrieve]] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.retrieveUndertakingResponseReads
+    val retrieveUndertakingPath = "scp/retrieveundertaking/v1"
 
     val eisTokenKey = "eis.token.scp04"
     val retrieveUndertakingRequest = RetrieveUndertakingAPIRequest(eori)
@@ -106,6 +100,7 @@ class EisConnector @Inject() (
     undertaking: UndertakingCreate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.createUndertakingResponseReads
+    val createUndertakingPath = "scp/createundertaking/v1"
 
     logger.info(
       s"attempting createUndertaking ${undertaking.loggableString}"
@@ -123,8 +118,8 @@ class EisConnector @Inject() (
     undertaking: UndertakingRetrieve,
     amendmentType: EisAmendmentType
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingRef] = {
-
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.updateUndertakingResponseReads
+    val updateUndertakingPath = "scp/updateundertaking/v1"
 
     val eisTokenKey = "eis.token.scp12"
     desPost[UpdateUndertakingApiRequest, UndertakingRef](
@@ -186,9 +181,8 @@ class EisConnector @Inject() (
   def upsertSubsidyUsage(
     subsidyUpdate: SubsidyUpdate
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-
     import uk.gov.hmrc.eusubsidycompliance.models.json.digital.amendSubsidyUpdateResponseReads
-
+    val amendSubsidyPath = "scp/amendundertakingsubsidyusage/v1"
     val eisTokenKey = "eis.token.scp06"
 
     desPost[SubsidyUpdate, Unit](
@@ -202,11 +196,9 @@ class EisConnector @Inject() (
     ref: UndertakingRef,
     dateRange: Option[(LocalDate, LocalDate)]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UndertakingSubsidies] = {
-
     import uk.gov.hmrc.eusubsidycompliance.models.UndertakingSubsidies.eisRetrieveUndertakingSubsidiesResponseRead
-
+    val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
     val eisTokenKey = "eis.token.scp09"
-
     val defaultDateRange = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
 
     desPost[SubsidyRetrieve, UndertakingSubsidies](
@@ -219,7 +211,7 @@ class EisConnector @Inject() (
   def getUndertakingBalance(
     request: GetUndertakingBalanceRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GetUndertakingBalanceApiResponse]] = {
-
+    val getUndertakingBalancePath = "scp/getsamundertakingbalance/v1"
     val eisTokenKey = "eis.token.scp08"
 
     http
