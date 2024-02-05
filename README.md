@@ -4,11 +4,13 @@
 This microservice serves the following purposes:
 - Create a new Undertaking
 - Retrieve an existing undertaking
+- Retrieve existing undertaking subsidies.
 - Update an undertaking
 - Add member to an Undertaking.
 - Delete member from an undertaking
 - Upsert undertaking subsidy
-- retrieve existing undertaking subsidies.
+- send email requests to send nudge emails
+- Retrieve exchange rates from Europa end point
 
 
 ## Requirements
@@ -22,7 +24,7 @@ JRE/JDK 11 is recommended.
 
 All dependant services can run via
 ```
-sm --start ESC_ALL
+sm2 --start ESC_ALL
 ```
 By default, this service runs on port `9094`. To bring up only this service, use
 ```
@@ -39,6 +41,15 @@ Use the following command to run the tests with coverage and generate a report.
 ```
 sbt clean coverage test coverageReport
 ```
+
+The following command can also be run to format the code base and then execute all tests:
+
+```
+sbt precommit
+```
+
+## Formatting
+This is governed by the **.scalafmt.conf** file.
 
 ## Endpoints
 
@@ -230,6 +241,73 @@ Example response body:
   "dateToHMRCSubsidyUsage": "2021-07-19"
 }
 ```
+### `GET             /retrieve-exchange-rate/:date`
+This endpoint facilitates the retrieval of exchange rates for a specific date. Specifically, it aims to obtain the exchange rate for the last day of the previous month corresponding to the provided date.
+
+Usage Example:
+
+If the input date is 15/08/2023, the endpoint will retrieve the exchange rate for 31/07/2023.
+
+Process Flow:
+
+The endpoint initiates a check in the MonthlyExchangeRate cache for the required data.
+If the data is found in the cache, it is retrieved directly.
+If the data is not found in the cache, the module fetches it from the europa endpoint.
+A 200 (OK) response is returned upon successful retrieval of the correct date's exchange rate.
+
+Example response body:
+```json
+{
+  "currencyIso": "GBP",
+  "refCurrencyIso": "EUR",
+  "amount": 0.864,
+  "dateStart": "2023-07-01T00:00:00.000+00:00",
+  "dateEnd": "2023-07-31T00:00:00.000+00:00",
+  "createDate": "2024-02-02T00:00:00.000+00:00"
+}
+
+```
+
+### `POST             /email-notification`
+This endpoint handles requests to send notification emails to the user.
+
+Suspension Timeline:
+Nudge Email Request (76 days):
+
+At 76 days without a submitted report, a reminder email is triggered.
+Message type '1' is used to represent a deadline reminder request.
+Successful requests will return an 'ACCEPTED' status.
+
+Suspension Email (90+ days):
+
+If the user fails to submit a report by the 90-day mark, another email is sent.
+Message type '2' is used to represent the expiration of the deadline.
+The account is then suspended.
+Successful requests will return an 'ACCEPTED' status.
+
+Communication Types:
+
+Message Type '1': Deadline Reminder Request 
+A reminder email sent at 76 days.
+
+Message Type '2': Deadline Expired
+
+An email notifying the user of the account suspension due to the 90+ day period without report submission.
+
+Response:
+Successful requests will return an 'ACCEPTED' status.
+Example request body:
+
+```json
+ {
+  "undertakingIdentifier": "ABC12345",
+  "businessEntityIdentifier": "GB000000000012",
+  "messageType": "1",
+  "emailAddress": "jdoe@example.com"
+}
+```
+
+
 ## Monitoring
 
 The following grafana and kibana dashboards are availble for this service
@@ -240,32 +318,6 @@ The following grafana and kibana dashboards are availble for this service
 
 The runbook for this service can be found
 [here](https://confluence.tools.tax.service.gov.uk/display/SC/Runbook+-+Subsidy+Compliance).
-
-
-## Formatting
-This is governed by the **.scalafmt.conf** file.
-
-### Formatting and running tests locally
-Running tests will now check formatting. Formatting on save as detailed later should make this test not noticeable,
-running optimize imports across all files can make a mess so running. Well-formatted code makes Linus's law more effective
-```
-"given enough eyeballs, all bugs are shallow"
-```
-As it makes reading code for curiosity's sake easier so more eyeballs.
-
-
-```shell
-sbt formatAndTest
-```
-
-### Auto formatting on save in Intellij
-This actually handles most of the fuss of the formatting dance. Also catches some compilation errors early.
-
-![img.png](intellij-formatting.png)
-
-### Other IDE's
-Full instructions can be found here for Metals etc.
-
 
 ### License
 
