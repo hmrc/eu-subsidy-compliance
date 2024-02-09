@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import play.api.http.HeaderNames.ACCEPT
 import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
 import uk.gov.hmrc.eusubsidycompliance.connectors.EuropaConnector.reads
 import uk.gov.hmrc.http.HeaderCarrier
@@ -27,16 +26,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import java.net.URL
 
 @Singleton
-class EuropaConnector @Inject() (
-  val client: ProxiedHttpClient
-) {
+class EuropaConnector @Inject() (client: HttpClientV2, servicesConfig: ServicesConfig) {
+  private val europaEndpoint = new URL(servicesConfig.baseUrl("europa") + "/budg/inforeuro/api/public/currencies/gbp")
+
   def retrieveMonthlyExchangeRates(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[MonthlyExchangeRate]] =
-    client.GET[Seq[MonthlyExchangeRate]](
-      url = "https://ec.europa.eu/budg/inforeuro/api/public/currencies/gbp",
-      headers = Seq(ACCEPT -> "application/vnd.sdmx.data+json;version=1.0.0-wd")
-    )
+    client.get(europaEndpoint).execute[Seq[MonthlyExchangeRate]]
 }
 
 object EuropaConnector {
