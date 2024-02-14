@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
-import play.api.{Configuration, Logging}
+import play.api.Logging
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EmailConnector
@@ -24,6 +24,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.{EmailRequest, OriginalEmailReques
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Predicate, Resource, ResourceLocation, ResourceType}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,12 +33,12 @@ class EmailController @Inject() (
   cc: ControllerComponents,
   auth: BackendAuthComponents,
   emailConnector: EmailConnector,
-  configuration: Configuration
+  configuration: ServicesConfig
 )(implicit ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
-  private val undertakingAdminDeadlineReminder = configuration.get[String]("email.undertakingAdminDeadlineReminder")
-  private val undertakingAdminDeadlineExpired = configuration.get[String]("email.undertakingAdminDeadlineExpired")
+  private val undertakingAdminDeadlineReminder = configuration.getString("email.undertakingAdminDeadlineReminder")
+  private val undertakingAdminDeadlineExpired = configuration.getString("email.undertakingAdminDeadlineExpired")
   val permission = Predicate.Permission(
     Resource(ResourceType("eu-subsidy-compliance"), ResourceLocation("email-notification")),
     IAAction("ADMIN")
