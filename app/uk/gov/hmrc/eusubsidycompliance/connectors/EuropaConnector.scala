@@ -36,7 +36,7 @@ class EuropaConnector @Inject() (client: HttpClientV2, servicesConfig: ServicesC
   private val europaEndpoint = new URL(servicesConfig.baseUrl("europa") + "/budg/inforeuro/api/public/currencies/gbp")
 
   def retrieveMonthlyExchangeRates(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[MonthlyExchangeRate]] =
-    client.get(europaEndpoint).execute[Seq[MonthlyExchangeRate]]
+    client.get(europaEndpoint).withProxy.execute[Seq[MonthlyExchangeRate]]
 }
 
 object EuropaConnector {
