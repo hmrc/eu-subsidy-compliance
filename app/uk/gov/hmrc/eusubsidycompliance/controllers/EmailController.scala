@@ -57,7 +57,6 @@ class EmailController @Inject() (
     hc: HeaderCarrier
   ): Future[Result] =
     emailConnector
-      //TODO Replace hardcoded date with deadline received from updated request
       .sendEmail(EmailRequest(List(originalRequest.emailAddress), messageType))
       .map(response =>
         if (response.status == ACCEPTED) NoContent
