@@ -46,7 +46,7 @@ class UndertakingController @Inject() (
       .map(u => Ok(Json.toJson(u)))
       .recover {
         case ConnectorError(NOT_FOUND, _) =>
-          logger.error(s"Undertaking not found for EORI $eori")
+          logger.info(s"Undertaking not found for EORI $eori")
           NotFound
         case ConnectorError(NOT_ACCEPTABLE, error: String) =>
           logger.error(s"Undertaking NOT_ACCEPTABLE for EORI $eori - $error")
