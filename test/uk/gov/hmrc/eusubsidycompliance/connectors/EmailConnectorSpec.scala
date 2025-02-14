@@ -30,7 +30,6 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers with MockFactory with HttpSupport {
 
