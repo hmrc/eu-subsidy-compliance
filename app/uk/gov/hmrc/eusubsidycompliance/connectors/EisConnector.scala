@@ -27,16 +27,17 @@ import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmen
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
+import java.net.URL
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EisConnector @Inject() (
-  val http: HttpClient,
+  val http: HttpClientV2,
   val servicesConfig: ServicesConfig
 ) extends DesHelpers
     with Logging {
@@ -215,18 +216,15 @@ class EisConnector @Inject() (
     val eisTokenKey = "eis.token.scp08"
 
     http
-      .POST[GetUndertakingBalanceRequest, HttpResponse](
-        s"$eisURL/$getUndertakingBalancePath",
-        request,
-        headers(eisTokenKey)
-      )
+      .post(new URL(s"$eisURL/$getUndertakingBalancePath"))
+      .setHeader(headers(eisTokenKey): _*)
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse](implicitly[HttpReads[HttpResponse]], implicitly[ExecutionContext])
       .map { res =>
         res.status match {
           case Status.OK => Json.parse(res.body).asOpt[GetUndertakingBalanceApiResponse]
           case _ => None
         }
       }
-
   }
-
 }

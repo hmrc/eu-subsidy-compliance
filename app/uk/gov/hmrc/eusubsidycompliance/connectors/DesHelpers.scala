@@ -18,10 +18,11 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 
 import play.api.http.ContentTypes.JSON
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
-import play.api.libs.json.Writes
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
+import play.api.libs.json.{Json, Writes}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
+import java.net.URL
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
 import java.util.Locale
@@ -29,7 +30,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait DesHelpers {
 
-  def http: HttpClient
+  def http: HttpClientV2
+
   def servicesConfig: ServicesConfig
 
   def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit
@@ -38,7 +40,11 @@ trait DesHelpers {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[O] =
-    http.POST[I, O](url, body, headers(eisTokenKey))(wts, rds, addHeaders, ec)
+    http
+      .post(new URL(url))
+      .setHeader(headers(eisTokenKey): _*)
+      .withBody(Json.toJson(body))
+      .execute[O](implicitly[HttpReads[O]], implicitly[ExecutionContext])
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)
@@ -53,5 +59,4 @@ trait DesHelpers {
     "Environment" -> servicesConfig.getConfString("eis.environment", ""),
     "Authorization" -> s"Bearer ${servicesConfig.getConfString(eisTokenKey, "")}"
   )
-
 }

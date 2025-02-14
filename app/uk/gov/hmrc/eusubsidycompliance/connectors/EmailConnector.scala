@@ -15,17 +15,21 @@
  */
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
+
 import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import java.net.URL
+import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailConnector @Inject() (
-  client: HttpClient,
+  client: HttpClientV2,
   servicesConfig: ServicesConfig
 )(implicit ec: ExecutionContext) {
 
@@ -33,6 +37,9 @@ class EmailConnector @Inject() (
   private lazy val sendEmailUrl: String = s"$baseUrl/hmrc/email"
 
   def sendEmail(request: EmailRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    client.POST[EmailRequest, HttpResponse](sendEmailUrl, request)
-
+    client
+      .post(new URL(sendEmailUrl))
+      .setHeader("Content-Type" -> "application/json")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
 }
