@@ -20,9 +20,8 @@ import play.api.http.ContentTypes.JSON
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import java.net.URL
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
 import java.util.Locale
@@ -41,7 +40,7 @@ trait DesHelpers {
     ec: ExecutionContext
   ): Future[O] =
     http
-      .post(new URL(url))
+      .post(url"$url")
       .setHeader(headers(eisTokenKey): _*)
       .withBody(Json.toJson(body))
       .execute[O](implicitly[HttpReads[O]], implicitly[ExecutionContext])
