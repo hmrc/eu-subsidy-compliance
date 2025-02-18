@@ -27,8 +27,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
-import java.net.URL
+import uk.gov.hmrc.http.StringContextOps
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers with MockFactory with HttpSupport {
@@ -57,7 +56,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
   "EmailConnectorSpec" when {
     "handling request to send an email" when {
       "The server returns a response" in {
-        val expectedUrl = new URL(s"$protocol://$host:$port/hmrc/email")
+        val expectedUrl = url"$protocol://$host:$port/hmrc/email"
         val response = HttpResponse(202, "{}")
         mockPost(expectedUrl, validEmailRequest)(Some(response))
         val result = connector.sendEmail(validEmailRequest).futureValue

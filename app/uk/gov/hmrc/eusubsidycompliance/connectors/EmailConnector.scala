@@ -20,9 +20,8 @@ import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import java.net.URL
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +37,7 @@ class EmailConnector @Inject() (
 
   def sendEmail(request: EmailRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     client
-      .post(new URL(sendEmailUrl))
+      .post(url"$sendEmailUrl")
       .setHeader("Content-Type" -> "application/json")
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
