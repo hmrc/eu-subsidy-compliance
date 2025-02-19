@@ -19,6 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 import com.typesafe.config.ConfigFactory
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfter
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
@@ -26,9 +27,8 @@ import uk.gov.hmrc.eusubsidycompliance.models.EmailRequest
 import uk.gov.hmrc.eusubsidycompliance.models.types.EmailAddress
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
+import uk.gov.hmrc.http.StringContextOps
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers with MockFactory with HttpSupport {
 
@@ -54,15 +54,15 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
   private val connector = new EmailConnector(mockHttp, new ServicesConfig(config))
 
   "EmailConnectorSpec" when {
-    "handling request to send an email " when {
+    "handling request to send an email" when {
       "The server returns a response" in {
-        val expectedUrl = s"$protocol://$host:$port/hmrc/email"
-        val response = Future.successful(HttpResponse(202, "{}"))
-        mockPost(expectedUrl, Seq.empty, validEmailRequest)(response)
-        connector.sendEmail(validEmailRequest) shouldBe response
+        val expectedUrl = url"$protocol://$host:$port/hmrc/email"
+        val response = HttpResponse(202, "{}")
+        mockPost(expectedUrl, validEmailRequest)(Some(response))
+        val result = connector.sendEmail(validEmailRequest).futureValue
+        result.status shouldBe response.status
+        result.body shouldBe response.body
       }
-
     }
   }
-
 }

@@ -33,28 +33,51 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should._
-import play.api.libs.json.Writes
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads, HttpResponse}
+import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.ws.BodyWritable
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
-trait HttpSupport { this: MockFactory with Matchers =>
+trait HttpSupport {
+  this: MockFactory with Matchers =>
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val mockHttp: HttpClient = mock[HttpClient]
+  val mockHttp: HttpClientV2 = mock[HttpClientV2]
+  val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
-  def mockPost[A](url: String, headers: Seq[(String, String)], body: A)(
-    result: Future[HttpResponse]
-  ): Unit =
+  def mockPost[B : Writes](url: URL, requestBody: B)(httpResponse: Option[HttpResponse]) = {
     (mockHttp
-      .POST(_: String, _: A, _: Seq[(String, String)])(
-        _: Writes[A],
-        _: HttpReads[HttpResponse],
-        _: HeaderCarrier,
-        _: ExecutionContext
-      ))
-      .expects(url, body, headers.toSeq, *, *, *, *)
+      .post(_: URL)(_: HeaderCarrier))
+      .expects(url, *)
+      .returning(mockRequestBuilder)
+
+    (mockRequestBuilder
+      .setHeader(_: (String, String)))
+      .expects(*)
+      .returning(mockRequestBuilder)
+
+    mockWithBody(requestBody)
+    mockExecute(httpResponse)
+  }
+
+  def mockExecute(httpResponse: Option[HttpResponse]) =
+    (mockRequestBuilder
+      .execute[HttpResponse](_: HttpReads[HttpResponse], _: ExecutionContext))
+      .expects(*, *)
       .returning(
-        result
+        httpResponse.fold[Future[HttpResponse]](
+          Future.failed(new Exception("Test exception message"))
+        )(Future.successful)
       )
+
+  def mockWithBody[B : Writes](requestBody: B) = {
+    val jsonBody: JsValue = Json.toJson(requestBody)
+    (mockRequestBuilder
+      .withBody(_: JsValue)(_: BodyWritable[JsValue], _: izumi.reflect.Tag[JsValue], _: ExecutionContext))
+      .expects(jsonBody, *, *, *)
+      .returning(mockRequestBuilder)
+  }
 }
