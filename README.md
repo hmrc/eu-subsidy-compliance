@@ -26,10 +26,32 @@ All dependant services can run via
 ```
 sm2 --start ESC_ALL
 ```
-By default, this service runs on port `9094`. To bring up only this service, use
+
+To stop the microservice from running on service manager (e.g. to run your own version locally), you can run:
+
 ```
-sbt run
+sm2 -stop ESC
 ```
+
+
+### Using localhost
+
+To run this microservice locally on the configured port **'9094'**, you can run:
+
+```
+sbt run 
+```
+
+**NOTE:** Ensure that you are not running the microservice via service manager before starting your service locally (vice versa) or the service will fail to start
+
+
+### Accessing the service
+
+Access details can be found on
+[DDCY Live Services Credentials sheet](https://docs.google.com/spreadsheets/d/1ecLTROmzZtv97jxM-5LgoujinGxmDoAuZauu2tFoAVU/edit?gid=1186990023#gid=1186990023)
+for both staging and local url's or check the Tech Overview section in the
+[service summary page ](https://confluence.tools.tax.service.gov.uk/display/ELSY/EUSC+Service+Summary)
+
 
 ## Testing the service
 
