@@ -27,6 +27,12 @@ All dependant services can run via
 sm2 --start ESC_ALL
 ```
 
+To stop the microservice from running on service manager (e.g. to run your own version locally), you can run:
+
+```
+sm2 -stop ESC
+```
+
 
 ### Using localhost
 
