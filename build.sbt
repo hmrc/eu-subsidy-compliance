@@ -15,7 +15,6 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
       ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*models.*;.*connectors.EuropaConnector;.*connectors.ProxiedHttpClient;.*config.*;.*TimeProvider;.*GuiceInjector;" +
