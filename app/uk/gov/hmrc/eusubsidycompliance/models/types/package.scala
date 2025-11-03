@@ -93,6 +93,7 @@ package object types extends SimpleJson {
     val transport: types.Sector.Value = Value("1")
     val agriculture: types.Sector.Value = Value("2")
     val aquaculture: types.Sector.Value = Value("3")
+    val generalTrade: types.Sector.Value = Value("00")
 
     val otherGeneralTrade: types.Sector.Value = Value("INT00")
     val manuGroup1: types.Sector.Value = Value("INT01")
@@ -705,7 +706,7 @@ package object types extends SimpleJson {
     val OtherSpecialisedWholesale: types.Sector.Value = Value("46.8")
     val ChemicalProductsWholesale: types.Sector.Value = Value("46.85")
     val HardwareEquipment: types.Sector.Value = Value("46.84")
-    val metals: types.Sector.Value = Value("46.82")
+    val Metals: types.Sector.Value = Value("46.82")
     val Fuels: types.Sector.Value = Value("46.81")
     val Waste: types.Sector.Value = Value("46.87")
     val Wood: types.Sector.Value = Value("46.83")
