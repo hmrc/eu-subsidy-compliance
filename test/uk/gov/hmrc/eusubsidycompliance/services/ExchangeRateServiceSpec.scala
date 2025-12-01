@@ -101,5 +101,40 @@ class ExchangeRateServiceSpec extends BaseSpec with OptionValues with Matchers w
     }
 
   }
+  "return None" when {
+    "no cached item exists and Europa returns empty list" in {
+      when(mockMonthlyExchangeRateCache.getMonthlyExchangeRate(previousMonthYear))
+        .thenReturn(Future.successful(None))
+      when(mockMonthlyExchangeRateCache.deleteAll())
+        .thenReturn(Future.unit)
+      when(mockEuropaConnector.retrieveMonthlyExchangeRates(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(Future.successful(Seq.empty))
+      when(mockMonthlyExchangeRateCache.put(Seq.empty))
+        .thenReturn(Future.unit)
+      when(mockMonthlyExchangeRateCache.getMonthlyExchangeRate(previousMonthYear))
+        .thenReturn(Future.successful(None))
+
+      exchangeRateService
+        .retrieveCachedMonthlyExchangeRate(exchangeRate.dateEnd)
+        .futureValue shouldBe None
+    }
+  }
+
+  "handle cache population failure" in {
+    val cacheException = new RuntimeException("Cache write failed")
+    when(mockMonthlyExchangeRateCache.getMonthlyExchangeRate(previousMonthYear))
+      .thenReturn(Future.successful(None))
+    when(mockMonthlyExchangeRateCache.deleteAll())
+      .thenReturn(Future.unit)
+    when(mockEuropaConnector.retrieveMonthlyExchangeRates(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(Future.successful(Seq(exchangeRate)))
+    when(mockMonthlyExchangeRateCache.put(Seq(exchangeRate)))
+      .thenReturn(Future.failed(cacheException))
+
+    exchangeRateService
+      .retrieveCachedMonthlyExchangeRate(exchangeRate.dateEnd)
+      .failed
+      .futureValue shouldBe cacheException
+  }
 
 }
