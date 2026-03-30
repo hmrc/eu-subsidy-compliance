@@ -2,7 +2,7 @@ import sbt._
 
 object AppDependencies {
 
-  val bootStrapVersion = "10.4.0"
+  val bootStrapVersion = "10.7.0"
   val hmrcMongoVersion = "2.11.0"
 
 
