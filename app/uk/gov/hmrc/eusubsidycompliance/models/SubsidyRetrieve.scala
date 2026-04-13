@@ -22,6 +22,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.json._
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit.DAYS
 
 // assuming that we always want both subsidy types, and that any date range should apply to both
 case class SubsidyRetrieve(
@@ -39,8 +40,14 @@ object SubsidyRetrieve {
         ("getHMRCUsageTransaction", JsBoolean(true))
       )
     val x =
-      nullableOpt[LocalDate]("dateFromNonHMRCSubsidyUsage", o.inDateRange.map(_._1)) ++
-        nullableOpt[LocalDate]("dateFromHMRCSubsidyUsage", o.inDateRange.map(_._1)) ++
+      nullableOpt[LocalDate](
+        "dateFromNonHMRCSubsidyUsage",
+        Some(LocalDate.now().minus(1095, DAYS), LocalDate.now()).map(_._1)
+      ) ++
+        nullableOpt[LocalDate](
+          "dateFromHMRCSubsidyUsage",
+          Some(LocalDate.now().minus(1095, DAYS), LocalDate.now()).map(_._1)
+        ) ++
         nullableOpt[LocalDate]("dateToNonHMRCSubsidyUsage", o.inDateRange.map(_._2)) ++
         nullableOpt[LocalDate]("dateToHMRCSubsidyUsage", o.inDateRange.map(_._2))
 

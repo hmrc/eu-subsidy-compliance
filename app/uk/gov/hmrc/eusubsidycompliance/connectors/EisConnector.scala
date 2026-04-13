@@ -30,7 +30,9 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
 import java.net.URL
+import java.time.temporal.ChronoUnit.DAYS
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -200,7 +202,7 @@ class EisConnector @Inject() (
     import uk.gov.hmrc.eusubsidycompliance.models.UndertakingSubsidies.eisRetrieveUndertakingSubsidiesResponseRead
     val retrieveSubsidyPath = "scp/getundertakingtransactions/v1"
     val eisTokenKey = "eis.token.scp09"
-    val defaultDateRange = Some((LocalDate.of(2000, 1, 1), LocalDate.now()))
+    val defaultDateRange = Some(LocalDate.now().minus(1095, DAYS), LocalDate.now())
 
     desPost[SubsidyRetrieve, UndertakingSubsidies](
       s"$eisURL/$retrieveSubsidyPath",

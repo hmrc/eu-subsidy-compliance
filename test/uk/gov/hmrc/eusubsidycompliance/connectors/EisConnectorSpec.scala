@@ -33,6 +33,7 @@ import uk.gov.hmrc.eusubsidycompliance.test.util.WiremockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit.DAYS
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EisConnectorSpec
@@ -229,7 +230,7 @@ class EisConnectorSpec
       "return an UndertakingSubsidies instance for a valid request without specifying a date range" in {
 
         // When no date is specified the connector falls back to a range of 2000-01-01 to LocalDate.now()
-        val requestBody = retrieveSubsidiesRequestWithDates(LocalDate.of(2000, 1, 1), LocalDate.now())
+        val requestBody = retrieveSubsidiesRequestWithDates(LocalDate.now().minus(1095, DAYS), LocalDate.now())
 
         givenEisReturns(RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
@@ -240,9 +241,10 @@ class EisConnectorSpec
 
       "return an UndertakingSubsidies instance for a valid request with a date range" in {
 
-        val toDate = date.plusDays(7)
+        val toDate = LocalDate.now().plusDays(7)
 
-        val requestBody = retrieveSubsidiesRequestWithDates(date, date.plusDays(7))
+        val requestBody =
+          retrieveSubsidiesRequestWithDates(LocalDate.now().minus(1095, DAYS), LocalDate.now().plusDays(7))
 
         givenEisReturns(RetrieveSubsidyPath, requestBody, retrieveSubsidiesResponse)
 
