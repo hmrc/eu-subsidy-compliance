@@ -85,7 +85,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Right(undertaking)
+          underTest.retrieveUndertaking(EORI.of("GB123456789012").get).futureValue mustBe Right(undertaking)
         }
 
       }
@@ -109,7 +109,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).futureValue mustBe Left(
+          underTest.retrieveUndertaking(EORI.of("GB123456789012").get).futureValue mustBe Left(
             ConnectorError(
               404,
               "retrieveUndertaking NOT_FOUND - No undertaking found for GB123456789012 (EIS error code 107)"
@@ -137,7 +137,7 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789777")).futureValue mustBe Left(
+          underTest.retrieveUndertaking(EORI.of("GB123456789777").get).futureValue mustBe Left(
             ConnectorError(406, "retrieveUndertaking NOT_ACCEPTABLE - Eori:GB123456789777 (Eis error code 055)")
           )
         }
@@ -158,7 +158,10 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe an[EisBadResponseException]
+          underTest
+            .retrieveUndertaking(EORI.of("GB123456789012").get)
+            .failed
+            .futureValue mustBe an[EisBadResponseException]
         }
       }
 
@@ -547,7 +550,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           val actualResponse = underTest
-            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789012"))))
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI.of("GB123456789012").get)))
             .futureValue
           actualResponse.get.getUndertakingBalanceResponse mustBe expectedResponse.getUndertakingBalanceResponse
         }
@@ -559,7 +562,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest
-            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789999"))))
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI.of("GB123456789999").get)))
             .futureValue mustBe None
         }
       }
@@ -569,7 +572,7 @@ class EisConnectorSpec
 
         testWithRunningApp { underTest =>
           underTest
-            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI("GB123456789990"))))
+            .getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI.of("GB123456789990").get)))
             .failed
             .futureValue mustBe a[JsonParseException]
         }

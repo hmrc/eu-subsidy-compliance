@@ -76,7 +76,7 @@ object ResponseCommon {
       (JsPath \ "statusText").write[String] and
       (JsPath \ "processingDate").write[LocalDateTime] and
       (JsPath \ "returnParameters").writeNullable[List[Params]]
-  )(unlift(ResponseCommon.unapply))
+  )(o => Tuple.fromProductTyped(o))
 
   def apply(errorCode: String, errorText: String): ResponseCommon =
     ResponseCommon(
@@ -86,11 +86,11 @@ object ResponseCommon {
       List(
         Params(
           EisParamName.ERRORCODE,
-          EisParamValue(errorCode)
+          EisParamValue.unsafe(errorCode)
         ),
         Params(
           EisParamName.ERRORTEXT,
-          EisParamValue(errorText)
+          EisParamValue.unsafe(errorText)
         )
       ).some
     )

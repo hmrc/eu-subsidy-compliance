@@ -54,7 +54,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenRetrieveRetrieveUndertaking(Right(undertaking))
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori.value).url)
           val result = route(app, request).value
 
           status(result) mustBe OK
@@ -67,7 +67,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori.value).url)
           val result = route(app, request).value
 
           status(result) mustBe NOT_FOUND
@@ -79,7 +79,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_ACCEPTABLE, "eori not in EMTP")))
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori.value).url)
           val result = route(app, request).value
 
           status(result) mustBe NOT_ACCEPTABLE
@@ -91,7 +91,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenRetrieveRetrieveUndertaking(Left(ConnectorError(INTERNAL_SERVER_ERROR, "ruh roh!")))
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve(eori.value).url)
           val result = route(app, request).value
 
           status(result) mustBe INTERNAL_SERVER_ERROR
@@ -108,7 +108,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.A)
 
         running(app) {
-          val request = fakeJsonPost(routes.UndertakingController.updateUndertaking.url)
+          val request = fakeJsonPost(routes.UndertakingController.updateUndertaking().url)
             .withJsonBody(Json.toJson(undertaking))
 
           val result = route(app, request).value
@@ -125,7 +125,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         givenDeleteMember(Future.successful((): Unit))
         running(app) {
-          val request = fakeJsonPost(routes.UndertakingController.deleteMember(undertakingReference).url)
+          val request = fakeJsonPost(routes.UndertakingController.deleteMember(undertakingReference.value).url)
             .withJsonBody(Json.toJson(businessEntity))
 
           val result = route(app, request).value
@@ -144,7 +144,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         givenAddMember(Future.successful((): Unit))
 
         running(app) {
-          val request = fakeJsonPost(routes.UndertakingController.addMember(undertakingReference).url)
+          val request = fakeJsonPost(routes.UndertakingController.addMember(undertakingReference.value).url)
             .withJsonBody(Json.toJson(businessEntity))
           val result = route(app, request).value
 
@@ -309,7 +309,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
         running(app) {
 
-          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori.value).url)
             .withHeaders(CONTENT_TYPE -> JSON)
           val result = route(app, request).value
 
@@ -327,7 +327,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         val app = configuredAppInstance
 
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori.value).url)
             .withHeaders(CONTENT_TYPE -> JSON)
           val result = route(app, request).value
 
@@ -341,7 +341,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         val app = configuredAppInstance
 
         running(app) {
-          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori).url)
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance(eori.value).url)
             .withHeaders(CONTENT_TYPE -> JSON)
 
           route(app, request).value.failed.futureValue mustBe a[RuntimeException]

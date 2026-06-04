@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.test
 
-import shapeless.tag.@@
 import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, EisParamValue, IndustrySectorLimit, Sector, SubsidyAmount, SubsidyRef, TaxType, TraderRef, UndertakingName, UndertakingRef, UndertakingStatus}
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{EisParamName, EisStatus, EisStatusString, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, Params, ResponseCommon, UndertakingBalanceResponse}
@@ -25,16 +24,16 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 object Fixtures {
 
-  val eori: String @@ types.EORI.Tag = EORI("GB123456789012")
+  val eori: EORI = EORI.of("GB123456789012").get
   val fixedInstant: Instant = Instant.parse("2022-01-01T12:00:00Z")
 
-  val undertakingReference: String @@ types.UndertakingRef.Tag = UndertakingRef("SomeUndertakingReference")
-  val undertakingName: String @@ types.UndertakingName.Tag = UndertakingName("SomeUndertakingName")
+  val undertakingReference: UndertakingRef = UndertakingRef.of("SomeUndertakingReference").get
+  val undertakingName: UndertakingName = UndertakingName.of("SomeUndertakingName").get
   val sector: types.Sector.Value = Sector.other
   val undertakingStatus: types.UndertakingStatus.Value = UndertakingStatus.active
-  val industrySectorLimit: BigDecimal @@ types.IndustrySectorLimit.Tag = IndustrySectorLimit(BigDecimal(200000.00))
+  val industrySectorLimit: IndustrySectorLimit = IndustrySectorLimit.of(BigDecimal(200000.00)).get
   val date: LocalDate = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
-  val subsidyAmount: BigDecimal @@ types.SubsidyAmount.Tag = SubsidyAmount(BigDecimal(123.45))
+  val subsidyAmount: SubsidyAmount = SubsidyAmount.of(BigDecimal(123.45)).get
 
   val undertakingCreate: UndertakingCreate = UndertakingCreate(
     undertakingName,
@@ -56,10 +55,10 @@ object Fixtures {
 
   val businessEntity: BusinessEntity = BusinessEntity(eori, leadEORI = true)
 
-  val subsidyRef: String @@ types.SubsidyRef.Tag = SubsidyRef("ABC12345")
-  val declarationId: String @@ types.DeclarationID.Tag = DeclarationID("12345")
-  val traderRef: String @@ types.TraderRef.Tag = TraderRef("SomeTraderReference")
-  val taxType: String @@ types.TaxType.Tag = TaxType("1")
+  val subsidyRef: SubsidyRef = SubsidyRef.of("ABC12345").get
+  val declarationId: DeclarationID = DeclarationID.of("12345").get
+  val traderRef: TraderRef = TraderRef.of("SomeTraderReference").get
+  val taxType: TaxType = TaxType.of("1").get
   val publicAuthority = "SomePublicAuthority"
 
   val hmrcSubsidy: HmrcSubsidy = HmrcSubsidy(
@@ -102,7 +101,7 @@ object Fixtures {
     industrySectorLimit = industrySectorLimit,
     availableBalanceEUR = subsidyAmount,
     availableBalanceGBP = subsidyAmount,
-    conversionRate = SubsidyAmount(1.2),
+    conversionRate = SubsidyAmount.of(1.2).get,
     nationalCapBalanceEUR = industrySectorLimit
   )
 
@@ -114,17 +113,17 @@ object Fixtures {
     errorDetail = Some(
       ResponseCommon(
         EisStatus.NOT_OK,
-        EisStatusString("String"), //verbatim from spec
+        EisStatusString("String"), // verbatim from spec
         LocalDateTime.now,
         Some(
           List(
             Params(
               EisParamName.ERRORCODE,
-              EisParamValue("107")
+              EisParamValue.of("107").get
             ),
             Params(
               EisParamName.ERRORTEXT,
-              EisParamValue("some not found error")
+              EisParamValue.of("some not found error").get
             )
           )
         )

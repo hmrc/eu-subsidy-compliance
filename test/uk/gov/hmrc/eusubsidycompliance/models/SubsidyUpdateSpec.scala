@@ -43,18 +43,18 @@ class SubsidyUpdateSpec extends AnyWordSpec with Matchers {
        |""".stripMargin.trim
 
   private val maxValueSubsidyUpdate = SubsidyUpdate(
-    undertakingIdentifier = UndertakingRef("uIdentifier-".padTo(17, 'x').mkString),
+    undertakingIdentifier = UndertakingRef.of("uIdentifier-".padTo(17, 'x').mkString).get,
     update = UndertakingSubsidyAmendment(
       updates = List(
         NonHmrcSubsidy(
-          subsidyUsageTransactionId = Some(SubsidyRef("subsidyref")),
+          subsidyUsageTransactionId = Some(SubsidyRef.of("subsidyref").get),
           allocationDate = LocalDate.EPOCH,
           submissionDate = LocalDate.EPOCH.plusDays(1),
           publicAuthority = Some("publicAuthority-1"),
-          traderReference = Some(TraderRef(maxLengthTraderRef)),
-          nonHMRCSubsidyAmtEUR = SubsidyAmount(BigDecimal(99999999999.99)),
-          businessEntityIdentifier = Some(EORI("GB1234512345123")),
-          amendmentType = Some(EisSubsidyAmendmentType("1"))
+          traderReference = Some(TraderRef.of(maxLengthTraderRef).get),
+          nonHMRCSubsidyAmtEUR = SubsidyAmount.of(BigDecimal(99999999999.99)).get,
+          businessEntityIdentifier = Some(EORI.of("GB1234512345123").get),
+          amendmentType = Some(EisSubsidyAmendmentType.of("1").get)
         )
       )
     )

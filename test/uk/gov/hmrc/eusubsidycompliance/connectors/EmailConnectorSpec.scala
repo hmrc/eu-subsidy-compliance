@@ -47,7 +47,7 @@ class EmailConnectorSpec extends AnyWordSpec with BeforeAndAfter with Matchers w
   )
   val validEmailRequest: EmailRequest =
     EmailRequest(
-      List(EmailAddress("jdoe@example.com")),
+      List(EmailAddress.of("jdoe@example.com").get),
       "undertaking_admin_deadline_reminder"
     )
 

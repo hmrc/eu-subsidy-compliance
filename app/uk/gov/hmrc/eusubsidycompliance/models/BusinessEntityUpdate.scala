@@ -42,7 +42,7 @@ object BusinessEntityUpdate {
   private implicit val businessEntityWrites: Writes[BusinessEntity] = (
     (JsPath \ "businessEntityIdentifier").write[EORI] and
       (JsPath \ "leadEORIIndicator").write[Boolean]
-  )(unlift(BusinessEntity.unapply))
+  )(o => Tuple.fromProductTyped(o))
 
   implicit val businessEntityUpdateReads: Reads[BusinessEntityUpdate] = (json: JsValue) =>
     JsSuccess(

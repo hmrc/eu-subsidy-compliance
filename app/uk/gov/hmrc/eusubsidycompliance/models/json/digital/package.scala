@@ -46,7 +46,7 @@ package object digital {
 
       JsSuccess(
         UndertakingRetrieve(
-          reference = (responseDetail \ "undertakingReference").asOpt[String].map(UndertakingRef(_)),
+          reference = (responseDetail \ "undertakingReference").asOpt[String].flatMap(UndertakingRef.of(_)),
           name = (responseDetail \ "undertakingName").as[UndertakingName],
           industrySector = (responseDetail \ "industrySector").as[Sector],
           industrySectorLimit = (responseDetail \ "industrySectorLimit").as[IndustrySectorLimit].some,
@@ -62,13 +62,13 @@ package object digital {
   implicit val createUndertakingResponseReads: Reads[UndertakingRef] =
     readResponseFor[UndertakingRef]("createUndertakingResponse") { json =>
       val ref = (json \ "createUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
-      JsSuccess(UndertakingRef(ref))
+      UndertakingRef.of(ref).fold[JsResult[UndertakingRef]](JsError("invalid undertaking ref"))(JsSuccess(_))
     }
 
   implicit val updateUndertakingResponseReads: Reads[UndertakingRef] =
     readResponseFor[UndertakingRef]("updateUndertakingResponse") { json =>
       val ref = (json \ "updateUndertakingResponse" \ "responseDetail" \ "undertakingReference").as[String]
-      JsSuccess(UndertakingRef(ref))
+      UndertakingRef.of(ref).fold[JsResult[UndertakingRef]](JsError("invalid undertaking ref"))(JsSuccess(_))
     }
 
   implicit val amendUndertakingMemberResponseReads: Reads[Unit] =
@@ -77,7 +77,7 @@ package object digital {
   implicit val amendSubsidyUpdateResponseReads: Reads[Unit] =
     readResponseFor[Unit]("amendUndertakingSubsidyUsageResponse")(_ => JsSuccess(()))
 
-  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsSuccess[A]): Reads[A] = (json: JsValue) => {
+  def readResponseFor[A](responseName: String)(extractValue: JsValue => JsResult[A]): Reads[A] = (json: JsValue) => {
     val responseCommon: JsLookupResult = json \ responseName \ "responseCommon"
     (responseCommon \ "status").as[String] match {
       case OK => extractValue(json)

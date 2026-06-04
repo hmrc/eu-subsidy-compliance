@@ -68,7 +68,7 @@ class Authenticator @Inject() (
             .flatMap(_.getIdentifier(EnrolmentIdentifier))
             .map(_.value)
             .fold(throw new IllegalStateException("EORI missing from enrolment")) { eori =>
-              action(request)(EORI(eori))
+              action(request)(eori)
             }
         case _ => Future.failed(throw InternalError())
       }

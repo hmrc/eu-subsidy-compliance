@@ -51,11 +51,11 @@ object UndertakingSubsidies {
         .asOpt[List[HmrcSubsidy]]
       JsSuccess(
         UndertakingSubsidies(
-          UndertakingRef(ref),
-          SubsidyAmount(nonHmrcTotalEur),
-          SubsidyAmount(nonHmrcTotalGbp),
-          SubsidyAmount(hmrcTotalEur),
-          SubsidyAmount(hmrcTotalGbp),
+          UndertakingRef.of(ref).getOrElse(throw new RuntimeException(s"Invalid UndertakingRef: $ref")),
+          SubsidyAmount.of(nonHmrcTotalEur).getOrElse(SubsidyAmount.zero),
+          SubsidyAmount.of(nonHmrcTotalGbp).getOrElse(SubsidyAmount.zero),
+          SubsidyAmount.of(hmrcTotalEur).getOrElse(SubsidyAmount.zero),
+          SubsidyAmount.of(hmrcTotalGbp).getOrElse(SubsidyAmount.zero),
           nonHmrcUsage.getOrElse(List.empty),
           hmrcUsage.getOrElse(List.empty)
         )

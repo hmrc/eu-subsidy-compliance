@@ -31,10 +31,10 @@ case class UndertakingCreate(
   undertakingBusinessEntity: List[BusinessEntity]
 ) {
 
-  //name is user entered so could break GPDR
+  // name is user entered so could break GPDR
   lazy val loggableString: String =
     s"""UndertakingCreate:
-       | nameLength:${name.length},
+       | nameLength:${name.value.length},
        | industrySector:$industrySector,
        | industrySectorLimit:$industrySectorLimit,
        | lastSubsidyUsageUpdt:$lastSubsidyUsageUpdt,
@@ -57,7 +57,7 @@ case class UndertakingRetrieve(
   lazy val loggableString: String =
     s"""UndertakingRetrieve:
        | reference:$reference,
-       | nameLength:${name.length},
+       | nameLength:${name.value.length},
        | industrySector:$industrySector,
        | industrySectorLimit:$industrySectorLimit,
        | lastSubsidyUsageUpdt:$lastSubsidyUsageUpdt,

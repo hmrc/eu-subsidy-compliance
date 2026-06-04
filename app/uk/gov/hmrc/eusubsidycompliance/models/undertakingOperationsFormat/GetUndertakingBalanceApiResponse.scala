@@ -39,8 +39,10 @@ case class UndertakingBalance(
   totalGBP: SubsidyAmount,
   conversionRate: SubsidyAmount
 ) {
-  val availableBalanceEUR: SubsidyAmount = SubsidyAmount(industrySectorLimit - totalEUR)
-  val availableBalanceGBP: SubsidyAmount = SubsidyAmount(industrySectorLimit - totalGBP)
+  val availableBalanceEUR: SubsidyAmount =
+    SubsidyAmount.of(industrySectorLimit.value - totalEUR.value).getOrElse(SubsidyAmount.zero)
+  val availableBalanceGBP: SubsidyAmount =
+    SubsidyAmount.of(industrySectorLimit.value - totalGBP.value).getOrElse(SubsidyAmount.zero)
   val nationalCapBalanceEUR: IndustrySectorLimit = industrySectorLimit
 
 }

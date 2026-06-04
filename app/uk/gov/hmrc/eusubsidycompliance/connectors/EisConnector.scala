@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.http.Status
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
@@ -74,7 +75,7 @@ class EisConnector @Inject() (
         Right(Json.parse(body).as[UndertakingRetrieve])
       }
       .recover {
-        case e: EisBadResponseException if e.code == EisParamValue(notFoundEisErrorCode) =>
+        case e: EisBadResponseException if e.code.value == EisParamValue(notFoundEisErrorCode) =>
           logger.info(
             s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode) - available for undertakingCreate"
           )
@@ -85,7 +86,7 @@ class EisConnector @Inject() (
             )
           )
 
-        case e: EisBadResponseException if e.code == EisParamValue(unacceptableEisErrorCode) =>
+        case e: EisBadResponseException if e.code.value == EisParamValue(unacceptableEisErrorCode) =>
           logger.error(
             s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode) - NOT available for undertakingCreate",
             e
