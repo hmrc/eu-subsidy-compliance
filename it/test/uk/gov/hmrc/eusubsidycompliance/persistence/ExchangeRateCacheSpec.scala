@@ -25,7 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ExchangeRateCacheSpec extends IntegrationBaseSpec with DefaultPlayMongoRepositorySupport[MonthlyExchangeRate] {
 
-  override protected val repository = new MonthlyExchangeRateCache(mongoComponent)
+  override protected val repository: MonthlyExchangeRateCache = new MonthlyExchangeRateCache(mongoComponent)
 
   private val today = LocalDate.now()
   private val exchangeRate1 =

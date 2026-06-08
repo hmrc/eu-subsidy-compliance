@@ -34,9 +34,8 @@ class EuropaConnectorSpec
 
   "EuropaConnector" when {
     "an exchange rate request is made" should {
-      "return a successful response for a valid response from the europa API" in {
+      "return a successful response for a valid response from the europa API" in
         givenEuropaReturns(200, requestUrl)
-      }
     }
   }
 
