@@ -137,7 +137,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
     "addMember is called" should {
 
-      "return a successful response for a valid request" in {
+      "return a successful response for a valid request when amending an existing member" in {
         val app = configuredAppInstance
 
         givenRetrieveRetrieveUndertaking(Right(undertaking))
@@ -151,6 +151,22 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           status(result) mustBe OK
         }
       }
+
+      "return a successful response when adding a new member" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
+        givenAddMember(Future.successful((): Unit), AmendmentType.add)
+
+        running(app) {
+          val request = fakeJsonPost(routes.UndertakingController.addMember(undertakingReference.value).url)
+            .withJsonBody(Json.toJson(businessEntity))
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+        }
+      }
+      
     }
 
     "updateSubsidy is called" should {
@@ -348,6 +364,28 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         }
       }
 
+      "return a HTTP 400 if the EORI is invalid for retrieve" in {
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.retrieve("INVALID").url)
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+      }
+
+      "return a HTTP 400 if the EORI is invalid for undertakingBalance" in {
+        val app = configuredAppInstance
+
+        running(app) {
+          val request = FakeRequest(GET, routes.UndertakingController.getUndertakingBalance("INVALID").url)
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+      }
+
     }
 
   }
@@ -418,4 +456,11 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertakingReference, businessEntity, AmendmentType.amend, *, *)
       .returning(res)
+
+  private def givenAddMember(res: Future[Unit], amendmentType: AmendmentType = AmendmentType.amend): Unit =
+    (mockEisConnector
+      .addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity, amendmentType, *, *)
+      .returning(res)
+
 }
