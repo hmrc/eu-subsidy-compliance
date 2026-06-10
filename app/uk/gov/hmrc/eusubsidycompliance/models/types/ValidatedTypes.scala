@@ -18,19 +18,18 @@ package uk.gov.hmrc.eusubsidycompliance.models.types
 
 import cats.implicits._
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.types
 
 import scala.util.matching.Regex
 
 trait ValidatedType[BaseType] {
 
-  trait Tag
+  opaque type Type <: BaseType = BaseType
 
   private lazy val className: String = this.getClass.getSimpleName
 
   def validateAndTransform(in: BaseType): Option[BaseType]
 
-  def apply(in: BaseType): BaseType =
+  def apply(in: BaseType): Type =
     of(in).getOrElse {
       throw new IllegalArgumentException(
         s""""$in" is not a valid ${className.init}"""
@@ -38,12 +37,10 @@ trait ValidatedType[BaseType] {
     }
 
   def of(in: BaseType): Option[BaseType] =
-    validateAndTransform(in) map { x =>
-      x
-    }
+    validateAndTransform(in)
 }
 
-class RegexValidatedString(
+abstract class RegexValidatedString(
   val regex: String,
   transform: String => String = identity
 ) extends ValidatedType[String] {
@@ -59,11 +56,11 @@ trait SimpleJson {
   private def validatedStringFormat(
     A: ValidatedType[String],
     name: String
-  ): Format[String] = new Format[String] {
+  ): Format[A.Type] = new Format[A.Type] {
 
     override def reads(
       json: JsValue
-    ): JsResult[String] = json match {
+    ): JsResult[A.Type] = json match {
       case JsString(value) =>
         A.validateAndTransform(value) match {
           case Some(v) => JsSuccess(A(v))
@@ -73,15 +70,15 @@ trait SimpleJson {
     }
 
     override def writes(
-      o: String
+      o: A.Type
     ): JsValue = JsString(o)
   }
 
   private def validatedBigDecimalFormat(
     A: ValidatedType[BigDecimal],
     name: String
-  ): Format[BigDecimal] = new Format[BigDecimal] {
-    override def reads(json: JsValue): JsResult[BigDecimal] =
+  ): Format[A.Type] = new Format[A.Type] {
+    override def reads(json: JsValue): JsResult[A.Type] =
       json match {
         case JsNumber(value) =>
           A.validateAndTransform(value) match {
@@ -94,49 +91,49 @@ trait SimpleJson {
           )
       }
 
-    override def writes(o: BigDecimal): JsValue = JsNumber(BigDecimal(o.toString))
+    override def writes(o: A.Type): JsValue = JsNumber(BigDecimal(o.toString))
   }
 
-  implicit val sectorLimitFormat: Format[BigDecimal] =
+  implicit val sectorLimitFormat: Format[IndustrySectorLimit] =
     validatedBigDecimalFormat(IndustrySectorLimit, "IndustrySectorLimit")
 
-  implicit val positiveSubsidyAmountFormat: Format[BigDecimal] =
+  implicit val positiveSubsidyAmountFormat: Format[PositiveSubsidyAmount] =
     validatedBigDecimalFormat(PositiveSubsidyAmount, "PositiveSubsidyAmount")
 
-  implicit val subsidyAmountFormat: Format[BigDecimal] =
+  implicit val subsidyAmountFormat: Format[SubsidyAmount] =
     validatedBigDecimalFormat(SubsidyAmount, "SubsidyAmount")
 
-  implicit val eisParamValueFormat: Format[String] =
+  implicit val eisParamValueFormat: Format[EisParamValue] =
     validatedStringFormat(EisParamValue, "paramValue")
 
-  implicit val eisStatusStringFormat: Format[String] =
+  implicit val eisStatusStringFormat: Format[EisStatusString] =
     validatedStringFormat(EisStatusString, "eisStatusString")
 
-  implicit val undertakingRefFormat: Format[String] =
+  implicit val undertakingRefFormat: Format[UndertakingRef] =
     validatedStringFormat(UndertakingRef, "undertakingReference")
 
-  implicit val undertakingNameFormat: Format[String] =
+  implicit val undertakingNameFormat: Format[UndertakingName] =
     validatedStringFormat(UndertakingName, "undertakingName")
 
-  implicit val emailAddressFormat: Format[String] =
+  implicit val emailAddressFormat: Format[EmailAddress] =
     validatedStringFormat(EmailAddress, "emailAddress")
 
-  implicit val eoriFormat: Format[String] =
+  implicit val eoriFormat: Format[EORI] =
     validatedStringFormat(EORI, "eori")
 
-  implicit val subsidyRefFormat: Format[String] =
+  implicit val subsidyRefFormat: Format[SubsidyRef] =
     validatedStringFormat(SubsidyRef, "subsidyRef")
 
-  implicit val amendmentTypeFormat: Format[String] =
+  implicit val amendmentTypeFormat: Format[EisSubsidyAmendmentType] =
     validatedStringFormat(EisSubsidyAmendmentType, "amendmentType")
 
-  implicit val traderRefFormat: Format[String] =
+  implicit val traderRefFormat: Format[TraderRef] =
     validatedStringFormat(TraderRef, "traderRef")
 
-  implicit val declarationIDFormat: Format[String] =
+  implicit val declarationIDFormat: Format[DeclarationID] =
     validatedStringFormat(DeclarationID, "declarationId")
 
-  implicit val taxTypeFormat: Format[String] =
+  implicit val taxTypeFormat: Format[TaxType] =
     validatedStringFormat(TaxType, "taxType")
 
 }

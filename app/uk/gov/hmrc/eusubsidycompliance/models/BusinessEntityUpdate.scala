@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 import play.api.libs.functional.syntax.{unlift, _}
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
-import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 import java.time.LocalDate
 

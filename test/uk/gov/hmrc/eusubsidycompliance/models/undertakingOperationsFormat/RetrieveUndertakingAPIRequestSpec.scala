@@ -34,12 +34,12 @@ class RetrieveUndertakingAPIRequestSpec extends AnyWordSpecLike with Matchers {
       // so should allow easier ways to do what I am doing
       // The benefit of these types of tests is that we can confirm the payloads are what
       // we expect easily. Also changes to json are picked up.
-      val baseRequest = RetrieveUndertakingAPIRequest(EORI.of("GB1234453334333").get)
+      val baseRequest = RetrieveUndertakingAPIRequest(EORI("GB1234453334333"))
       val akrefTest = "abcdefghijklmabcdefghijklmabcdefghijklm" // m is 13 so 39 chars
       val receiptDate = Instant.EPOCH.toString
       val retrieveUndertakingRequest = baseRequest.retrieveUndertakingRequest
       val requestCommon: RequestCommon = retrieveUndertakingRequest.requestCommon
-        .copy(acknowledgementReference = AcknowledgementRef.of(akrefTest).get, receiptDate = receiptDate)
+        .copy(acknowledgementReference = AcknowledgementRef(akrefTest), receiptDate = receiptDate)
 
       val jsValue = RetrieveUndertakingAPIRequest.writes.writes(
         baseRequest.copy(retrieveUndertakingRequest = retrieveUndertakingRequest.copy(requestCommon = requestCommon))

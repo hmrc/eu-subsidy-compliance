@@ -18,7 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 
 import play.api.libs.json.{Format, JsSuccess, Json, Reads}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.readResponseFor
-import uk.gov.hmrc.eusubsidycompliance.models.types.{SubsidyAmount, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 case class UndertakingSubsidies(
   undertakingIdentifier: UndertakingRef,
@@ -51,11 +51,11 @@ object UndertakingSubsidies {
         .asOpt[List[HmrcSubsidy]]
       JsSuccess(
         UndertakingSubsidies(
-          UndertakingRef.of(ref).getOrElse(throw new RuntimeException(s"Invalid UndertakingRef: $ref")),
-          SubsidyAmount.of(nonHmrcTotalEur).getOrElse(SubsidyAmount.zero),
-          SubsidyAmount.of(nonHmrcTotalGbp).getOrElse(SubsidyAmount.zero),
-          SubsidyAmount.of(hmrcTotalEur).getOrElse(SubsidyAmount.zero),
-          SubsidyAmount.of(hmrcTotalGbp).getOrElse(SubsidyAmount.zero),
+          UndertakingRef(ref),
+          SubsidyAmount(nonHmrcTotalEur),
+          SubsidyAmount(nonHmrcTotalGbp),
+          SubsidyAmount(hmrcTotalEur),
+          SubsidyAmount(hmrcTotalGbp),
           nonHmrcUsage.getOrElse(List.empty),
           hmrcUsage.getOrElse(List.empty)
         )

@@ -24,16 +24,16 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 object Fixtures {
 
-  val eori: EORI = EORI.of("GB123456789012").get
+  val eori: EORI = EORI("GB123456789012")
   val fixedInstant: Instant = Instant.parse("2022-01-01T12:00:00Z")
 
-  val undertakingReference: UndertakingRef = UndertakingRef.of("SomeUndertakingReference").get
-  val undertakingName: UndertakingName = UndertakingName.of("SomeUndertakingName").get
+  val undertakingReference: UndertakingRef = UndertakingRef("SomeUndertakingReference")
+  val undertakingName: UndertakingName = UndertakingName("SomeUndertakingName")
   val sector: types.Sector.Value = Sector.other
   val undertakingStatus: types.UndertakingStatus.Value = UndertakingStatus.active
-  val industrySectorLimit: IndustrySectorLimit = IndustrySectorLimit.of(BigDecimal(200000.00)).get
+  val industrySectorLimit: IndustrySectorLimit = IndustrySectorLimit(BigDecimal(200000.00))
   val date: LocalDate = fixedInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
-  val subsidyAmount: SubsidyAmount = SubsidyAmount.of(BigDecimal(123.45)).get
+  val subsidyAmount: SubsidyAmount = SubsidyAmount(BigDecimal(123.45))
 
   val undertakingCreate: UndertakingCreate = UndertakingCreate(
     undertakingName,
@@ -55,10 +55,10 @@ object Fixtures {
 
   val businessEntity: BusinessEntity = BusinessEntity(eori, leadEORI = true)
 
-  val subsidyRef: SubsidyRef = SubsidyRef.of("ABC12345").get
-  val declarationId: DeclarationID = DeclarationID.of("12345").get
-  val traderRef: TraderRef = TraderRef.of("SomeTraderReference").get
-  val taxType: TaxType = TaxType.of("1").get
+  val subsidyRef: SubsidyRef = SubsidyRef("ABC12345")
+  val declarationId: DeclarationID = DeclarationID("12345")
+  val traderRef: TraderRef = TraderRef("SomeTraderReference")
+  val taxType: TaxType = TaxType("1")
   val publicAuthority = "SomePublicAuthority"
 
   val hmrcSubsidy: HmrcSubsidy = HmrcSubsidy(
@@ -101,7 +101,7 @@ object Fixtures {
     industrySectorLimit = industrySectorLimit,
     availableBalanceEUR = subsidyAmount,
     availableBalanceGBP = subsidyAmount,
-    conversionRate = SubsidyAmount.of(1.2).get,
+    conversionRate = SubsidyAmount(1.2),
     nationalCapBalanceEUR = industrySectorLimit
   )
 
@@ -119,11 +119,11 @@ object Fixtures {
           List(
             Params(
               EisParamName.ERRORCODE,
-              EisParamValue.of("107").get
+              EisParamValue("107")
             ),
             Params(
               EisParamName.ERRORTEXT,
-              EisParamValue.of("some not found error").get
+              EisParamValue("some not found error")
             )
           )
         )

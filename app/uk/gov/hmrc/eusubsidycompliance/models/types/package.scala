@@ -21,21 +21,8 @@ import play.api.libs.json.*
 
 package object types extends SimpleJson {
 
-  opaque type IndustrySectorLimit = BigDecimal
+  type IndustrySectorLimit = IndustrySectorLimit.Type
   object IndustrySectorLimit extends ValidatedType[BigDecimal] {
-
-    extension (isl: IndustrySectorLimit) def value: BigDecimal = isl
-
-    override def of(in: BigDecimal): Option[IndustrySectorLimit] = validateAndTransform(in)
-
-    given Format[IndustrySectorLimit] = Format(
-      Reads[IndustrySectorLimit](json =>
-        Reads.bigDecReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[IndustrySectorLimit]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[IndustrySectorLimit](isl => JsNumber(isl.value))
-    )
 
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
@@ -43,158 +30,48 @@ package object types extends SimpleJson {
       }
   }
 
-  opaque type PositiveSubsidyAmount = BigDecimal
+  type PositiveSubsidyAmount = PositiveSubsidyAmount.Type
   object PositiveSubsidyAmount extends ValidatedType[BigDecimal] {
-
-    override def of(in: BigDecimal): Option[PositiveSubsidyAmount] = validateAndTransform(in)
-
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x >= 0) && (x <= 99999999999.99) && (x.scale <= 2)
       }
   }
 
-  opaque type SubsidyAmount = BigDecimal
+  type SubsidyAmount = SubsidyAmount.Type
   object SubsidyAmount extends ValidatedType[BigDecimal] {
-
-    val zero: SubsidyAmount = BigDecimal(0)
-
-    override def of(in: BigDecimal): Option[SubsidyAmount] = validateAndTransform(in)
-
-    given Format[SubsidyAmount] = Format(
-      Reads[SubsidyAmount](json =>
-        Reads.bigDecReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[SubsidyAmount]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[SubsidyAmount](sa => JsNumber(sa.value))
-    )
-
-    extension (sa: SubsidyAmount) def value: BigDecimal = sa
-
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x >= -99999999999.99) && (x <= 99999999999.99) && (x.scale <= 2)
       }
   }
 
-  opaque type DeclarationID = String
-  object DeclarationID extends RegexValidatedString(""".{1,18}""") {
+  type DeclarationID = DeclarationID.Type
+  object DeclarationID extends RegexValidatedString(""".{1,18}""")
 
-    override def of(in: String): Option[DeclarationID] = validateAndTransform(in)
+  type TaxType = TaxType.Type
+  object TaxType extends RegexValidatedString(regex = """.{0,3}""")
 
-    given Format[DeclarationID] = Format(
-      Reads[DeclarationID](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[DeclarationID]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[DeclarationID](d => JsString(d.value))
-    )
+  type TraderRef = TraderRef.Type
+  object TraderRef extends RegexValidatedString(regex = """[A-Za-z0-9 ]{1,400}""")
 
-    extension (e: DeclarationID) def value: String = e
-  }
+  type UndertakingName = UndertakingName.Type
+  object UndertakingName extends RegexValidatedString(regex = """.{1,105}""")
 
-  opaque type TaxType = String
-  object TaxType extends RegexValidatedString(regex = """.{0,3}""") {
-
-    given Format[TaxType] = Format(
-      Reads[TaxType](json =>
-        Reads.StringReads.reads(json).flatMap(s => of(s).fold[JsResult[TaxType]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[TaxType](t => JsString(t.value))
-    )
-
-    override def of(in: String): Option[TaxType] = validateAndTransform(in)
-
-    extension (e: TaxType) def value: String = e
-  }
-
-  opaque type TraderRef = String
-  object TraderRef extends RegexValidatedString(regex = """[A-Za-z0-9 ]{1,400}""") {
-
-    given Format[TraderRef] = Format(
-      Reads[TraderRef](json =>
-        Reads.StringReads.reads(json).flatMap(s => of(s).fold[JsResult[TraderRef]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[TraderRef](tr => JsString(tr.value))
-    )
-
-    override def of(in: String): Option[TraderRef] = validateAndTransform(in)
-
-    extension (e: TraderRef) def value: String = e
-  }
-
-  opaque type UndertakingName = String
-  object UndertakingName extends RegexValidatedString(regex = """.{1,105}""") {
-
-    override def of(in: String): Option[UndertakingName] = validateAndTransform(in)
-
-    extension (e: UndertakingName) def value: String = e
-
-    given Format[UndertakingName] = Format(
-      Reads[UndertakingName](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[UndertakingName]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[UndertakingName](name => JsString(name.value))
-    )
-  }
-
-  opaque type EmailAddress = String
+  type EmailAddress = EmailAddress.Type
   object EmailAddress
       extends RegexValidatedString(regex =
         """^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+)$"""
-      ) {
+      )
 
-    given Format[EmailAddress] = Format(
-      Reads[EmailAddress](json =>
-        Reads.StringReads.reads(json).flatMap(s => of(s).fold[JsResult[EmailAddress]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[EmailAddress](e => JsString(e.value))
-    )
+  type EORI = EORI.Type
+  object EORI extends RegexValidatedString("""^(GB|XI)[0-9]{12,15}$""")
 
-    override def of(in: String): Option[EmailAddress] = validateAndTransform(in)
-
-    extension (e: EmailAddress) def value: String = e
-  }
-
-  opaque type EORI = String
-  object EORI extends RegexValidatedString("""^(GB|XI)[0-9]{12,15}$""") {
-
-    override def of(in: String): Option[EORI] = validateAndTransform(in)
-
-    extension (e: EORI) def value: String = e
-
-    given Format[EORI] = Format(
-      Reads[EORI](json =>
-        Reads.StringReads.reads(json).flatMap(s => of(s).fold[JsResult[EORI]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[EORI](eori => JsString(eori.value))
-    )
-
-  }
-
-  opaque type UndertakingRef = String
+  type UndertakingRef = UndertakingRef.Type
   object UndertakingRef
       extends RegexValidatedString(
         regex = """.{1,17}"""
-      ) {
-
-    override def of(in: String): Option[UndertakingRef] = validateAndTransform(in)
-
-    extension (e: UndertakingRef) def value: String = e
-
-    given Format[UndertakingRef] = Format(
-      Reads[UndertakingRef](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[UndertakingRef]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[UndertakingRef](ref => JsString(ref.value))
-    )
-  }
+      )
 
   object Sector extends Enumeration {
     type Sector = Value
@@ -1351,20 +1228,8 @@ package object types extends SimpleJson {
     implicit val format: Format[UndertakingStatus] = Json.formatEnum(UndertakingStatus)
   }
 
-  opaque type SubsidyRef = String
-  object SubsidyRef extends RegexValidatedString("^[A-Za-z0-9]{1,10}$") {
-
-    extension (s: SubsidyRef) def unwrap: String = s // renamed from value
-
-    given Format[SubsidyRef] = Format(
-      Reads[SubsidyRef](json =>
-        Reads.StringReads.reads(json).flatMap(s => of(s).fold[JsResult[SubsidyRef]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[SubsidyRef](s => JsString(s.unwrap))
-    )
-
-    override def of(in: String): Option[SubsidyRef] = validateAndTransform(in)
-  }
+  type SubsidyRef = SubsidyRef.Type
+  object SubsidyRef extends RegexValidatedString("^[A-Za-z0-9]{1,10}$")
 
   object EisStatus extends Enumeration {
     type EisStatus = Value
@@ -1379,22 +1244,8 @@ package object types extends SimpleJson {
     implicit val format: Format[types.EisAmendmentType.Value] = Json.formatEnum(EisAmendmentType)
   }
 
-  opaque type EisSubsidyAmendmentType = String
-  object EisSubsidyAmendmentType extends RegexValidatedString(regex = "1|2|3") {
-
-    given Format[EisSubsidyAmendmentType] = Format(
-      Reads[EisSubsidyAmendmentType](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[EisSubsidyAmendmentType]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[EisSubsidyAmendmentType](esat => JsString(esat.value))
-    )
-
-    override def of(in: String): Option[EisSubsidyAmendmentType] = validateAndTransform(in)
-
-    extension (e: EisSubsidyAmendmentType) def value: String = e
-  }
+  type EisSubsidyAmendmentType = EisSubsidyAmendmentType.Type
+  object EisSubsidyAmendmentType extends RegexValidatedString(regex = "1|2|3")
 
   object EisParamName extends Enumeration {
     type EisParamName = Value
@@ -1414,48 +1265,13 @@ package object types extends SimpleJson {
 
   }
 
-  opaque type EisParamValue = String
-  object EisParamValue extends RegexValidatedString(""".{1,255}""") {
+  type EisParamValue = EisParamValue.Type
+  object EisParamValue extends RegexValidatedString(""".{1,255}""")
 
-    override def of(in: String): Option[EisParamValue] = validateAndTransform(in)
+  type EisStatusString = EisStatusString.Type
+  object EisStatusString extends RegexValidatedString(""".{0,100}""")
 
-    given Format[EisParamValue] = Format(
-      Reads[EisParamValue](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[EisParamValue]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[EisParamValue](epv => JsString(epv.value))
-    )
-
-    def unsafe(value: String): EisParamValue = value
-
-    extension (e: EisParamValue) def value: String = e
-  }
-
-  opaque type EisStatusString = String
-  object EisStatusString extends RegexValidatedString(""".{0,100}""") {
-
-    extension (e: EisStatusString) def value: String = e
-  }
-
-  opaque type AcknowledgementRef = String
-  object AcknowledgementRef extends RegexValidatedString(""".{32}""") {
-
-    override def of(in: String): Option[AcknowledgementRef] = validateAndTransform(in)
-
-    def unsafe(value: String): AcknowledgementRef = value
-
-    given Format[AcknowledgementRef] = Format(
-      Reads[AcknowledgementRef](json =>
-        Reads.StringReads
-          .reads(json)
-          .flatMap(s => of(s).fold[JsResult[AcknowledgementRef]](JsError("invalid"))(JsSuccess(_)))
-      ),
-      Writes[AcknowledgementRef](ar => JsString(ar.value))
-    )
-
-    extension (e: AcknowledgementRef) def value: String = e
-  }
+  type AcknowledgementRef = AcknowledgementRef.Type
+  object AcknowledgementRef extends RegexValidatedString(""".{32}""")
 
 }

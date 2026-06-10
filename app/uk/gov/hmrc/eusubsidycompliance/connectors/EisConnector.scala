@@ -75,7 +75,7 @@ class EisConnector @Inject() (
         Right(Json.parse(body).as[UndertakingRetrieve])
       }
       .recover {
-        case e: EisBadResponseException if e.code.value == EisParamValue(notFoundEisErrorCode) =>
+        case e: EisBadResponseException if e.code == EisParamValue(notFoundEisErrorCode) =>
           logger.info(
             s"retrieveUndertaking NOT_FOUND - No undertaking found for $eori (EIS error code $notFoundEisErrorCode) - available for undertakingCreate"
           )
@@ -86,7 +86,7 @@ class EisConnector @Inject() (
             )
           )
 
-        case e: EisBadResponseException if e.code.value == EisParamValue(unacceptableEisErrorCode) =>
+        case e: EisBadResponseException if e.code == EisParamValue(unacceptableEisErrorCode) =>
           logger.error(
             s"retrieveUndertaking NOT_ACCEPTABLE - Eori:$eori (Eis error code $unacceptableEisErrorCode) - NOT available for undertakingCreate",
             e

@@ -35,7 +35,7 @@ class FakeAuthenticator
     ) {
   override def authCommon[A](
     action: AuthAction[A]
-  )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori.value)
+  )(implicit request: Request[A], executionContext: ExecutionContext): Future[Result] = action(request)(eori)
 }
 
 // This isn't used in this implementation so can be left as unimplemented.

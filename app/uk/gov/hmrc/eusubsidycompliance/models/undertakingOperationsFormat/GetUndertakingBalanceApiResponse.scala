@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, SubsidyAmount, UndertakingRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 case class GetUndertakingBalanceApiResponse(
   getUndertakingBalanceResponse: Option[UndertakingBalanceResponse],
@@ -39,10 +39,9 @@ case class UndertakingBalance(
   totalGBP: SubsidyAmount,
   conversionRate: SubsidyAmount
 ) {
-  val availableBalanceEUR: SubsidyAmount =
-    SubsidyAmount.of(industrySectorLimit.value - totalEUR.value).getOrElse(SubsidyAmount.zero)
-  val availableBalanceGBP: SubsidyAmount =
-    SubsidyAmount.of(industrySectorLimit.value - totalGBP.value).getOrElse(SubsidyAmount.zero)
+
+  val availableBalanceEUR: SubsidyAmount = SubsidyAmount(industrySectorLimit - totalEUR)
+  val availableBalanceGBP: SubsidyAmount = SubsidyAmount(industrySectorLimit - totalGBP)
   val nationalCapBalanceEUR: IndustrySectorLimit = industrySectorLimit
 
 }

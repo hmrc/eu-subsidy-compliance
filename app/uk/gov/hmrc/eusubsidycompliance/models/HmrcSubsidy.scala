@@ -17,7 +17,7 @@
 package uk.gov.hmrc.eusubsidycompliance.models
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.eusubsidycompliance.models.types.{DeclarationID, EORI, SubsidyAmount, TaxType, TraderRef}
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 import java.time.LocalDate
 

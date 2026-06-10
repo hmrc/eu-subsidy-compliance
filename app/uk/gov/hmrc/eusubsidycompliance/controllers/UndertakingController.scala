@@ -42,21 +42,17 @@ class UndertakingController @Inject() (
     with Logging {
 
   def retrieve(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    EORI.of(eori) match {
-      case None => Future.successful(BadRequest(s"Invalid EORI: $eori"))
-      case Some(validEori) =>
-        EitherT(eisConnector.retrieveUndertaking(validEori))
-          .map(u => Ok(Json.toJson(u)))
-          .recover {
-            case ConnectorError(NOT_FOUND, _) =>
-              logger.info(s"Undertaking not found for EORI $validEori")
-              NotFound
-            case ConnectorError(NOT_ACCEPTABLE, error: String) =>
-              logger.error(s"Undertaking NOT_ACCEPTABLE for EORI $validEori - $error")
-              NotAcceptable
-          }
-          .getOrElse(InternalServerError)
-    }
+    EitherT(eisConnector.retrieveUndertaking(EORI(eori)))
+      .map(u => Ok(Json.toJson(u)))
+      .recover {
+        case ConnectorError(NOT_FOUND, _) =>
+          logger.info(s"Undertaking not found for EORI $eori")
+          NotFound
+        case ConnectorError(NOT_ACCEPTABLE, error: String) =>
+          logger.error(s"Undertaking NOT_ACCEPTABLE for EORI $eori - $error")
+          NotAcceptable
+      }
+      .getOrElse(InternalServerError)
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
@@ -92,16 +88,13 @@ class UndertakingController @Inject() (
   def addMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
       withJsonBody[BusinessEntity] { (businessEntity: BusinessEntity) =>
-        UndertakingRef.of(undertakingRef) match {
-          case None => Future.successful(BadRequest(s"Invalid undertaking ref: $undertakingRef"))
-          case Some(validRef) =>
-            for {
-              amendmentType <- getAmendmentTypeForBusinessEntity(businessEntity)
-              _ <- eisConnector.addMember(validRef, businessEntity, amendmentType)
-            } yield {
-              logger.info(s"successfully addMember undertaking $undertakingRef BusinessEntity:$businessEntity")
-              Ok(Json.toJson(validRef))
-            }
+        for {
+          amendmentType <- getAmendmentTypeForBusinessEntity(businessEntity)
+          ref = UndertakingRef(undertakingRef)
+          _ <- eisConnector.addMember(ref, businessEntity, amendmentType)
+        } yield {
+          logger.info(s"successfully addMember undertaking $undertakingRef BusinessEntity:$businessEntity")
+          Ok(Json.toJson(ref))
         }
       }
   }
@@ -109,7 +102,7 @@ class UndertakingController @Inject() (
   private def getAmendmentTypeForBusinessEntity(
     be: BusinessEntity
   )(implicit r: Request[JsValue]): Future[types.AmendmentType.Value] =
-    eisConnector.retrieveUndertaking(be.businessEntityIdentifier) map {
+    eisConnector.retrieveUndertaking(EORI(be.businessEntityIdentifier)) map {
       case Left(_) => AmendmentType.add
       case Right(_) => AmendmentType.amend
     }
@@ -117,13 +110,9 @@ class UndertakingController @Inject() (
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
       withJsonBody[BusinessEntity] { (businessEntity: BusinessEntity) =>
-        UndertakingRef.of(undertakingRef) match {
-          case None => Future.successful(BadRequest(s"Invalid undertaking ref: $undertakingRef"))
-          case Some(validRef) =>
-            eisConnector.deleteMember(validRef, businessEntity).map { _ =>
-              logger.info(s"successfully deleteMember undertaking $undertakingRef BusinessEntity:$businessEntity")
-              Ok(Json.toJson(validRef))
-            }
+        eisConnector.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
+          logger.info(s"successfully deleteMember undertaking $undertakingRef BusinessEntity:$businessEntity")
+          Ok(Json.toJson(UndertakingRef(undertakingRef)))
         }
       }
   }
@@ -147,16 +136,13 @@ class UndertakingController @Inject() (
   }
 
   def getUndertakingBalance(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
-    EORI.of(eori) match {
-      case None => Future.successful(BadRequest(s"Invalid EORI: $eori"))
-      case Some(validEori) =>
-        eisConnector.getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(validEori))).map {
-          case Some(GetUndertakingBalanceApiResponse(Some(undertakingBalanceResponse), None)) =>
-            Ok(Json.toJson(undertakingBalanceResponse))
-          case _ =>
-            logger.warn(s"undertaking with eori: $validEori not found.")
-            NotFound
-        }
+    EORI.of(eori)
+    eisConnector.getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI(eori)))).map {
+      case Some(GetUndertakingBalanceApiResponse(Some(undertakingBalanceResponse), None)) =>
+        Ok(Json.toJson(undertakingBalanceResponse))
+      case _ =>
+        logger.warn(s"undertaking with eori: $eori not found.")
+        NotFound
     }
   }
 }

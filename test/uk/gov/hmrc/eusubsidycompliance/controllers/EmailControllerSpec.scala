@@ -64,36 +64,36 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
 
   val validDeadlineReminderOriginalRequest: OriginalEmailRequest =
     OriginalEmailRequest(
-      UndertakingRef.of("ABC12345").get,
-      EORI.of("GB000000000012").get,
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
       "1",
-      EmailAddress.of("jdoe@example.com").get
+      EmailAddress("jdoe@example.com")
     )
   val validDeadlineReminderEmailRequest: EmailRequest =
     EmailRequest(
-      List(EmailAddress.of("jdoe@example.com").get),
+      List(EmailAddress("jdoe@example.com")),
       undertakingAdminDeadlineReminder
     )
 
   val validDeadlineExpiredEmailRequest: EmailRequest =
     EmailRequest(
-      List(EmailAddress.of("jdoe@example.com").get),
+      List(EmailAddress("jdoe@example.com")),
       undertakingAdminDeadlineExpired
     )
   val validDeadlineExpiredOriginalEmailRequest: OriginalEmailRequest =
     OriginalEmailRequest(
-      UndertakingRef.of("ABC12345").get,
-      EORI.of("GB000000000012").get,
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
       "2",
-      EmailAddress.of("jdoe@example.com").get
+      EmailAddress("jdoe@example.com")
     )
 
   val invalidEmailRequest: OriginalEmailRequest =
     OriginalEmailRequest(
-      UndertakingRef.of("ABC12345").get,
-      EORI.of("GB000000000012").get,
+      UndertakingRef("ABC12345"),
+      EORI("GB000000000012"),
       "3",
-      EmailAddress.of("jdoe@example.com").get
+      EmailAddress("jdoe@example.com")
     )
   val invalidJson: BusinessEntity = BusinessEntity(eori, leadEORI = false)
   val deadline: String = "10 December 2023"
@@ -187,10 +187,10 @@ class EmailControllerSpec extends AnyWordSpec with OptionValues with Matchers wi
         "return an InternalServerError if the connector replies with a 404" in {
           val originalEmailRequest: OriginalEmailRequest =
             OriginalEmailRequest(
-              UndertakingRef.of("ABC12345").get,
-              EORI.of("GB000000000012").get,
+              UndertakingRef("ABC12345"),
+              EORI("GB000000000012"),
               "2",
-              EmailAddress.of("jdoe@example.com").get
+              EmailAddress("jdoe@example.com")
             )
           val app = configuredAppInstance
           running(app) {

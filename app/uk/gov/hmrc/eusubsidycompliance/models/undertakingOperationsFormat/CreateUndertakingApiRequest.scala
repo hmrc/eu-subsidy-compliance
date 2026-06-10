@@ -38,7 +38,7 @@ object CreateUndertakingApiRequest {
         requestDetail = CreateUndertakingRequestDetail(
           undertaking.name,
           undertaking.industrySector,
-          BusinessEntityDetail(idValue = lead.businessEntityIdentifier.value),
+          BusinessEntityDetail(idValue = lead.businessEntityIdentifier),
           LocalDate.now
         )
       )

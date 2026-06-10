@@ -25,7 +25,7 @@ import java.util.UUID
 final case class RequestCommon(
   originatingSystem: String = "MDTP",
   receiptDate: String = receiptDate,
-  acknowledgementReference: AcknowledgementRef = AcknowledgementRef.unsafe(UUID.randomUUID().toString.replace("-", "")),
+  acknowledgementReference: AcknowledgementRef = AcknowledgementRef(UUID.randomUUID().toString.replace("-", "")),
   messageTypes: MessageTypes,
   requestParameters: List[RequestParameters] = List(RequestParameters())
 )

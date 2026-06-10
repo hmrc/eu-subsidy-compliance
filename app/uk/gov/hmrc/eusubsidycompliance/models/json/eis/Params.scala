@@ -18,7 +18,7 @@ package uk.gov.hmrc.eusubsidycompliance.models.json.eis
 
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamName.EisParamName
-import uk.gov.hmrc.eusubsidycompliance.models.types.EisParamValue
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 case class Params(
   paramName: EisParamName,

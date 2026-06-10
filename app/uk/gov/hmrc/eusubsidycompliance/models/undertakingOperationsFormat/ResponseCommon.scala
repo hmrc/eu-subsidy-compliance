@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat
 import cats.implicits.catsSyntaxOptionId
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.types.{EisParamValue, RegexValidatedString}
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.EisParamName.EisParamName
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.EisStatus.EisStatus
 
@@ -86,11 +86,11 @@ object ResponseCommon {
       List(
         Params(
           EisParamName.ERRORCODE,
-          EisParamValue.unsafe(errorCode)
+          EisParamValue(errorCode)
         ),
         Params(
           EisParamName.ERRORTEXT,
-          EisParamValue.unsafe(errorText)
+          EisParamValue(errorText)
         )
       ).some
     )

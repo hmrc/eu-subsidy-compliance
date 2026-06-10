@@ -24,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SyntaxSpec extends AnyWordSpec with Matchers with ScalaFutures {
   import FutureSyntax._
   import OptionTSyntax._
-  
+
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "FutureOps" should {
