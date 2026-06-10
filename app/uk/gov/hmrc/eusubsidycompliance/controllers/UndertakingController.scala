@@ -56,7 +56,7 @@ class UndertakingController @Inject() (
   }
 
   def create: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[UndertakingCreate] { undertakingCreate: UndertakingCreate =>
+    withJsonBody[UndertakingCreate] { (undertakingCreate: UndertakingCreate) =>
       for {
         ref <- eisConnector.createUndertaking(undertakingCreate)
         _ <- eisConnector.upsertSubsidyUsage(SubsidyUpdate(ref, NilSubmissionDate(timeProvider.today)))
@@ -68,7 +68,7 @@ class UndertakingController @Inject() (
   }
 
   def updateUndertaking(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[UndertakingRetrieve] { undertakingRetrieve: UndertakingRetrieve =>
+    withJsonBody[UndertakingRetrieve] { (undertakingRetrieve: UndertakingRetrieve) =>
       eisConnector.updateUndertaking(undertakingRetrieve, EisAmendmentType.A).map { ref =>
         logger.info(s"successfully updateUndertaking undertaking ${undertakingRetrieve.loggableString}")
         Ok(Json.toJson(ref))
@@ -77,7 +77,7 @@ class UndertakingController @Inject() (
   }
 
   def disableUndertaking: Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[UndertakingRetrieve] { undertaking: UndertakingRetrieve =>
+    withJsonBody[UndertakingRetrieve] { (undertaking: UndertakingRetrieve) =>
       eisConnector.updateUndertaking(undertaking, EisAmendmentType.D).map { ref =>
         logger.info(s"successfully disabled undertaking ${undertaking.reference}")
         Ok(Json.toJson(ref))
@@ -87,7 +87,7 @@ class UndertakingController @Inject() (
 
   def addMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
-      withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+      withJsonBody[BusinessEntity] { (businessEntity: BusinessEntity) =>
         for {
           amendmentType <- getAmendmentTypeForBusinessEntity(businessEntity)
           ref = UndertakingRef(undertakingRef)
@@ -96,7 +96,6 @@ class UndertakingController @Inject() (
           logger.info(s"successfully addMember undertaking $undertakingRef BusinessEntity:$businessEntity")
           Ok(Json.toJson(ref))
         }
-
       }
   }
 
@@ -110,7 +109,7 @@ class UndertakingController @Inject() (
 
   def deleteMember(undertakingRef: String): Action[JsValue] = authenticator.authorisedWithJson(parse.json) {
     implicit request => _ =>
-      withJsonBody[BusinessEntity] { businessEntity: BusinessEntity =>
+      withJsonBody[BusinessEntity] { (businessEntity: BusinessEntity) =>
         eisConnector.deleteMember(UndertakingRef(undertakingRef), businessEntity).map { _ =>
           logger.info(s"successfully deleteMember undertaking $undertakingRef BusinessEntity:$businessEntity")
           Ok(Json.toJson(UndertakingRef(undertakingRef)))
@@ -119,7 +118,7 @@ class UndertakingController @Inject() (
   }
 
   def updateSubsidy(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[SubsidyUpdate] { update: SubsidyUpdate =>
+    withJsonBody[SubsidyUpdate] { (update: SubsidyUpdate) =>
       eisConnector.upsertSubsidyUsage(update).map { _ =>
         logger.info(s"successfully updateSubsidy SubsidyUpdate $update")
         Ok(Json.toJson(update.undertakingIdentifier))
@@ -128,7 +127,7 @@ class UndertakingController @Inject() (
   }
 
   def retrieveSubsidies(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
-    withJsonBody[SubsidyRetrieve] { subsidyRetrieve: SubsidyRetrieve =>
+    withJsonBody[SubsidyRetrieve] { (subsidyRetrieve: SubsidyRetrieve) =>
       eisConnector.retrieveSubsidies(subsidyRetrieve.undertakingIdentifier, subsidyRetrieve.inDateRange).map { e =>
         logger.info(s"successfully retrieveSubsidies SubsidyRetrieve $subsidyRetrieve")
         Ok(Json.toJson(e))
@@ -137,6 +136,7 @@ class UndertakingController @Inject() (
   }
 
   def getUndertakingBalance(eori: String): Action[AnyContent] = authenticator.authorised { implicit request => _ =>
+    EORI.of(eori)
     eisConnector.getUndertakingBalance(GetUndertakingBalanceRequest(eori = Some(EORI(eori)))).map {
       case Some(GetUndertakingBalanceApiResponse(Some(undertakingBalanceResponse), None)) =>
         Ok(Json.toJson(undertakingBalanceResponse))
@@ -145,5 +145,4 @@ class UndertakingController @Inject() (
         NotFound
     }
   }
-
 }

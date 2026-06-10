@@ -29,11 +29,11 @@ class RetrieveUndertakingAPIRequestSpec extends AnyWordSpecLike with Matchers {
   "RetrieveUndertakingAPIRequest" should {
     "convert a baseRequest to a valid EIS definition" in {
 
-      //As there is static random stuff and time calls within we are going to have to dance
-      //When writing code to be testable controlling time and random is highly important
-      //so should allow easier ways to do what I am doing
-      //The benefit of these types of tests is that we can confirm the payloads are what
-      //we expect easily. Also changes to json are picked up.
+      // As there is static random stuff and time calls within we are going to have to dance
+      // When writing code to be testable controlling time and random is highly important
+      // so should allow easier ways to do what I am doing
+      // The benefit of these types of tests is that we can confirm the payloads are what
+      // we expect easily. Also changes to json are picked up.
       val baseRequest = RetrieveUndertakingAPIRequest(EORI("GB1234453334333"))
       val akrefTest = "abcdefghijklmabcdefghijklmabcdefghijklm" // m is 13 so 39 chars
       val receiptDate = Instant.EPOCH.toString

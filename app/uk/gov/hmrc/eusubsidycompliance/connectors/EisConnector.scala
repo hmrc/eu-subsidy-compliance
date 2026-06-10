@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.http.Status
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.eusubsidycompliance.models._
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType

@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 import cats.implicits._
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.json._
-import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingRef
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS

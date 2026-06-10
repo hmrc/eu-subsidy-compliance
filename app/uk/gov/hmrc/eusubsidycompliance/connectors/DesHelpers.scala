@@ -21,6 +21,7 @@ import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}

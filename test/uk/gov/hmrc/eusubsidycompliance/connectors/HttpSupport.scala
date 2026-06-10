@@ -34,7 +34,7 @@ package uk.gov.hmrc.eusubsidycompliance.connectors
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should._
 import play.api.libs.json.{JsValue, Json, Writes}
-import play.api.libs.ws.BodyWritable
+import play.api.libs.ws.{BodyWritable, WSRequest}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
@@ -53,12 +53,12 @@ trait HttpSupport {
       .post(_: URL)(_: HeaderCarrier))
       .expects(url, *)
       .returning(mockRequestBuilder)
-
+// format: off
     (mockRequestBuilder
-      .setHeader(_: (String, String)))
+      .setHeader((_: Seq[(String, String)])*))
       .expects(*)
       .returning(mockRequestBuilder)
-
+// format: on
     mockWithBody(requestBody)
     mockExecute(httpResponse)
   }

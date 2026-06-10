@@ -17,19 +17,20 @@
 package uk.gov.hmrc.eusubsidycompliance.models
 
 import play.api.libs.json.{Format, Json}
-import shapeless.tag.@@
+import play.api.libs.json.*
 
 package object types extends SimpleJson {
 
-  type IndustrySectorLimit = BigDecimal @@ IndustrySectorLimit.Tag
+  type IndustrySectorLimit = IndustrySectorLimit.Type
   object IndustrySectorLimit extends ValidatedType[BigDecimal] {
+
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
         (x <= 99999999999.99) && (x.scale <= 2)
       }
   }
 
-  type PositiveSubsidyAmount = BigDecimal @@ PositiveSubsidyAmount.Tag
+  type PositiveSubsidyAmount = PositiveSubsidyAmount.Type
   object PositiveSubsidyAmount extends ValidatedType[BigDecimal] {
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
@@ -37,7 +38,7 @@ package object types extends SimpleJson {
       }
   }
 
-  type SubsidyAmount = BigDecimal @@ SubsidyAmount.Tag
+  type SubsidyAmount = SubsidyAmount.Type
   object SubsidyAmount extends ValidatedType[BigDecimal] {
     override def validateAndTransform(in: BigDecimal): Option[BigDecimal] =
       Some(in).filter { x =>
@@ -45,43 +46,28 @@ package object types extends SimpleJson {
       }
   }
 
-  type DeclarationID = String @@ DeclarationID.Tag
-  object DeclarationID
-      extends RegexValidatedString(
-        regex = """.{1,18}"""
-      )
+  type DeclarationID = DeclarationID.Type
+  object DeclarationID extends RegexValidatedString(""".{1,18}""")
 
-  type TaxType = String @@ TaxType.Tag
-  object TaxType
-      extends RegexValidatedString(
-        regex = """.{0,3}"""
-      )
+  type TaxType = TaxType.Type
+  object TaxType extends RegexValidatedString(regex = """.{0,3}""")
 
-  type TraderRef = String @@ TraderRef.Tag
-  object TraderRef
-      extends RegexValidatedString(
-        regex = """[A-Za-z0-9 ]{1,400}"""
-      )
+  type TraderRef = TraderRef.Type
+  object TraderRef extends RegexValidatedString(regex = """[A-Za-z0-9 ]{1,400}""")
 
-  type UndertakingName = String @@ UndertakingName.Tag
-  object UndertakingName
-      extends RegexValidatedString(
-        regex = """.{1,105}"""
-      )
+  type UndertakingName = UndertakingName.Type
+  object UndertakingName extends RegexValidatedString(regex = """.{1,105}""")
 
-  type EmailAddress = String @@ EmailAddress.Tag
+  type EmailAddress = EmailAddress.Type
   object EmailAddress
-      extends RegexValidatedString(
-        regex = """^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+)$"""
+      extends RegexValidatedString(regex =
+        """^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+)$"""
       )
 
-  type EORI = String @@ EORI.Tag
-  object EORI
-      extends RegexValidatedString(
-        """^(GB|XI)[0-9]{12,15}$"""
-      )
+  type EORI = EORI.Type
+  object EORI extends RegexValidatedString("""^(GB|XI)[0-9]{12,15}$""")
 
-  type UndertakingRef = String @@ UndertakingRef.Tag
+  type UndertakingRef = UndertakingRef.Type
   object UndertakingRef
       extends RegexValidatedString(
         regex = """.{1,17}"""
@@ -1242,11 +1228,8 @@ package object types extends SimpleJson {
     implicit val format: Format[UndertakingStatus] = Json.formatEnum(UndertakingStatus)
   }
 
-  type SubsidyRef = String @@ SubsidyRef.Tag
-  object SubsidyRef
-      extends RegexValidatedString(
-        "^[A-Za-z0-9]{1,10}$"
-      )
+  type SubsidyRef = SubsidyRef.Type
+  object SubsidyRef extends RegexValidatedString("^[A-Za-z0-9]{1,10}$")
 
   object EisStatus extends Enumeration {
     type EisStatus = Value
@@ -1261,7 +1244,7 @@ package object types extends SimpleJson {
     implicit val format: Format[types.EisAmendmentType.Value] = Json.formatEnum(EisAmendmentType)
   }
 
-  type EisSubsidyAmendmentType = String @@ EisSubsidyAmendmentType.Tag
+  type EisSubsidyAmendmentType = EisSubsidyAmendmentType.Type
   object EisSubsidyAmendmentType extends RegexValidatedString(regex = "1|2|3")
 
   object EisParamName extends Enumeration {
@@ -1282,22 +1265,13 @@ package object types extends SimpleJson {
 
   }
 
-  type EisParamValue = String @@ EisParamValue.Tag
-  object EisParamValue
-      extends RegexValidatedString(
-        """.{1,255}"""
-      )
+  type EisParamValue = EisParamValue.Type
+  object EisParamValue extends RegexValidatedString(""".{1,255}""")
 
-  type EisStatusString = String @@ EisStatusString.Tag
-  object EisStatusString
-      extends RegexValidatedString(
-        """.{0,100}"""
-      )
+  type EisStatusString = EisStatusString.Type
+  object EisStatusString extends RegexValidatedString(""".{0,100}""")
 
-  type AcknowledgementRef = String @@ AcknowledgementRef.Tag
-  object AcknowledgementRef
-      extends RegexValidatedString(
-        """.{32}"""
-      )
+  type AcknowledgementRef = AcknowledgementRef.Type
+  object AcknowledgementRef extends RegexValidatedString(""".{32}""")
 
 }

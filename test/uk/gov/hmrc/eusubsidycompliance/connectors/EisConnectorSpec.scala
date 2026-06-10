@@ -158,7 +158,10 @@ class EisConnectorSpec
         )
 
         testWithRunningApp { underTest =>
-          underTest.retrieveUndertaking(EORI("GB123456789012")).failed.futureValue mustBe an[EisBadResponseException]
+          underTest
+            .retrieveUndertaking(EORI("GB123456789012"))
+            .failed
+            .futureValue mustBe an[EisBadResponseException]
         }
       }
 

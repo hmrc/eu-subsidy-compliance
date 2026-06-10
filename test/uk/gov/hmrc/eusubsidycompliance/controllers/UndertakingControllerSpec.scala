@@ -108,7 +108,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
         givenUpdateUndertaking(Future.successful(undertakingReference), EisAmendmentType.A)
 
         running(app) {
-          val request = fakeJsonPost(routes.UndertakingController.updateUndertaking.url)
+          val request = fakeJsonPost(routes.UndertakingController.updateUndertaking().url)
             .withJsonBody(Json.toJson(undertaking))
 
           val result = route(app, request).value
@@ -137,7 +137,7 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
 
     "addMember is called" should {
 
-      "return a successful response for a valid request" in {
+      "return a successful response for a valid request when amending an existing member" in {
         val app = configuredAppInstance
 
         givenRetrieveRetrieveUndertaking(Right(undertaking))
@@ -151,6 +151,22 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           status(result) mustBe OK
         }
       }
+
+      "return a successful response when adding a new member" in {
+        val app = configuredAppInstance
+
+        givenRetrieveRetrieveUndertaking(Left(ConnectorError(NOT_FOUND, "not found")))
+        givenAddMember(Future.successful((): Unit), AmendmentType.add)
+
+        running(app) {
+          val request = fakeJsonPost(routes.UndertakingController.addMember(undertakingReference).url)
+            .withJsonBody(Json.toJson(businessEntity))
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+        }
+      }
+
     }
 
     "updateSubsidy is called" should {
@@ -347,7 +363,6 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
           route(app, request).value.failed.futureValue mustBe a[RuntimeException]
         }
       }
-
     }
 
   }
@@ -418,4 +433,11 @@ class UndertakingControllerSpec extends PlaySpec with MockFactory with ScalaFutu
       .addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
       .expects(undertakingReference, businessEntity, AmendmentType.amend, *, *)
       .returning(res)
+
+  private def givenAddMember(res: Future[Unit], amendmentType: AmendmentType = AmendmentType.amend): Unit =
+    (mockEisConnector
+      .addMember(_: UndertakingRef, _: BusinessEntity, _: AmendmentType)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(undertakingReference, businessEntity, amendmentType, *, *)
+      .returning(res)
+
 }

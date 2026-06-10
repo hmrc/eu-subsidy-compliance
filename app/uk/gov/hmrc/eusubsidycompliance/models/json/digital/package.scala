@@ -20,7 +20,7 @@ import cats.implicits._
 import play.api.libs.json._
 import uk.gov.hmrc.eusubsidycompliance.models.json.eis.Params
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
-import uk.gov.hmrc.eusubsidycompliance.models.types.{IndustrySectorLimit, UndertakingName, UndertakingRef, UndertakingStatus}
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 import uk.gov.hmrc.eusubsidycompliance.models.{BusinessEntity, UndertakingRetrieve}
 
 import java.time.format.DateTimeFormatter

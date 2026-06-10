@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.eusubsidycompliance.models.types.Sector.Sector
 import uk.gov.hmrc.eusubsidycompliance.models.types.UndertakingStatus.UndertakingStatus
-import uk.gov.hmrc.eusubsidycompliance.models.types._
+import uk.gov.hmrc.eusubsidycompliance.models.types.*
 
 import java.time.LocalDate
 
@@ -31,7 +31,7 @@ case class UndertakingCreate(
   undertakingBusinessEntity: List[BusinessEntity]
 ) {
 
-  //name is user entered so could break GPDR
+  // name is user entered so could break GPDR
   lazy val loggableString: String =
     s"""UndertakingCreate:
        | nameLength:${name.length},
