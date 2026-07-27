@@ -19,3 +19,5 @@ POST       /subsidy/retrieve                                uk.gov.hmrc.eusubsid
 POST       /email-notification                               uk.gov.hmrc.eusubsidycompliance.controllers.EmailController.sendNudgeEmail()
 
 GET        /retrieve-exchange-rate/:date                    uk.gov.hmrc.eusubsidycompliance.controllers.ExchangeRateController.retrieveExchangeRate(date)
+
+POST       /beneficiary-id-validation                       uk.gov.hmrc.eusubsidycompliance.controllers.UndertakingController.beneficiaryIDValidation()

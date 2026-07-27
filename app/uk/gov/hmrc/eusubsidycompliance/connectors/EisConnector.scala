@@ -21,13 +21,14 @@ import play.api.http.Status
 import play.api.http.Status.{NOT_ACCEPTABLE, NOT_FOUND}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
-import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.*
+import uk.gov.hmrc.eusubsidycompliance.models.beneficiaryIdValidation.{BeneficiaryIDRequest, BeneficiaryIDResponse}
 import uk.gov.hmrc.eusubsidycompliance.models.json.digital.EisBadResponseException
 import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.EisAmendmentType.EisAmendmentType
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisParamValue, UndertakingRef}
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{CreateUndertakingApiRequest, GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest, RetrieveUndertakingAPIRequest, UpdateUndertakingApiRequest}
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -229,5 +230,24 @@ class EisConnector @Inject() (
           case _ => None
         }
       }
+  }
+
+  def beneficiaryIDValidation(
+    beneficiaryIDRequest: BeneficiaryIDRequest
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[BeneficiaryIDResponse]] = {
+
+    val beneficiaryIDRequestUrl = "/scp/beneficiary-validation/v1"
+    val eisTokenKey = "eis.token.scp22"
+    desPost[BeneficiaryIDRequest, Option[BeneficiaryIDResponse]](
+      s"$eisURL/$beneficiaryIDRequestUrl",
+      beneficiaryIDRequest,
+      eisTokenKey
+    )(
+      implicitly,
+      implicitly,
+      addHeaders,
+      implicitly
+    )
+
   }
 }

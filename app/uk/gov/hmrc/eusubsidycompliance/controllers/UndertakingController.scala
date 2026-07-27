@@ -23,7 +23,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.eusubsidycompliance.connectors.EisConnector
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.models.types.{AmendmentType, EORI, EisAmendmentType, UndertakingRef}
-import uk.gov.hmrc.eusubsidycompliance.models._
+import uk.gov.hmrc.eusubsidycompliance.models.*
+import uk.gov.hmrc.eusubsidycompliance.models.beneficiaryIdValidation.BeneficiaryIDRequest
 import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{GetUndertakingBalanceApiResponse, GetUndertakingBalanceRequest}
 import uk.gov.hmrc.eusubsidycompliance.util.TimeProvider
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -144,5 +145,15 @@ class UndertakingController @Inject() (
         logger.warn(s"undertaking with eori: $eori not found.")
         NotFound
     }
+  }
+
+  def beneficiaryIDValidation(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
+    withJsonBody[BeneficiaryIDRequest] { (beneficiaryIDRequest: BeneficiaryIDRequest) =>
+      eisConnector.beneficiaryIDValidation(beneficiaryIDRequest).map { beneficiaryIDResponse =>
+        logger.info(s"successfully Validate the Beneficiary ID ${beneficiaryIDRequest.idValue}")
+        Ok(Json.toJson(beneficiaryIDResponse))
+      }
+    }
+
   }
 }
