@@ -235,8 +235,7 @@ class EisConnector @Inject() (
   def beneficiaryIDValidation(
     beneficiaryIDRequest: BeneficiaryIDRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[BeneficiaryIDResponse]] = {
-
-    val beneficiaryIDRequestUrl = "/scp/beneficiary-validation/v1"
+    val beneficiaryIDRequestUrl = "scp/beneficiary-validation/v1"
     val eisTokenKey = "eis.token.scp22"
     desPost[BeneficiaryIDRequest, Option[BeneficiaryIDResponse]](
       s"$eisURL/$beneficiaryIDRequestUrl",

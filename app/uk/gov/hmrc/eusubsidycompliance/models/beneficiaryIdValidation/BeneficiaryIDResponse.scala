@@ -19,7 +19,7 @@ package uk.gov.hmrc.eusubsidycompliance.models.beneficiaryIdValidation
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.*
 
-case class BeneficiaryIDResponse(processingDate: Option[String], beneficiaryInfoResp: Option[Seq[BeneficiaryInfoResp]])
+case class BeneficiaryIDResponse(processingDate: Option[String], beneficiaryInfo: Option[Seq[BeneficiaryInfoResp]])
 
 object BeneficiaryIDResponse {
   implicit val reads: Reads[BeneficiaryIDResponse] = (
