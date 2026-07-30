@@ -31,6 +31,7 @@ import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{Creat
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.net.URL
@@ -234,9 +235,10 @@ class EisConnector @Inject() (
 
   def beneficiaryIDValidation(
     beneficiaryIDRequest: BeneficiaryIDRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[BeneficiaryIDResponse]] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ConnectorError, Option[BeneficiaryIDResponse]]] = {
     val beneficiaryIDRequestUrl = "scp/beneficiary-validation/v1"
     val eisTokenKey = "eis.token.scp22"
+    val noBeneficiaryIdEisErrorCode = "007"
     desPost[BeneficiaryIDRequest, Option[BeneficiaryIDResponse]](
       s"$eisURL/$beneficiaryIDRequestUrl",
       beneficiaryIDRequest,
@@ -246,7 +248,11 @@ class EisConnector @Inject() (
       implicitly,
       addHeaders,
       implicitly
-    )
-
+    ).map(response => Right(response))
+      .recover {
+        case UpstreamErrorResponse(body, 422, _, _) if body.contains(s"\"code\":\"$noBeneficiaryIdEisErrorCode\"") =>
+          logger.info(s"beneficiaryIDValidation NOT_FOUND - No beneficiary ID (EIS error code $noBeneficiaryIdEisErrorCode)")
+          Left(ConnectorError(NOT_FOUND, s"beneficiaryIDValidation NOT_FOUND (EIS error code $noBeneficiaryIdEisErrorCode)"))
+      }
   }
 }

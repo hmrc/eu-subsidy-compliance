@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
+import uk.gov.hmrc.eusubsidycompliance.models.beneficiaryIdValidation.BeneficiaryIDResponse
 import cats.data.EitherT
 import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
@@ -149,9 +150,15 @@ class UndertakingController @Inject() (
 
   def beneficiaryIDValidation(): Action[JsValue] = authenticator.authorisedWithJson(parse.json) { implicit request => _ =>
     withJsonBody[BeneficiaryIDRequest] { (beneficiaryIDRequest: BeneficiaryIDRequest) =>
-      eisConnector.beneficiaryIDValidation(beneficiaryIDRequest).map { beneficiaryIDResponse =>
-        logger.info(s"successfully Validate the Beneficiary ID ${beneficiaryIDRequest.idValue}")
-        Ok(Json.toJson(beneficiaryIDResponse))
+      eisConnector.beneficiaryIDValidation(beneficiaryIDRequest).map {
+        case Right(beneficiaryIDResponse) =>
+          logger.info(s"successfully validated beneficiary ID ${beneficiaryIDRequest.idValue}")
+          Ok(Json.toJson(beneficiaryIDResponse))
+        case Left(error) if error.status == NOT_FOUND =>
+          NotFound(Json.toJson(Option.empty[BeneficiaryIDResponse]))
+        case Left(error) =>
+          logger.error(s"beneficiary ID validation failed: ${error.description}")
+          InternalServerError
       }
     }
 
