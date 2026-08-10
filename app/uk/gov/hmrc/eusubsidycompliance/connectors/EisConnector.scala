@@ -251,8 +251,15 @@ class EisConnector @Inject() (
     ).map(response => Right(response))
       .recover {
         case UpstreamErrorResponse(body, 422, _, _) if body.contains(s"\"code\":\"$noBeneficiaryIdEisErrorCode\"") =>
-          logger.info(s"beneficiaryIDValidation NOT_FOUND - No beneficiary ID (EIS error code $noBeneficiaryIdEisErrorCode)")
-          Left(ConnectorError(NOT_FOUND, s"beneficiaryIDValidation NOT_FOUND (EIS error code $noBeneficiaryIdEisErrorCode)"))
+          logger.info(
+            s"beneficiaryIDValidation NOT_FOUND - No beneficiary ID (EIS error code $noBeneficiaryIdEisErrorCode)"
+          )
+          Left(
+            ConnectorError(
+              NOT_FOUND,
+              s"beneficiaryIDValidation NOT_FOUND (EIS error code $noBeneficiaryIdEisErrorCode)"
+            )
+          )
       }
   }
 }
