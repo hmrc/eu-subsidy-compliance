@@ -239,27 +239,66 @@ class EisConnector @Inject() (
     val beneficiaryIDRequestUrl = "scp/beneficiary-validation/v1"
     val eisTokenKey = "eis.token.scp22"
     val noBeneficiaryIdEisErrorCode = "007"
-    desPost[BeneficiaryIDRequest, Option[BeneficiaryIDResponse]](
-      s"$eisURL/$beneficiaryIDRequestUrl",
-      beneficiaryIDRequest,
-      eisTokenKey
-    )(
-      implicitly,
-      implicitly,
-      addHeaders,
-      implicitly
-    ).map(response => Right(response))
-      .recover {
-        case UpstreamErrorResponse(body, 422, _, _) if body.contains(s"\"code\":\"$noBeneficiaryIdEisErrorCode\"") =>
-          logger.info(
-            s"beneficiaryIDValidation NOT_FOUND - No beneficiary ID (EIS error code $noBeneficiaryIdEisErrorCode)"
-          )
-          Left(
-            ConnectorError(
-              NOT_FOUND,
-              s"beneficiaryIDValidation NOT_FOUND (EIS error code $noBeneficiaryIdEisErrorCode)"
+    val correlationId = java.util.UUID.randomUUID().toString
+    logger.info(
+      s"SCP22 request: correlationId=$correlationId, " +
+        s"idType=${beneficiaryIDRequest.idType}, " +
+        s"idValue=${beneficiaryIDRequest.idValue}, " +
+        s"requestType=${beneficiaryIDRequest.requestType}"
+    )
+    http
+      .post(new URL(s"$eisURL/$beneficiaryIDRequestUrl"))
+      .setHeader(
+        headers(eisTokenKey) ++ Seq(
+          "x-correlation-id" -> correlationId,
+          "x-forwarded-host" -> "DIGITAL"
+        ): _*
+      )
+      .withBody(Json.toJson(beneficiaryIDRequest))
+      .execute[HttpResponse](implicitly[HttpReads[HttpResponse]], implicitly[ExecutionContext])
+      .map { res =>
+        res.status match {
+          case Status.OK | Status.CREATED =>
+            val response = Json.parse(res.body).asOpt[BeneficiaryIDResponse]
+            logger.info(
+              s"SCP22 success: correlationId=$correlationId, " +
+                s"idValue=${beneficiaryIDRequest.idValue}, " +
+                s"requestType=${beneficiaryIDRequest.requestType}"
             )
-          )
+            Right(response)
+          case 422 if res.body.contains(s"\"code\":\"$noBeneficiaryIdEisErrorCode\"") =>
+            logger.info(
+              s"SCP22 no beneficiary ID: correlationId=$correlationId, " +
+                s"idValue=${beneficiaryIDRequest.idValue}, " +
+                s"errorCode=$noBeneficiaryIdEisErrorCode"
+            )
+            Left(
+              ConnectorError(
+                NOT_FOUND,
+                s"beneficiaryIDValidation NOT_FOUND (EIS error code $noBeneficiaryIdEisErrorCode)"
+              )
+            )
+          case other =>
+            logger.error(
+              s"SCP22 error: correlationId=$correlationId, " +
+                s"idValue=${beneficiaryIDRequest.idValue}, " +
+                s"status=$other, body=${res.body}"
+            )
+            Left(
+              ConnectorError(
+                other,
+                s"beneficiaryIDValidation unexpected status $other"
+              )
+            )
+        }
+      }
+      .recover { case e: Exception =>
+        logger.error(
+          s"SCP22 error: correlationId=$correlationId, " +
+            s"idValue=${beneficiaryIDRequest.idValue}, " +
+            s"error=${e.getMessage}"
+        )
+        throw e
       }
   }
 }

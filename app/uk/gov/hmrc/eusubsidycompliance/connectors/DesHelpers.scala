@@ -15,7 +15,6 @@
  */
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
-
 import play.api.http.ContentTypes.JSON
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
 import play.api.libs.json.{Json, Writes}
@@ -27,13 +26,9 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId}
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
-
 trait DesHelpers {
-
   def http: HttpClientV2
-
   def servicesConfig: ServicesConfig
-
   def desPost[I, O](url: String, body: I, eisTokenKey: String)(implicit
     wts: Writes[I],
     rds: HttpReads[O],
@@ -45,13 +40,10 @@ trait DesHelpers {
       .setHeader(headers(eisTokenKey): _*)
       .withBody(Json.toJson(body))
       .execute[O](implicitly[HttpReads[O]], implicitly[ExecutionContext])
-
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.copy(authorization = None)
-
   private val dateTimeFormatter =
     DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).withZone(ZoneId.of("UTC"))
-
   def headers(eisTokenKey: String) = Seq(
     CONTENT_TYPE -> JSON,
     ACCEPT -> JSON,
