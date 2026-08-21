@@ -244,8 +244,8 @@ class EisConnector @Inject() (
       s"SCP22 request: correlationId=$correlationId, " +
         s"idType=${beneficiaryIDRequest.idType}, " +
         s"idValue=${beneficiaryIDRequest.idValue}, " +
-        s"requestType=${beneficiaryIDRequest.requestType}, " +
-        s"beneficiaryInfo=${beneficiaryIDRequest.beneficiaryInfo}"
+        s"requestType=${beneficiaryIDRequest.requestType}, "
+        s"requestType=${beneficiaryIDRequest.requestType}, "
     )
     http
       .post(new URL(s"$eisURL/$beneficiaryIDRequestUrl"))
