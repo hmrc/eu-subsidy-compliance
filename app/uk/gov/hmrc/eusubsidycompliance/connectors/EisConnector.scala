@@ -266,7 +266,7 @@ class EisConnector @Inject() (
                 s"requestType=${beneficiaryIDRequest.requestType}"
             )
             Right(response)
-          case 422 if res.body.contains(s"\"code\":\"$noBeneficiaryIdEisErrorCode\"") =>
+          case 422 if res.body.contains(noBeneficiaryIdEisErrorCode) =>
             logger.info(
               s"SCP22 no beneficiary ID: correlationId=$correlationId, " +
                 s"idValue=${beneficiaryIDRequest.idValue}, " +
