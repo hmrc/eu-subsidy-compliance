@@ -31,12 +31,11 @@ import uk.gov.hmrc.eusubsidycompliance.models.undertakingOperationsFormat.{Creat
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.net.URL
-import java.time.temporal.ChronoUnit.DAYS
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit.DAYS
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 

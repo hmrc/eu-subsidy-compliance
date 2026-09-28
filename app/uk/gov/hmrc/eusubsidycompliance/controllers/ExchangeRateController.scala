@@ -17,17 +17,15 @@
 package uk.gov.hmrc.eusubsidycompliance.controllers
 
 import play.api.Logging
-import play.api.mvc.ControllerComponents
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.eusubsidycompliance.controllers.actions.Authenticator
 import uk.gov.hmrc.eusubsidycompliance.services.ExchangeRateService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import play.api.mvc.{Action, AnyContent}
-
-import javax.inject.Inject
-import scala.concurrent.ExecutionContext
-import play.api.libs.json.Json
 
 import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class ExchangeRateController @Inject() (
   cc: ControllerComponents,

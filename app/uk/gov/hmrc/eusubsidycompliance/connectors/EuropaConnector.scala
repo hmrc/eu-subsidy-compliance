@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.eusubsidycompliance.connectors
 
-import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 import uk.gov.hmrc.eusubsidycompliance.connectors.EuropaConnector.reads
+import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpReads.Implicits._
-
-import java.time.LocalDate
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.net.URL
+import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EuropaConnector @Inject() (client: HttpClientV2, servicesConfig: ServicesConfig) {

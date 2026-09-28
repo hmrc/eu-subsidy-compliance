@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import play.api.libs.functional.syntax.{unlift, _}
-import play.api.libs.json._
-import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 import uk.gov.hmrc.eusubsidycompliance.models.types.*
+import uk.gov.hmrc.eusubsidycompliance.models.types.AmendmentType.AmendmentType
 
 import java.time.LocalDate
 
