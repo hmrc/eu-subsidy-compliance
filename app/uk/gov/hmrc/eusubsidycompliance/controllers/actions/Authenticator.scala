@@ -18,11 +18,10 @@ package uk.gov.hmrc.eusubsidycompliance.controllers.actions
 
 import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
-import play.api.mvc._
-import uk.gov.hmrc.auth.core._
+import play.api.mvc.*
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.eusubsidycompliance.models.types.EORI
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 

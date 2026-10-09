@@ -17,12 +17,11 @@
 package uk.gov.hmrc.eusubsidycompliance.persistence
 
 import cats.implicits.{catsSyntaxApplyOps, toFunctorOps}
-import org.mongodb.scala.model.Filters
+import org.mongodb.scala.model.*
 import uk.gov.hmrc.eusubsidycompliance.models.MonthlyExchangeRate
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.MongoComponent
-import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.jatLocalDateFormat
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}

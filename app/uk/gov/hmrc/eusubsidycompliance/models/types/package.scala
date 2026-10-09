@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.eusubsidycompliance.models
 
-import play.api.libs.json.{Format, Json}
 import play.api.libs.json.*
 
 package object types extends SimpleJson {
