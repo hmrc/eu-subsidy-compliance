@@ -28,12 +28,26 @@ class EisBadResponseException(
   statusText: Option[String],
   returnParameters: Option[List[Params]]
 ) extends RuntimeException(
-      s"$processingDate $status ${statusText.getOrElse("")} ${returnParameters.getOrElse(List.empty[Params])}"
+      EisBadResponseException.redactEori(
+        s"$processingDate $status ${statusText.getOrElse("")} ${returnParameters.getOrElse(List.empty[Params])}"
+      )
     ) {
 
   val params: Map[EisParamName, EisParamValue] =
     returnParameters.getOrElse(List.empty[Params]).map(x => (x.paramName, x.paramValue)).toMap
-  val code: EisParamValue = params.getOrElse(EisParamName.ERRORCODE, EisParamValue("UNKNOWN"))
-  val message: EisParamValue = params.getOrElse(EisParamName.ERRORTEXT, EisParamValue("UNKNOWN"))
 
+  val code: EisParamValue =
+    params.getOrElse(EisParamName.ERRORCODE, EisParamValue("UNKNOWN"))
+
+  val message: EisParamValue =
+    params.getOrElse(EisParamName.ERRORTEXT, EisParamValue("UNKNOWN"))
+
+}
+
+object EisBadResponseException {
+
+  private val eoriPattern = raw"\bGB\d{12}\b".r
+
+  def redactEori(text: String): String =
+    eoriPattern.replaceAllIn(text, m => m.matched.dropRight(5) + "*****")
 }
