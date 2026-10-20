@@ -49,5 +49,5 @@ object EisBadResponseException {
   private val eoriPattern = raw"\bGB\d{12}\b".r
 
   def redactEori(text: String): String =
-    eoriPattern.replaceAllIn(text, m => m.matched.dropRight(5) + "*****")
+    eoriPattern.replaceAllIn(text, m => m.matched.dropRight(6) + "******")
 }
